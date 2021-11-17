@@ -6,9 +6,9 @@
     {
         [Option(
            'i',
-           "Interval",
+           "FeedIntervalInMilliseconds",
            Required = false,
            HelpText = "Interval in milliseconds at which simulated sensor telemetry is generated.")]
-        public string? Interval { get; set; }
+        public int FeedIntervalInMilliseconds { get; set; }
     }
 }

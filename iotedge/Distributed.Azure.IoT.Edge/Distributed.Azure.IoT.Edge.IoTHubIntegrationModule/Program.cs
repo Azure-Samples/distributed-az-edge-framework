@@ -19,8 +19,6 @@ ParserResult<IoTHubParameters> result = Parser.Default.ParseArguments<IoTHubPara
                     Environment.Exit(1);
                 });
 
-Console.WriteLine($"CONN STR: {parameters?.PrimaryConnectionString}");
-
 // Add services to the container.
 builder.Services.AddControllers().AddDapr();
 

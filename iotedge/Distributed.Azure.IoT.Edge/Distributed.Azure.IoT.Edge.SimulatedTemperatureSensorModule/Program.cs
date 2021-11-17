@@ -1,5 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
-// dapr run --log-level debug  --app-id temp-sensor-module -- dotnet run
+// dapr run --app-id temp-sensor-module -- dotnet run -- -i 1000
 
 using CommandLine;
 
@@ -10,8 +10,6 @@ using Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
-Console.WriteLine("Initiating IoT edge custom module...");
 
 TemperatureSensorParameters? parameters = null;
 
@@ -25,11 +23,15 @@ ParserResult<TemperatureSensorParameters> result = Parser.Default.ParseArguments
                     Environment.Exit(1);
                 });
 
-// TODO: Check disposing resources.
 await CreateHostBuilder(args, parameters).Build().RunAsync();
 
 static IHostBuilder CreateHostBuilder(string[] args, TemperatureSensorParameters? parameters) =>
 Host.CreateDefaultBuilder(args)
     .ConfigureServices((_, services) =>
-        services.AddHostedService<Worker>(sp => new Worker(sp.GetRequiredService<ILogger<Worker>>(), sp.GetRequiredService<DaprClient>(), "pubsub", "telemetry"))
-        .AddSingleton<DaprClient>(new DaprClientBuilder().Build()));
+        services.AddHostedService<Worker>(sp =>
+                new Worker(
+                sp.GetRequiredService<ILogger<Worker>>(),
+                sp.GetRequiredService<DaprClient>(),
+                parameters?.FeedIntervalInMilliseconds,
+                "pubsub",
+                "telemetry")).AddSingleton<DaprClient>(new DaprClientBuilder().Build()));

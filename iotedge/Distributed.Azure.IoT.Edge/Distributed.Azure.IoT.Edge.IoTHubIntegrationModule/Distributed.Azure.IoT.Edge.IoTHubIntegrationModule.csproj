@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj" />
+    <ProjectReference Include="..\Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj" />    
   </ItemGroup>
 
 </Project>

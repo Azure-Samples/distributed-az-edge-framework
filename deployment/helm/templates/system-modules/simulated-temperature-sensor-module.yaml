@@ -21,4 +21,5 @@ spec:
       containers:
       - name: simulated-temperature-sensor-module
         image: suneetnangia/distributedazureiotedgesimulatedtemperaturesensormodule
+        args: ["-i", "{{ .Values.simulatedTemperatureSensorFeedIntervalInMilliseconds }}"]
       restartPolicy: Always
