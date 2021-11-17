@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: iot-hub-integration-module
-        image: suneetnangia/distributedazureiotedgeiothubmodule
+        image: suneetnangia/distributedazureiotedgeiothubintegrationmodule
         args: ["-p", "$(IOT_HUB_DEVICE_PRIMARY_CONNECTION_STRING)"]
         env:
         - name: IOT_HUB_DEVICE_PRIMARY_CONNECTION_STRING

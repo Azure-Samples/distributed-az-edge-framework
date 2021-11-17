@@ -7,13 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.Common", "Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj", "{CC1000A0-3492-42AF-9BB0-2C75EBA44975}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.IoTHubModule", "Distributed.Azure.IoT.Edge.IoTHubModule\Distributed.Azure.IoT.Edge.IoTHubModule.csproj", "{1BCC9791-B92D-4A42-885E-DA68004E9DE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.IoTHubIntegrationModule", "Distributed.Azure.IoT.Edge.IoTHubIntegrationModule\Distributed.Azure.IoT.Edge.IoTHubIntegrationModule.csproj", "{1BCC9791-B92D-4A42-885E-DA68004E9DE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.Azure.IoT.Edge.IoTHubModule.Tests", "Distributed.Azure.IoT.Edge.IoTHubModule.Tests\Distributed.Azure.IoT.Edge.IoTHubModule.Tests.csproj", "{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.IoTHubIntegrationModule.Tests", "Distributed.Azure.IoT.Edge.IoTHubIntegrationModule.Tests\Distributed.Azure.IoT.Edge.IoTHubIntegrationModule.Tests.csproj", "{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.Azure.IoT.Edge.Common.Tests", "Distributed.Azure.IoT.Edge.Common.Tests\Distributed.Azure.IoT.Edge.Common.Tests.csproj", "{B4844607-E5A7-42B7-9691-D12A97E07D3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.Common.Tests", "Distributed.Azure.IoT.Edge.Common.Tests\Distributed.Azure.IoT.Edge.Common.Tests.csproj", "{B4844607-E5A7-42B7-9691-D12A97E07D3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests", "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests\Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests.csproj", "{BD68E18C-A4CB-4030-A852-A4251BC04754}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests", "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests\Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests.csproj", "{BD68E18C-A4CB-4030-A852-A4251BC04754}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{FA60B5A5-1550-46FF-94FE-851ECC1D71BA}"
 	ProjectSection(SolutionItems) = preProject
