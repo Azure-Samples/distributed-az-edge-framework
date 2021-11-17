@@ -1,0 +1,17 @@
+name: GitHub CI
+on: [push]
+jobs:
+  Build-Code:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies
+      run: dotnet restore iotedge/Distributed.Azure.IoT.Edge
+    - name: Build
+      run: dotnet build iotedge/Distributed.Azure.IoT.Edge --no-restore
+    - name: Test
+      run: dotnet test iotedge/Distributed.Azure.IoT.Edge --no-build --verbosity normal
