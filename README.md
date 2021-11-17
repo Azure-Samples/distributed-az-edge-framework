@@ -23,9 +23,9 @@ Apart from the above arrangement, there is a system pod which gets deployed as w
 
 1. Deploy Dapr on K8s cluster if not already deployed, please refer to the guidance [here](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-deploy/#install-with-helm-advanced).
 2. Deploy the accelerator via Helm as below:
-   1. Clone repo locally on your Linux or WSL terminal.
-   2. Change working directory to distributed-az-edge-framework/deployment/helm
-   3. helm install aziotaccl . --set iothubIntegrationModuleDevicePrimaryKey="<IoT Hub Device Connection String for IoT Hub Integration Module>"
+   1. `helm repo add aziotaccl 'https://https://raw.github.com/suneetnangia/distributed-az-edge-framework/tree/main/deployment/helm/'`
+   2. `helm repo update`
+   3. `helm install demo  aziotaccl/iot-edge-accelerator --set iothubIntegrationModuleDevicePrimaryKey="<IoTHub Device Connection String>"`
 
 ## TODOs
 
