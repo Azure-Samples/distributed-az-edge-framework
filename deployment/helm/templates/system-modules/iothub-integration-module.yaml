@@ -1,0 +1,32 @@
+# System IoT Hub integration module/pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iot-hub-integration-module-deployment
+  labels:
+    app: iot-hub-integration-module
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iot-hub-integration-module
+  template:
+    metadata:
+      labels:
+        app: iot-hub-integration-module
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "iot-hub-integration-module"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+      - name: iot-hub-integration-module
+        image: suneetnangia/distributedazureiotedgeiothubmodule
+        args: ["-p", "$(IOT_HUB_DEVICE_PRIMARY_CONNECTION_STRING)"]
+        env:
+        - name: IOT_HUB_DEVICE_PRIMARY_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: iothub-integration-module-secret
+              key: iothubDeviceConnectionString
+      restartPolicy: Always

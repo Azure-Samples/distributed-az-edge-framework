@@ -17,11 +17,15 @@ Each pod contains two containers:
 1. A Dapr sidecar container which works as proxy to Dapr services and ecosystem.
 2. A custom code which leverages IoT Hub Device SDKs (optionally) to integrate with IoT Hub.
 
-Apart from the above arrangement, there is a system pod which gets deployed as well, this system pod is called IoT Hub Custom Module. The job of this pod is to route messages from pub-sub layer to IoT Hub using IoT Hub client SDKs.
+Apart from the above arrangement, there is a system pod which gets deployed as well, this system pod is called IoT Hub Integration Module. The job of this pod is to route messages from pub-sub layer to IoT Hub using IoT Hub client SDKs.
 
 ## Deployment Steps
 
-[Add solution deployment steps here]
+1. Deploy Dapr on K8s cluster if not already deployed, please refer to the guidance [here](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-deploy/#install-with-helm-advanced).
+2. Deploy the accelerator via Helm as below:
+   1. Clone repo locally on your Linux or WSL terminal.
+   2. Change working directory to distributed-az-edge-framework/deployment/helm
+   3. helm install aziotaccl . --set iothubIntegrationModuleDevicePrimaryKey="<IoT Hub Device Connection String for IoT Hub Integration Module>"
 
 ## TODOs
 
@@ -39,7 +43,8 @@ Apart from the above arrangement, there is a system pod which gets deployed as w
 ### Others
 
 1. Develop scalable/heavy (large size e.g. pn.json for OPCUA) module configuration and its management plane.
-2. Develop multi ML model execution engine/design.
+2. Device Id used for IoT Hub integration module prevents sharding of data at IoT Hub Event Hub backend.
+3. Develop multi ML model execution engine/design.
 
 ### Stretch
 

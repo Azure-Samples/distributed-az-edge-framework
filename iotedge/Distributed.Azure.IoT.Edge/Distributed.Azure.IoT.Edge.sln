@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule", "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule\Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.csproj", "{448E4EC6-213D-47DB-8084-219D7EFEEEEE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.Common", "Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj", "{CC1000A0-3492-42AF-9BB0-2C75EBA44975}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.Azure.IoT.Edge.IoTHubModule", "Distributed.Azure.IoT.Edge.IoTHubModule\Distributed.Azure.IoT.Edge.IoTHubModule.csproj", "{1BCC9791-B92D-4A42-885E-DA68004E9DE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.Azure.IoT.Edge.IoTHubModule.Tests", "Distributed.Azure.IoT.Edge.IoTHubModule.Tests\Distributed.Azure.IoT.Edge.IoTHubModule.Tests.csproj", "{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.Azure.IoT.Edge.Common.Tests", "Distributed.Azure.IoT.Edge.Common.Tests\Distributed.Azure.IoT.Edge.Common.Tests.csproj", "{B4844607-E5A7-42B7-9691-D12A97E07D3D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests", "Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests\Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests.csproj", "{BD68E18C-A4CB-4030-A852-A4251BC04754}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configuration", "{FA60B5A5-1550-46FF-94FE-851ECC1D71BA}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		common.props = common.props
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{448E4EC6-213D-47DB-8084-219D7EFEEEEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{448E4EC6-213D-47DB-8084-219D7EFEEEEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{448E4EC6-213D-47DB-8084-219D7EFEEEEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{448E4EC6-213D-47DB-8084-219D7EFEEEEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC1000A0-3492-42AF-9BB0-2C75EBA44975}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC1000A0-3492-42AF-9BB0-2C75EBA44975}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC1000A0-3492-42AF-9BB0-2C75EBA44975}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC1000A0-3492-42AF-9BB0-2C75EBA44975}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BCC9791-B92D-4A42-885E-DA68004E9DE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BCC9791-B92D-4A42-885E-DA68004E9DE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BCC9791-B92D-4A42-885E-DA68004E9DE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BCC9791-B92D-4A42-885E-DA68004E9DE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D04CAE5-F4EC-489F-938D-7DF3F20335E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4844607-E5A7-42B7-9691-D12A97E07D3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4844607-E5A7-42B7-9691-D12A97E07D3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4844607-E5A7-42B7-9691-D12A97E07D3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4844607-E5A7-42B7-9691-D12A97E07D3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD68E18C-A4CB-4030-A852-A4251BC04754}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD68E18C-A4CB-4030-A852-A4251BC04754}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD68E18C-A4CB-4030-A852-A4251BC04754}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD68E18C-A4CB-4030-A852-A4251BC04754}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C49300F-28C0-4B2A-8BCC-8BF4DBCCF380}
+	EndGlobalSection
+EndGlobal
