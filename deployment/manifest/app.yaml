@@ -1,0 +1,13 @@
+apiVersion: helm.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: iot-edge-accelerator
+  namespace: aziotedge-workload
+spec:
+  releaseName: iot-edge-accelerator-v0
+  chart:
+    git: https://github.com/suneetnangia/distributed-az-edge-framework.git
+    ref: main
+    path: /deployment/helm
+  values:
+    simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
