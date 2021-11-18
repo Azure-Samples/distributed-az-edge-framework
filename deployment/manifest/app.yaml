@@ -4,10 +4,14 @@ metadata:
   name: iot-edge-accelerator
   namespace: aziotedge-workload
 spec:
-  releaseName: iot-edge-accelerator-v0
+  interval: 5m
   chart:
-    git: https://github.com/suneetnangia/distributed-az-edge-framework.git
-    ref: main
-    path: /deployment/helm
+    spec:
+      chart: iot-edge-accelerator
+      sourceRef:
+        kind: GitRepository
+        path: /deployment/helm
+        namespace: aziotedge-workload
+      interval: 1m    
   values:
     simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
