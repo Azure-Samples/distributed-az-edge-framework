@@ -29,10 +29,21 @@ Apart from the above arrangement, there is a system pod which gets deployed as w
 ### Steps
 
 1. Deploy Dapr on K8s cluster if not already deployed, please refer to the guidance [here](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-deploy/#install-with-helm-advanced).
-2. Deploy the accelerator via Helm as below:
-   1. `helm repo add aziotaccl 'https://https://raw.github.com/suneetnangia/distributed-az-edge-framework/tree/main/deployment/helm/'`
-   2. `helm repo update`
-   3. `helm install demo  aziotaccl/iot-edge-accelerator --set iothubIntegrationModuleDevicePrimaryKey="<IoTHub Device Connection String>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000`
+2. Deploy Redis on K8s cluster if not already deployed:
+
+    ```
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm repo update
+    helm install redis bitnami/redis
+    ```
+
+3. Deploy the accelerator via Helm as below:
+
+    ```
+   helm repo add aziotaccl 'https://https://raw.github.com/suneetnangia/distributed-az-edge-framework/tree/main/deployment/helm/'
+   helm repo update
+   helm install demo  aziotaccl/iot-edge-accelerator --set iothubIntegrationModuleDevicePrimaryKey="<IoTHub Device Connection String>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
+    ```
 
 ## Outstanding (Work in Progress)
 
