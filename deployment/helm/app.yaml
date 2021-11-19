@@ -13,5 +13,3 @@ spec:
         name: iot-edge-accelerator
         namespace: aziotedge-workload
       interval: 1m
-  values:
-    simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
