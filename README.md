@@ -55,7 +55,7 @@ Apart from the above arrangement, there is a system pod which gets deployed as w
 
 ### Management Plane
 
-1. Arc based remote management.
+1. Arc based remote management, please refer to wiki [here](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Deployment-Plane-and-Service-Composition) for latest thinking around it.
 2. Guidance on how to manage edge workloads in nested/ISA 95 scenarios.
 
 ### Others
