@@ -1,5 +1,0 @@
-# Simulated temperature sensor feed interval in milliseconds.
-simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
-
-# Primary key of IoT Hub device, which is used by IoT Hub integration module to connect to IoT Hub in cloud.
-iothubIntegrationModuleDevicePrimaryKey: ""
