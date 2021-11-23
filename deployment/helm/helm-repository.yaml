@@ -1,0 +1,11 @@
+# https://fluxcd.io/docs/guides/helmreleases/
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: GitRepository
+metadata:
+  name: iot-edge-accelerator-repo
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://github.com/suneetnangia/distributed-az-edge-framework.git/deployment/helm
+  ref:
+    branch: feature/arc-flux-cd
