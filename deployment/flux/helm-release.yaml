@@ -13,3 +13,5 @@ spec:
         name: iot-edge-accelerator-repo
         namespace: flux-system
       interval: 1m
+  values:
+    iothubIntegrationModuleDevicePrimaryKey: "dummyvalue"
