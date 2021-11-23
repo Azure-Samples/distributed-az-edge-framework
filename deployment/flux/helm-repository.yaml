@@ -6,11 +6,11 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://github.com/suneetnangia/distributed-az-edge-framework.git/deployment
+  url: https://github.com/suneetnangia/distributed-az-edge-framework.git
   ref:
     branch: feature/arc-flux-cd
   ignore: |
     # exclude all
     /*
     # include charts directory
-    !/helm/  
+    !/deployment/helm/

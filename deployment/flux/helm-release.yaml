@@ -7,7 +7,7 @@ spec:
   interval: 1m
   chart:
     spec:
-      chart: ./helm
+      chart: ./deployment/helm
       sourceRef:
         kind: GitRepository        
         name: iot-edge-accelerator-repo
