@@ -22,8 +22,10 @@ jobs:
       run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
     - name: Change dir to iothubintegrationmodule project
       run: cd iotedge/Distributed.Azure.IoT.Edge
+    - name: Current directory ls
+      run: ls
     - name: Build the tagged Docker image
-      run: docker build Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/. --file Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:v0.1
+      run: docker build iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/. --file Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:v0.1
     - name: Push the tagged Docker image
       run: docker push suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:v0.1
     - name: Build the latest Docker image
