@@ -2,4 +2,5 @@
 simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
 
 # Primary key of IoT Hub device, which is used by IoT Hub integration module to connect to IoT Hub in cloud.
-iothubIntegrationModuleDevicePrimaryKey: ""
+# TODO: Change name to primary connection string.
+iothubIntegrationModuleDevicePrimaryKey: "dummykey"

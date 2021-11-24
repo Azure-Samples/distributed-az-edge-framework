@@ -1,0 +1,19 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: iot-edge-accelerator-release
+  namespace: default
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: ./deployment/helm
+      sourceRef:
+        kind: GitRepository        
+        name: iot-edge-accelerator-repo
+        namespace: flux-system
+      interval: 1m  
+  valuesFrom:
+  - kind: Secret
+    name: iothub-integration-module-secret-seed
+    valuesKey: iothubIntegrationModuleDevicePrimaryKey

@@ -1,5 +1,7 @@
 # Distributed Azure IoT Edge Workload Accelerator for K8s
 
+[![GitHub CI](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml)
+
 This repo is developed to enable developers to build edge solutions on K8s in a scalable and resilient manner. It makes use of IoT Hub client SDKs to allow integration with IoT Hub for various features like device/module twin updates, direct methods and D2C/C2D messages. Equally, it allows you do develop edge modules without integration with IoT Hub, in which case you can manage module configuration out of IoT Hub context.
 
 The accelerator makes use of Distributed Application Runtime ([Dapr](https://dapr.io/)) building blocks to enable cross-cutting non functional features which we are common in edge scenarios, some of those are mentioned below:
@@ -55,7 +57,7 @@ Apart from the above arrangement, there is a system pod which gets deployed as w
 
 ### Management Plane
 
-1. Arc based remote management.
+1. Arc based remote management, please refer to wiki [here](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Deployment-Plane-and-Service-Composition) for latest thinking around it.
 2. Guidance on how to manage edge workloads in nested/ISA 95 scenarios.
 
 ### Others
