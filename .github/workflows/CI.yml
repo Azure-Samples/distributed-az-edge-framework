@@ -19,7 +19,7 @@ jobs:
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo ${GITHUB_SHA}${GITHUB_REF#refs/*/})
+      run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10}-${GITHUB_SHA})
     - name: echo tag
       run: echo ${{steps.vars.outputs.tag}}
       
