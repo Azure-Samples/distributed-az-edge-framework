@@ -12,6 +12,10 @@ spec:
         kind: GitRepository        
         name: iot-edge-accelerator-repo
         namespace: flux-system
-      interval: 1m
-  values:
-    iothubIntegrationModuleDevicePrimaryKey: "dummyvalue"
+      interval: 1m  
+  valuesFrom:
+    - secretKeyRef:
+      name: iothub-integration-module-secret-seed
+      namespace: Default
+      key: values.yaml
+      optional: false
