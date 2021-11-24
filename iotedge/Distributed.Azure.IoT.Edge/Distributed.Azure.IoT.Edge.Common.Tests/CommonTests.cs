@@ -1,9 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Distributed.Azure.IoT.Edge.Shared.Tests
+namespace Distributed.Azure.IoT.Edge.Common.Tests
 {
     [TestClass]
-    public class SharedTests
+    public class CommonTests
     {
         [TestMethod]
         public void TestMethod1()
