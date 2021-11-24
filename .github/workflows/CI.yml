@@ -15,6 +15,4 @@ jobs:
       run: dotnet build iotedge/Distributed.Azure.IoT.Edge --no-restore
     - name: Test
       run: dotnet test iotedge/Distributed.Azure.IoT.Edge --no-build --verbosity normal
-    - name: Build the Docker images
-      run: docker build iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag iothub-integration-module:$(date +%s)
-      run: docker build iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag simulated-temperature-sensor-module:$(date +%s)
+  
