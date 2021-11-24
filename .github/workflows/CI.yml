@@ -25,6 +25,6 @@ jobs:
     - name: Push the tagged Docker image
       run: docker push suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:v0.1
     - name: Build the latest Docker image
-      run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile--tag suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:latest
+      run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:latest
     - name: Push the latest Docker image
       run: docker push suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:latest
