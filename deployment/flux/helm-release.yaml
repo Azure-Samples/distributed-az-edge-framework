@@ -15,6 +15,5 @@ spec:
       interval: 1m  
   valuesFrom:
   - kind: Secret
-    name: iothub-integration-module-secret-seed    
-    valuesKey: values.yaml
-    targetPath: iothubIntegrationModuleDevicePrimaryKey
+    name: iothub-integration-module-secret-seed
+    valuesKey: iothubIntegrationModuleDevicePrimaryKey
