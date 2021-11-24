@@ -14,8 +14,8 @@ spec:
         namespace: flux-system
       interval: 1m  
   valuesFrom:
-    - secretKeyRef:
-      name: iothub-integration-module-secret-seed
-      namespace: Default
-      key: values.yaml
-      optional: false
+  - kind: Secret:
+    name: iothub-integration-module-secret-seed
+    namespace: Default
+    valuesKey: values.yaml
+    targetPath: iothubIntegrationModuleDevicePrimaryKey
