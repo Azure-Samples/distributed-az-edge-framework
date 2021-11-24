@@ -37,11 +37,11 @@ jobs:
       run: docker push suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:main-ci-latest
       
     - name: Build the tagged Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
+      run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
     - name: Push the tagged Docker image for Simulated Temperature Sensor module.
       run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
 
     - name: Build the latest Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+      run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
     - name: Push the latest Docker image for Simulated Temperature Sensor module.
       run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
