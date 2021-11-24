@@ -2,7 +2,7 @@ name: Main Branch CI
 on: 
   push:
     branches: 
-      - main
+      - feature/release-management
 jobs:
   Build-Code:
     runs-on: ubuntu-latest
@@ -22,7 +22,7 @@ jobs:
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo main-ci-${GITHUB_SHA})
+      run: echo ::set-output name=tag::$(echo main-f-${GITHUB_SHA})
     - name: echo tag
       run: echo ${{steps.vars.outputs.tag}}
       
@@ -35,4 +35,8 @@ jobs:
       run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
     - name: Push the tagged Docker image for Simulated Temperature Sensor module.
       run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
-
+      
+    - name: Helm Chart Releaser
+      # You may pin to the exact commit or the version.
+      # uses: helm/chart-releaser-action@c25b74a986eb925b398320414b576227f375f946
+      uses: helm/chart-releaser-action@v1.2.1
