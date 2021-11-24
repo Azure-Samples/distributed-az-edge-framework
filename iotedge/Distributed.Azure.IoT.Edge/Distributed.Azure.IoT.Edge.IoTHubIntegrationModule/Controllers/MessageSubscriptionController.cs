@@ -30,7 +30,7 @@ namespace Distributed.Azure.IoT.Edge.System.IoTHubModule.Controllers
         {
             var messageString = telemetry.ToJsonString();
 
-            _logger.LogTrace($"Sending message to IoT Hub, message {messageString}.");
+            _logger.LogTrace($"Sending message to IoT Hub in cloud, message {messageString}.");
 
             using (var message = new Message(Encoding.UTF8.GetBytes(messageString)))
             {
