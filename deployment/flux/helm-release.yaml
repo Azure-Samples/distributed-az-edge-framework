@@ -17,3 +17,4 @@ spec:
   - kind: Secret
     name: iothub-integration-module-secret-seed
     valuesKey: iothubIntegrationModuleDevicePrimaryKey
+    
