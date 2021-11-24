@@ -14,4 +14,3 @@ spec:
     /*
     # include charts directory
     !/deployment/helm/
-    
