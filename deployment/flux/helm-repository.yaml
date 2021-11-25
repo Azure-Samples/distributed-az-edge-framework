@@ -8,7 +8,7 @@ spec:
   interval: 1m
   url: https://github.com/suneetnangia/distributed-az-edge-framework.git
   ref:
-    branch: feature/arc-flux-cd
+    branch: main
   ignore: |
     # exclude all
     /*
