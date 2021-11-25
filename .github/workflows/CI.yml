@@ -3,6 +3,8 @@ on:
   push:
     branches: 
       - feature/release-management
+    paths-ignore:
+      - 'deployment/**'
 jobs:
   Build-Code:
     runs-on: ubuntu-latest
@@ -45,31 +47,3 @@ jobs:
       run: docker build iotedge/Distributed.Azure.IoT.Edge/. --file iotedge/Distributed.Azure.IoT.Edge/Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
     - name: Push the latest Docker image for Simulated Temperature Sensor module.
       run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
-
-  Release-Artifacts:
-    needs: Build-Code
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Configure Git
-      run: |
-        git config user.name "$GITHUB_ACTOR"
-        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
-    - name: Get the version
-      id: vars
-      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
-      
-    - name: Echo Docker images tag
-      run: echo ${{steps.vars.outputs.tag}}
-
-    - name: Run chart-releaser
-      uses: helm/chart-releaser-action@v1.1.0
-      env:
-        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      with:
-        charts_dir: deployment/helm
