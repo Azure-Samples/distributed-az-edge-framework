@@ -4,7 +4,7 @@ on:
     branches: 
       - feature/release-management
 jobs:
-  Build-Code-Release:
+  Build-Code:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +23,7 @@ jobs:
     - name: Get the version
       id: vars
       run: echo ::set-output name=tag::$(echo main-f-${GITHUB_SHA})
-    - name: echo tag
+    - name: Echo Docker images tag
       run: echo ${{steps.vars.outputs.tag}}
       
     # - name: Build the tagged Docker image for Iot Hub Integration module.
@@ -46,10 +46,26 @@ jobs:
     # - name: Push the latest Docker image for Simulated Temperature Sensor module.
     #   run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
 
+  Release-Artifacts:
+    needs: Build-Code
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
     - name: Configure Git
       run: |
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Get the version
+      id: vars
+      run: echo ::set-output name=tag::$(echo main-f-${GITHUB_SHA})
+      
+    - name: Echo Docker images tag
+      run: echo ${{steps.vars.outputs.tag}}
 
     - name: Run chart-releaser
       uses: helm/chart-releaser-action@v1.1.0
