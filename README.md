@@ -39,12 +39,12 @@ Apart from the above arrangement, there is a system pod which gets deployed as w
     helm install redis bitnami/redis
     ```
 
-3. Deploy the accelerator via Helm as below:
+3. Deploy the accelerator with the latest release, via Helm as below:
 
     ```
-   helm repo add aziotaccl 'https://https://raw.github.com/suneetnangia/distributed-az-edge-framework/tree/main/deployment/helm/'
+   helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
    helm repo update
-   helm install demo  aziotaccl/iot-edge-accelerator --set iothubIntegrationModuleDevicePrimaryKey="<IoTHub Device Connection String>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
+   helm install az-edge-accelerator aziotaccl/iot-edge-accelerator --set iothubIntegrationModuleDevicePrimaryKey="<IoTHub Device Connection String>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
     ```
 
 ## Outstanding (Work in Progress)
