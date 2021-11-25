@@ -51,4 +51,6 @@ jobs:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       # You may pin to the exact commit or the version.
       # uses: helm/chart-releaser-action@c25b74a986eb925b398320414b576227f375f946
-      uses: helm/chart-releaser-action@v1.2.1      
+      uses: helm/chart-releaser-action@v1.2.1
+      with: 
+        charts_dir: abc
