@@ -22,7 +22,7 @@ jobs:
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo main-f-${GITHUB_SHA})
+      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
     - name: Echo Docker images tag
       run: echo ${{steps.vars.outputs.tag}}
       
@@ -62,7 +62,7 @@ jobs:
 
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo main-f-${GITHUB_SHA})
+      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
       
     - name: Echo Docker images tag
       run: echo ${{steps.vars.outputs.tag}}
