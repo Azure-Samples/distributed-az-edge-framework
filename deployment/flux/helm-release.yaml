@@ -7,7 +7,7 @@ spec:
   interval: 1m
   chart:
     spec:
-      chart: aziotedgerelease/iot-edge-accelerator
+      chart: iot-edge-accelerator
       sourceRef:
         kind: HelmRepository        
         name: iot-edge-accelerator-repo
