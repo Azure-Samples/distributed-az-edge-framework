@@ -1,6 +1,0 @@
-You have installed release {{ .Chart.Version}} of {{ .Chart.Name }} of IoT Edge K8s Accelerator.
-
-To learn more about the release, try:
-
-  $ helm status {{ .Release.Name }}
-  $ helm get all {{ .Release.Name }}

@@ -7,9 +7,9 @@ spec:
   interval: 1m
   chart:
     spec:
-      chart: ./deployment/helm
+      chart: iot-edge-accelerator
       sourceRef:
-        kind: GitRepository        
+        kind: HelmRepository        
         name: iot-edge-accelerator-repo
         namespace: flux-system
       interval: 1m  

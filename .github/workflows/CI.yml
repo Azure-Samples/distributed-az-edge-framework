@@ -3,6 +3,8 @@ on:
   push:
     branches: 
       - main
+    paths-ignore:
+      - 'deployment/**'
 jobs:
   Build-Code:
     runs-on: ubuntu-latest
@@ -22,8 +24,8 @@ jobs:
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo main-ci-${GITHUB_SHA})
-    - name: echo tag
+      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
+    - name: Echo Docker images tag
       run: echo ${{steps.vars.outputs.tag}}
       
     - name: Build the tagged Docker image for Iot Hub Integration module.
