@@ -1,4 +1,4 @@
 
 ## Released Helm Charts
 
-This a branch for Helm Charts.
+This is a branch for Helm Charts.
