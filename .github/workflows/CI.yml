@@ -4,7 +4,7 @@ on:
     branches: 
       - feature/release-management
 jobs:
-  Build-Code:
+  Build-Code-Release:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -46,22 +46,14 @@ jobs:
     # - name: Push the latest Docker image for Simulated Temperature Sensor module.
     #   run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
 
-  Release-Artifacts:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-          with:
-            fetch-depth: 0
-
-        - name: Configure Git
+    - name: Configure Git
           run: |
             git config user.name "$GITHUB_ACTOR"
             git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-        - name: Run chart-releaser
-          uses: helm/chart-releaser-action@v1.1.0
-          env:
-            CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          with:
-            charts_dir: deployment/helm
+    - name: Run chart-releaser
+      uses: helm/chart-releaser-action@v1.1.0
+      env:
+        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      with:
+        charts_dir: deployment/helm
