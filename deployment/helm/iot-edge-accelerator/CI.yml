@@ -46,7 +46,7 @@ jobs:
     # - name: Push the latest Docker image for Simulated Temperature Sensor module.
     #   run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
 
-  release:
+  Release Artifacts:
       runs-on: ubuntu-latest
       steps:
         - name: Checkout
@@ -63,3 +63,5 @@ jobs:
           uses: helm/chart-releaser-action@v1.1.0
           env:
             CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          with:
+            charts_dir: deployment/helm
