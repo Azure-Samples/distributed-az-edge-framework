@@ -28,7 +28,7 @@ Apart from the above arrangement, the following system modules/pods are part of 
 
 The accelerator makes use of the following products and services:
 
-## Azure Arc
+### Azure Arc
 
 [Azure Arc](https://docs.microsoft.com/en-us/azure/azure-arc/overview) enables the remote control plane for edge platform and provides the following inherent benefits:
 
@@ -38,7 +38,7 @@ The accelerator makes use of the following products and services:
 4. Uniform deployment plane for both edge and other workloads on K8s.
 5. Access to K8s cluster in offline mode via industry standard tools like Helm.
 
-## Distributed Application Runtime ([Dapr](https://dapr.io/))
+### Distributed Application Runtime ([Dapr](https://dapr.io/))
 
 Dapr building blocks enable the cross-cutting amd non functional features which we are common in edge scenarios, some of those are mentioned below:
 
