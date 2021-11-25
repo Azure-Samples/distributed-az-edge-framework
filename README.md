@@ -8,28 +8,6 @@ Azure IoT Edge provides an an easy on-ramp experience for light weight edge comp
 
 This repo provides an accelerator and guidance to enable those customer wants build edge solutions on K8s in a scalable and resilient manner. It makes use of IoT Hub client SDKs to allow integration with IoT Hub for various features like device/module twin updates, direct methods and D2C/C2D messages. Equally, it allows you do develop edge modules without integration with IoT Hub, in which case you can manage module configuration out of IoT Hub context.
 
-The accelerator makes use of the following products and services:
-
-## Azure Arc
-
-[Azure Arc](https://docs.microsoft.com/en-us/azure/azure-arc/overview) enables the remote control plane for edge platform and provides the following inherent benefits:
-
-1. Remote management plane for K8s cluster on the edge, including host management.
-2. Desired state management for edge workloads, using Azure Arc's Flux CD extension in conjunction with K8s native constructs.
-3. Standard application deployment model using K8s native constructs i.e. Helm/Kustomize.
-4. Uniform deployment plane for both edge and other workloads on K8s.
-
-## Distributed Application Runtime ([Dapr](https://dapr.io/))
-
-Dapr building blocks enable the cross-cutting amd non functional features which we are common in edge scenarios, some of those are mentioned below:
-
-1. Local messaging with pub-sub functionality, optionally using standard [CloudEvents](https://cloudevents.io/).
-2. Resilient communication between services and cloud endpoints, using [Circuit-breaker](https://docs.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) pattern.
-3. Low latency and high throughput based service invocations, using [gRPC](https://grpc.io/) or Http RESTful mechanism.
-4. Secure service to service communication, using mTLS or [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/).
-5. Well known and understood configuration and secret management.
-6. End to end observability at both application and platform level, using OpenTelemetry.
-
 ## Design
 
 Following diagram shows the abstracted view of the overall solution approach:
@@ -47,6 +25,29 @@ Apart from the above arrangement, the following system modules/pods are part of 
 2. [**IoT Hub Identity Translation Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/IoT-Hub-Identity-Translation-Module), job of this module/pod is to provide bidirectional data/control plane for leaf/downstream devices using IoT Hub.
 3. [**OPC UA Publisher Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/OPC-UA-Publisher-Module), OPC UA Publisher module to connect to downstream devices/hubs in industrial IoT scenarios.
 4. [**Simulated Temperature Sensor Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Simulated-Temperature-Sensor-Module), emits random temperature and pressure telemetry for testing purposes.
+
+The accelerator makes use of the following products and services:
+
+## Azure Arc
+
+[Azure Arc](https://docs.microsoft.com/en-us/azure/azure-arc/overview) enables the remote control plane for edge platform and provides the following inherent benefits:
+
+1. Remote management plane for K8s cluster on the edge, including host management.
+2. Desired state management for edge workloads, using Azure Arc's Flux CD extension in conjunction with K8s native constructs.
+3. Standard application deployment model using K8s native constructs i.e. Helm/Kustomize.
+4. Uniform deployment plane for both edge and other workloads on K8s.
+5. Access to K8s cluster in offline mode via industry standard tools like Helm.
+
+## Distributed Application Runtime ([Dapr](https://dapr.io/))
+
+Dapr building blocks enable the cross-cutting amd non functional features which we are common in edge scenarios, some of those are mentioned below:
+
+1. Local messaging with pub-sub functionality, optionally using standard [CloudEvents](https://cloudevents.io/).
+2. Resilient communication between services and cloud endpoints, using [Circuit-breaker](https://docs.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) pattern.
+3. Low latency and high throughput based service invocations, using [gRPC](https://grpc.io/) or Http RESTful mechanism.
+4. Secure service to service communication, using mTLS or [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/).
+5. Well known and understood configuration and secret management.
+6. End to end observability at both application and platform level, using OpenTelemetry.
 
 ## Solution Deployment Steps
 
