@@ -46,7 +46,7 @@ jobs:
     # - name: Push the latest Docker image for Simulated Temperature Sensor module.
     #   run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
 
-  Release Artifacts:
+  Release-Artifacts:
       runs-on: ubuntu-latest
       steps:
         - name: Checkout
