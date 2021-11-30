@@ -1,4 +1,4 @@
-# Distributed Azure IoT Edge Workload Accelerator for K8s
+# Distributed Azure IoT Workload Accelerator for K8s
 
 [![GitHub CI](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml)
 
