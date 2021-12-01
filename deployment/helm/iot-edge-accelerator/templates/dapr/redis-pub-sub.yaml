@@ -2,7 +2,7 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: messaging
+  name: pubsub
   namespace: az-iot-edge-accelerator
 spec:
   type: pubsub.redis

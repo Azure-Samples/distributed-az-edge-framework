@@ -33,8 +33,8 @@ namespace Distributed.Azure.IoT.Edge.IoTHubIntegrationModule.Services
 
             subscriptionsResponse.Subscriptions.Add(new TopicSubscription
             {
-                PubsubName = "messaging",
-                Topic = "telemetry"
+                PubsubName = _pubsubName,
+                Topic = _pubsubTopicName
             });
 
             return Task.FromResult(subscriptionsResponse);
