@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: iot-hub-integration-module
-        image: suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:main-35d9822b05479e3934b27761a440b69eff12953e
+        image: suneetnangia/distributed-az-iot-edge-iothubintegrationmodule:main-59584935be8c4dcb39d15d210fcb73c993e7f5e5
         args: ["-p", "$(IOT_HUB_DEVICE_PRIMARY_CONNECTION_STRING)"]
         env:
         - name: IOT_HUB_DEVICE_PRIMARY_CONNECTION_STRING
