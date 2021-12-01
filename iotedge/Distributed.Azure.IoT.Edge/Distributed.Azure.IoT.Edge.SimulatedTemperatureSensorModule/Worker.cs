@@ -12,7 +12,7 @@
         private readonly string _messagePubSubName;
         private readonly string _messageTopic;
 
-        public Worker(ILogger<Worker> logger, DaprClient daprClient, int? feedIntervalInMilliseconds, string messagePubSubName, string messageTopic)
+        public Worker(ILogger<Worker> logger, DaprClient daprClient, int? feedIntervalInMilliseconds, string? messagePubSubName, string? messageTopic)
         {
             _daprClient = daprClient ?? throw new ArgumentNullException(nameof(daprClient));
             _feedIntervalInMilliseconds = feedIntervalInMilliseconds ?? throw new ArgumentNullException(nameof(feedIntervalInMilliseconds));

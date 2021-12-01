@@ -16,7 +16,9 @@ spec:
         app: simulated-temperature-sensor-module
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "simulated-temperature-sensor-module"        
+        dapr.io/app-id: "simulated-temperature-sensor-module"
+        # Use gRPC for app <--> dapr sidecar
+        dapr.io/app-protocol: "grpc"
     spec:
       containers:
       - name: simulated-temperature-sensor-module

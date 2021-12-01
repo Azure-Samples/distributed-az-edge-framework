@@ -17,7 +17,9 @@ spec:
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "iot-hub-integration-module"
-        dapr.io/app-port: "80"
+        # Use gRPC for app <--> dapr sidecar
+        dapr.io/app-protocol: "grpc"
+        dapr.io/app-port: "80"                
     spec:
       containers:
       - name: iot-hub-integration-module

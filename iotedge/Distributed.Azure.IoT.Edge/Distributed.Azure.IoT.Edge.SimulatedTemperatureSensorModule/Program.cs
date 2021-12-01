@@ -1,5 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
-// dapr run --app-id temp-sensor-module -- dotnet run -- -i 1000
+﻿// Local run cmd line.
+// dapr run --app-protocol grpc --components-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr --app-id simulated-temperature-sensor-module -- dotnet run -- [-i 1000] [-m messaging] [-t telemetry]
 
 using CommandLine;
 
@@ -33,5 +33,5 @@ Host.CreateDefaultBuilder(args)
                 sp.GetRequiredService<ILogger<Worker>>(),
                 sp.GetRequiredService<DaprClient>(),
                 parameters?.FeedIntervalInMilliseconds,
-                "pubsub",
-                "telemetry")).AddSingleton<DaprClient>(new DaprClientBuilder().Build()));
+                parameters?.MessagingPubSub,
+                parameters?.MessagingPubSubTopic)).AddSingleton<DaprClient>(new DaprClientBuilder().Build()));

@@ -1,8 +1,9 @@
+# TODO: Add overarching component configuration.
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: pubsub
-  namespace: default
+  name: messaging
+  namespace: az-iot-edge-accelerator
 spec:
   type: pubsub.redis
   version: v1
@@ -13,6 +14,18 @@ spec:
     secretKeyRef:
       name: redis
       key: redis-password
+  # Lock down type of access for each service.
+  - name: publishingScopes
+    value: "simulated-temperature-sensor-module=telemetry;iot-hub-integration-module="
+  - name: subscriptionScopes
+    value: "simulated-temperature-sensor-module=;iot-hub-integration-module=telemetry"
+  # Lock down the topics on this pubsub component.
+  - name: allowedTopics
+    value: "telemetry"
+
  # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
   # - name: enableTLS
   #   value: true 
+scopes:
+- iot-hub-integration-module
+- simulated-temperature-sensor-module

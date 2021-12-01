@@ -5,19 +5,26 @@
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>684b4018-f6cf-421b-96c0-362a184425c8</UserSecretsId>
+    <UserSecretsId>c216ff99-4b89-4dc1-b679-908f31ca12e7</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
+    <Protobuf Include="Protos\*.proto" ProtoRoot="Protos" GrpcServices="None" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Dapr.AspNetCore" Version="1.5.0" />
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.4.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.19.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.40.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.40.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <ProjectReference Include="..\Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj" />    
+    <ProjectReference Include="..\Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj" />
   </ItemGroup>
 
 </Project>
