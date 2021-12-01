@@ -2,6 +2,20 @@ apiVersion: v1
 entries:
   iot-edge-accelerator:
   - apiVersion: v2
+    appVersion: 0.2.0
+    created: "2021-12-01T13:11:24.493363575Z"
+    description: A Helm chart for deploying IoT edge accelerator on K8s, pre-release version.
+    digest: 07f1a9c125593d4982e6a4b8befc451d2fbf4d411c984773c12c580de61f42c0
+    keywords:
+    - azure
+    - iot
+    - edge
+    name: iot-edge-accelerator
+    type: application
+    urls:
+    - https://github.com/suneetnangia/distributed-az-edge-framework/releases/download/iot-edge-accelerator-0.3.0/iot-edge-accelerator-0.3.0.tgz
+    version: 0.3.0
+  - apiVersion: v2
     appVersion: 0.1.0
     created: "2021-11-25T17:26:39.568740792Z"
     description: A Helm chart for deploying IoT edge accelerator on K8s, pre-release version.
