@@ -14,7 +14,7 @@
         [Option(
         'm',
         "PubSubMessagingName",
-        Default = "messaging",
+        Default = "pubsub",
         Required = false,
         HelpText = "Dapr pubsub messaging component name.")]
         public string? PubSubMessagingName { get; set; }
