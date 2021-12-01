@@ -22,6 +22,6 @@ spec:
     spec:
       containers:
       - name: simulated-temperature-sensor-module
-        image: suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-35d9822b05479e3934b27761a440b69eff12953e
+        image: suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-59584935be8c4dcb39d15d210fcb73c993e7f5e5
         args: ["-i", "{{ .Values.simulatedTemperatureSensorFeedIntervalInMilliseconds }}"]
       restartPolicy: Always
