@@ -21,6 +21,6 @@ spec:
     spec:
       containers:
       - name: data-gateway-module
-        image: suneetnangia/distributed-az-iot-edge-datagatewaymodule:local-dev
+        image: suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-8db42cf6ce413a9676a24fb1f3aba083de1e6fe7
         imagePullPolicy: Always
       restartPolicy: Always
