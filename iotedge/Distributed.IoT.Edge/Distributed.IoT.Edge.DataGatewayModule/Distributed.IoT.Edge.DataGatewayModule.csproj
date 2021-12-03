@@ -14,6 +14,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.6.2" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="Dapr.AspNetCore" Version="1.5.0" />
     <PackageReference Include="Google.Api.CommonProtos" Version="2.4.0" />
@@ -24,7 +25,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj" />
+    <ProjectReference Include="..\Distributed.IoT.Edge.Common\Distributed.IoT.Edge.Common.csproj" />
   </ItemGroup>
 
 </Project>
