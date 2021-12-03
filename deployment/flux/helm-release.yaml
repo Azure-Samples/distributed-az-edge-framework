@@ -15,5 +15,5 @@ spec:
       interval: 1m  
   valuesFrom:
   - kind: Secret
-    name: iothub-integration-module-secret-seed
-    valuesKey: iothubIntegrationModuleDevicePrimaryKey
+    name: data-gateway-module-secrets-seed
+    valuesKey: dataGatewaySecrets

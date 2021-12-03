@@ -1,4 +1,4 @@
-﻿namespace Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule
+﻿namespace Distributed.IoT.Edge.SimulatedTemperatureSensorModule
 {
     internal record TemperatureMessage(TemperaturePressure Machine, TemperaturePressure Ambient);
 

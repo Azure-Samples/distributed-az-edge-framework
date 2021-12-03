@@ -1,7 +1,7 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule.Tests
+namespace Distributed.IoT.Edge.SimulatedTemperatureSensorModule.Tests
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     [TestClass]
     public class SimulatedTemperatureSensorModuleTests
     {

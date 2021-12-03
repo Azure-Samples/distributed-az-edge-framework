@@ -1,11 +1,11 @@
 ﻿// Local run cmd line.
-// dapr run --app-protocol grpc --components-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr --app-id simulated-temperature-sensor-module -- dotnet run -- [-i 1000] [-m messaging] [-t telemetry]
+// dapr run --app-protocol grpc --components-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr --app-id simulated-temperature-sensor-module -- dotnet run -- [--feedIntervalInMilliseconds 1000] [--senderPubSubName local-pub-sub] [--senderPubSubTopicName telemetry]
 
 using CommandLine;
 
 using Dapr.Client;
 
-using Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule;
+using Distributed.IoT.Edge.SimulatedTemperatureSensorModule;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 TemperatureSensorParameters? parameters = null;
 
-ParserResult<TemperatureSensorParameters> result = Parser.Default.ParseArguments<TemperatureSensorParameters>(args)
+var result = Parser.Default.ParseArguments<TemperatureSensorParameters>(args)
                 .WithParsed(parsedParams =>
                 {
                     parameters = parsedParams;
@@ -33,5 +33,5 @@ Host.CreateDefaultBuilder(args)
                 sp.GetRequiredService<ILogger<Worker>>(),
                 sp.GetRequiredService<DaprClient>(),
                 parameters?.FeedIntervalInMilliseconds,
-                parameters?.MessagingPubSub,
-                parameters?.MessagingPubSubTopic)).AddSingleton<DaprClient>(new DaprClientBuilder().Build()));
+                parameters?.SenderPubSubName,
+                parameters?.SenderPubSubTopicName)).AddSingleton<DaprClient>(new DaprClientBuilder().Build()));

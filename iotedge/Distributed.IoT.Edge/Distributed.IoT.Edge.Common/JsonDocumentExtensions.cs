@@ -1,4 +1,4 @@
-﻿namespace Distributed.Azure.IoT.Edge.Common
+﻿namespace Distributed.IoT.Edge.Common
 {
     using global::System.Text;
     using global::System.Text.Json;

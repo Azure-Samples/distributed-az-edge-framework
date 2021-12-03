@@ -18,6 +18,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Distributed.Azure.IoT.Edge.Common\Distributed.Azure.IoT.Edge.Common.csproj" />
+    <ProjectReference Include="..\Distributed.IoT.Edge.Common\Distributed.IoT.Edge.Common.csproj" />
   </ItemGroup>
 </Project>

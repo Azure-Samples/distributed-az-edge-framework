@@ -1,7 +1,7 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Distributed.Azure.IoT.Edge.Common.Tests
+namespace Distributed.IoT.Edge.Common.Tests
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     [TestClass]
     public class CommonTests
     {
