@@ -42,9 +42,9 @@ $resourceGroupName = $r.properties.outputs.resourceGroupName.value
 # ----- Build and Push Containers
 Write-Title("Build and Push Containers")
 $deplymentDir = Get-Location
-Set-Location -Path ../iotedge/Distributed.Azure.IoT.Edge
-az acr build --image iothubintegrationmodule:$deploymentId --registry $acrName --file Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile .
-az acr build --image simulatedtemperaturesensormodule:$deploymentId --registry $acrName --file Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile .
+Set-Location -Path ../iotedge/Distributed.IoT.Edge
+az acr build --image datagatewaymodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.DataGatewayModule/Dockerfile .
+az acr build --image simulatedtemperaturesensormodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile .
 Set-Location -Path $deplymentDir
 
 # ----- Get Cluster Credentials
@@ -60,6 +60,20 @@ helm upgrade --install dapr dapr/dapr `
     --namespace dapr-system `
     --create-namespace `
     --wait
+
+#----- Redis
+Write-Title("Install Redis")
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install redis bitnami/redis --wait
+
+# ----- Run Helm
+Write-Title("Install Pod/Containers with Helm in Cluster")
+$datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
+$simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
+helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
+    --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+    --set-string images.simulatedtemperaturesensormodule="$simtempimage"
 
 # ----- Clean up
 if($DeleteResourceGroup)

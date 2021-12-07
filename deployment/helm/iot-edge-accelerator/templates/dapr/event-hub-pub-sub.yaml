@@ -1,3 +1,4 @@
+{{ if ne .Values.dataGatewayModule.eventHubConnectionString "replace_with_real_key_at_deploy_time" }}
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
@@ -27,3 +28,4 @@ spec:
     value: "telemetry"
 scopes:
 - data-gateway-module
+{{ end }}
