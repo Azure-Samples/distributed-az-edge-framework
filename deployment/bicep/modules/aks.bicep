@@ -13,9 +13,9 @@ param osDiskSizeGB int = 0
 
 @minValue(1)
 @maxValue(50)
-param agentCount int = 1
+param agentCount int = 3
 
-param agentVMSize string = 'Standard_DS2_v2'
+param agentVMSize string = 'Standard_B4ms'
 
 resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
   name: aksName

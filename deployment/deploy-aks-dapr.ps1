@@ -35,32 +35,23 @@ $r = (az deployment sub create --location $Location `
            --template-file .\bicep\main.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
+$acrName = $r.properties.outputs.acrName.value
 $aksName = $r.properties.outputs.aksName.value
 $resourceGroupName = $r.properties.outputs.resourceGroupName.value
+
+# ----- Build and Push Containers
+Write-Title("Build and Push Containers")
+$deplymentDir = Get-Location
+Set-Location -Path ../iotedge/Distributed.Azure.IoT.Edge
+az acr build --image iothubintegrationmodule:$deploymentId --registry $acrName --file Distributed.Azure.IoT.Edge.IoTHubIntegrationModule/Dockerfile .
+az acr build --image simulatedtemperaturesensormodule:$deploymentId --registry $acrName --file Distributed.Azure.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile .
+Set-Location -Path $deplymentDir
 
 # ----- Get Cluster Credentials
 Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
 
-# ----- Enable Arc
-Write-Title("Enable ARC")
-az extension add --name connectedk8s
-az provider register --namespace Microsoft.Kubernetes --wait
-az provider register --namespace Microsoft.KubernetesConfiguration --wait
-az provider register --namespace Microsoft.ExtendedLocation --wait
-
-# ----- Setup GitOps
-Write-Title("Setup Gitops")
-$gitUrl = (git config remote.origin.url)
-az extension add --name k8s-configuration
-az connectedk8s connect --name $aksName --resource-group $resourceGroupName
-az k8s-configuration flux create -g $resourceGroupName `
-    -c $aksName -t connectedClusters `
-    -n edge-framework-ci-config --namespace edge-framework-ci-ns --scope cluster `
-    -u $gitUrl --branch main `
-    --kustomization name=flux-kustomization prune=true path=/deployment/flux
-
-# ----- Dapr
+#----- Dapr
 Write-Title("Install Dapr")
 helm repo add dapr https://dapr.github.io/helm-charts/
 helm repo update
