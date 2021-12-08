@@ -1,0 +1,65 @@
+# System OPC PLC/OPC Publisher module/pod
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opc-publisher-configmap
+  labels:
+    app: opc-publisher-module
+data:
+  pn.json: |-
+{{ .Files.Get "pn.json" | indent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opc-publisher-module-deployment
+  labels:
+    app: opc-publisher-module
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opc-publisher-module
+  template:
+    metadata:
+      labels:
+        app: opc-publisher-module
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "opc-publisher-module"
+        dapr.io/app-protocol: "grpc"
+    spec:
+      volumes:
+        - name: opc-publisher-volume
+          configMap:
+            name: opc-publisher-configmap
+            items:
+            - key: pn.json
+              path: pn.json
+      containers:
+      - name: opc-plc-module
+        image: {{ .Values.images.opcplcmodule }}
+        imagePullPolicy: Always
+        args: 
+        - --pn=50000 
+        - --aa 
+        - --fn=40 
+        - --vfr=1000
+        ports:
+        - containerPort: 50000
+      - name: opc-publisher-module
+        image: {{ .Values.images.opcpublishermodule }}
+        imagePullPolicy: Always
+        args: 
+        - --aa
+        - --pf
+        - /etc/opcpublisher/pn.json
+        - --mm
+        - PubSub
+        - --dapr
+        - PubSub=local-pub-sub;Topic=telemetry
+        volumeMounts:
+        - name: opc-publisher-volume
+          mountPath: /etc/opcpublisher/pn.json
+          subPath: pn.json
+      restartPolicy: Always

@@ -50,6 +50,19 @@ az acr build --image datagatewaymodule:$deploymentId --registry $acrName --file 
 az acr build --image simulatedtemperaturesensormodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile .
 Set-Location -Path $deplymentDir
 
+# ----- Build and Push Containers (OPC Publisher)
+Write-Title("Build and Push Containers (OPC Publisher)")
+if (!(Test-Path .\..\..\Industrial-IoT-Temp))
+{
+    git clone -b feature/dapr-adapter https://github.com/simonjaeger/Industrial-IoT .\..\..\Industrial-IoT-Temp
+}
+Set-Location -Path .\..\..\Industrial-IoT-Temp
+git pull
+$Env:BUILD_SOURCEBRANCH = "feature/dapr-adapter"
+$Env:Version_Prefix = $deploymentId
+.\tools\scripts\acr-build.ps1 -Path .\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src -Registry $acrName
+Set-Location -Path $deplymentDir
+
 # ----- Get Cluster Credentials
 Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
@@ -74,9 +87,13 @@ helm install redis bitnami/redis --wait
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
+$opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
+$opcpublisherimage = $acrName + ".azurecr.io/dapr-adapter/iotedge/opc-publisher:" + $deploymentId
 helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
+    --set-string images.opcplcmodule="$opcplcimage" `
+    --set-string images.opcpublishermodule="$opcpublisherimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey"
