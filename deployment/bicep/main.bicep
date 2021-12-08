@@ -20,6 +20,8 @@ var applicationNameWithoutDashes = '${replace(applicationName,'-','')}'
 var resourceGroupName = 'rg-${applicationNameWithoutDashes}'
 var aksName = '${take('aks-${applicationNameWithoutDashes}',20)}'
 var acrName = 'acr${applicationNameWithoutDashes}'
+var storageAccountName = 'st${take(applicationNameWithoutDashes,14)}'
+var eventHubNameSpaceName = 'evh${take(applicationNameWithoutDashes,14)}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   name: resourceGroupName
@@ -47,6 +49,25 @@ module acr 'modules/arc.bicep' = {
   ]
 }
 
+module storage 'modules/azurestorage.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'storageDeployment'
+  params: {
+    storageAccountName: storageAccountName
+  }
+}
+
+module eventhub 'modules/eventhub.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'eventHubDeployment'
+  params: {
+    eventHubNameSpaceName: eventHubNameSpaceName
+  }
+}
+
 output acrName string = acrName
 output aksName string = aks.outputs.aksName
 output resourceGroupName string = resourceGroupName
+output storageKey string = storage.outputs.storageKey
+output storageName string = storage.outputs.storageName
+output eventHubConnectionString string = eventhub.outputs.eventHubConnectionString

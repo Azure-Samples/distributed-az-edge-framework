@@ -38,6 +38,9 @@ $r = (az deployment sub create --location $Location `
 $acrName = $r.properties.outputs.acrName.value
 $aksName = $r.properties.outputs.aksName.value
 $resourceGroupName = $r.properties.outputs.resourceGroupName.value
+$storageKey = $r.properties.outputs.storageKey.Value
+$storageName = $r.properties.outputs.storageName.Value
+$eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 
 # ----- Build and Push Containers
 Write-Title("Build and Push Containers")
@@ -73,7 +76,10 @@ $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploym
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
-    --set-string images.simulatedtemperaturesensormodule="$simtempimage"
+    --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
+    --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
+    --set-string dataGatewayModule.storageAccountName="$storageName" `
+    --set-string dataGatewayModule.storageAccountKey="$storageKey"
 
 # ----- Clean up
 if($DeleteResourceGroup)

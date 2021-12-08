@@ -18,6 +18,7 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "data-gateway-module"
         dapr.io/app-port: "80"
+        dapr.io/app-protocol: "grpc"
     spec:
       containers:
       - name: data-gateway-module
