@@ -9,4 +9,4 @@ dataGatewayModule:
 
 images:
   datagatewaymodule:
-  simulatedtemperaturesensormodule: test
+  simulatedtemperaturesensormodule:

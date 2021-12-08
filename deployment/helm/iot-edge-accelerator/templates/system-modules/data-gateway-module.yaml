@@ -22,6 +22,5 @@ spec:
       containers:
       - name: data-gateway-module
         image: {{ .Values.images.datagatewaymodule }}
-        #args: ["--recieverPubSubName", "iot-messages", "--recieverPubSubTopicName", "telemetry"]        
         imagePullPolicy: Always
       restartPolicy: Always

@@ -24,6 +24,5 @@ spec:
       - name: simulated-temperature-sensor-module
         image: "{{ .Values.images.simulatedtemperaturesensormodule }}"
         imagePullPolicy: Always
-        #args: ["--feedIntervalInMilliseconds", "{{ .Values.simulatedTemperatureSensorFeedIntervalInMilliseconds }}", "--senderPubSubName", "iot-messages", "--senderPubSubTopicName", "telemetry"]        
         args: ["--feedIntervalInMilliseconds", "{{ .Values.simulatedTemperatureSensorFeedIntervalInMilliseconds }}"]
       restartPolicy: Always
