@@ -108,5 +108,7 @@ if($DeleteResourceGroup)
     }
 }
 
+$env:RESOURCEGROUPNAME=$resourceGroupName
+
 $runningTime = New-TimeSpan -Start $startTime
 Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
