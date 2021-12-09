@@ -55,9 +55,9 @@ spec:
         - --pf
         - /etc/opcpublisher/pn.json
         - --mm
-        - PubSub
+        - {{ .Values.opcPublisherModule.mm | quote }}
         - --dapr
-        - PubSub=local-pub-sub;Topic=telemetry
+        - {{ printf "PubSub=%s;Topic=%s" .Values.opcPublisherModule.pubsub .Values.opcPublisherModule.topic | quote }}
         volumeMounts:
         - name: opc-publisher-volume
           mountPath: /etc/opcpublisher/pn.json

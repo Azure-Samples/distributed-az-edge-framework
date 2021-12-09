@@ -7,6 +7,12 @@ dataGatewayModule:
   storageAccountName: "replace_with_storage_account_name_at_deploy_time"
   storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
 
+# OPC Publisher module settings
+opcPublisherModule:
+  mm: PubSub
+  pubsub: local-pub-sub
+  topic: telemetry
+
 images:
   datagatewaymodule:
   simulatedtemperaturesensormodule:
