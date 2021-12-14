@@ -8,5 +8,5 @@ dataGatewayModule:
   storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
 
 images:
-  datagatewaymodule:
-  simulatedtemperaturesensormodule:
+  datagatewaymodule: suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-8b750676416b0533079d878826c2705cb0f9f45f
+  simulatedtemperaturesensormodule: suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-8b750676416b0533079d878826c2705cb0f9f45f
