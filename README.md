@@ -72,7 +72,7 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
     ```
    helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
    helm repo update
-   helm install az-edge-accelerator . --set dataGatewayModule.eventHubConnectionString="<Event Hub Connection String with Entity>",dataGatewayModule.storageAccountName="<Storage Account Name>",dataGatewayModule.storageAccountKey="<Storage Account Key>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
+   helm install az-edge-accelerator aziotaccl/iot-edge-accelerator --set dataGatewayModule.eventHubConnectionString="<Event Hub Connection String with Entity>",dataGatewayModule.storageAccountName="<Storage Account Name>",dataGatewayModule.storageAccountKey="<Storage Account Key>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
     ```
 
 ## Outstanding (Work in Progress)
