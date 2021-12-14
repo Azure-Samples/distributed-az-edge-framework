@@ -18,9 +18,10 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "data-gateway-module"
         dapr.io/app-port: "80"
+        dapr.io/app-protocol: "grpc"
     spec:
       containers:
       - name: data-gateway-module
-        image: suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-8db42cf6ce413a9676a24fb1f3aba083de1e6fe7
+        image: {{ .Values.images.datagatewaymodule }}
         imagePullPolicy: Always
       restartPolicy: Always
