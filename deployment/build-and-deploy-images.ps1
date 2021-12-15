@@ -45,7 +45,7 @@ Set-Location -Path $deplymentDir
 Write-Title("Build and Push Containers (OPC Publisher)")
 if (!(Test-Path .\..\..\Industrial-IoT-Temp))
 {
-    git clone -b feature/dapr-adapter https://github.com/simonjaeger/Industrial-IoT .\..\..\Industrial-IoT-Temp
+    git clone -b feature/dapr-adapter https://github.com/suneetnangia/Industrial-IoT .\..\..\Industrial-IoT-Temp
 }
 Set-Location -Path .\..\..\Industrial-IoT-Temp
 git pull
