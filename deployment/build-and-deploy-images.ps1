@@ -35,11 +35,11 @@ $acrName = (az acr list -g $ResourceGroupName --query [].name -o tsv)
 
 # ----- Build and Push Containers
 Write-Title("Build and Push Containers")
-$deplymentDir = Get-Location
+$deploymentDir = Get-Location
 Set-Location -Path ../iotedge/Distributed.IoT.Edge
 az acr build --image datagatewaymodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.DataGatewayModule/Dockerfile .
 az acr build --image simulatedtemperaturesensormodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile .
-Set-Location -Path $deplymentDir
+Set-Location -Path $deploymentDir
 
 # ----- Build and Push Containers (OPC Publisher)
 Write-Title("Build and Push Containers (OPC Publisher)")
@@ -52,7 +52,7 @@ git pull
 $Env:BUILD_SOURCEBRANCH = "feature/dapr-adapter"
 $Env:Version_Prefix = $deploymentId
 .\tools\scripts\acr-build.ps1 -Path .\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src -Registry $acrName
-Set-Location -Path $deplymentDir
+Set-Location -Path $deploymentDir
 
 # ----- Run Helm
 Write-Title("Upgrade Pod/Containers with Helm in Cluster")
