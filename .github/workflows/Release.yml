@@ -4,7 +4,8 @@ on:
     branches: 
       - main
     paths:
-      - 'deployment/**'
+      # Only run this when chart file is updated.
+      - 'deployment/helm/iot-edge-accelerator/Chart.yaml'
 jobs:
   Release-Artifacts:      
     runs-on: ubuntu-latest

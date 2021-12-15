@@ -14,7 +14,7 @@ opcPublisherModule:
   topic: telemetry
 
 images:
-  datagatewaymodule:
-  simulatedtemperaturesensormodule:
+  datagatewaymodule: suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-8b750676416b0533079d878826c2705cb0f9f45f
+  simulatedtemperaturesensormodule: suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-8b750676416b0533079d878826c2705cb0f9f45f
   opcplcmodule:
   opcpublishermodule:
