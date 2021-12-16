@@ -1,0 +1,16 @@
+[
+  {
+    "EndpointUrl": "opc.tcp://localhost:50000",
+    "UseSecurity": false,
+    "DataSetWriterId": "9f70b74d-248f-4ba3-90fe-c1de907a2f7b",
+    "DataSetWriterGroup": "9f70b74d-248f-4ba3-90fe-c1de907a2f7b",
+    "OpcNodes": [
+      {
+        "Id": "ns=2;s=FastUInt1",
+        "DisplayName": "FastNode1",
+        "OpcSamplingInterval": 1,
+        "OpcPublishingInterval": 0
+      }
+    ]
+  }
+]
