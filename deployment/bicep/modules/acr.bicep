@@ -13,7 +13,7 @@ param aksPrincipalId string
   'b24988ac-6180-42a0-ab88-20f7382dd24c' // Contributor
   'acdd72a7-3385-48ef-bd42-f606fba81ae7' // Reader
 ])
-param roleAcrPull string = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+param roleAcrPull string = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: acrName
