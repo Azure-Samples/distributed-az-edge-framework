@@ -13,8 +13,9 @@ opcPublisherModule:
   pubsub: local-pub-sub
   topic: telemetry
 
+# Docker images
 images:
   datagatewaymodule: suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-8b750676416b0533079d878826c2705cb0f9f45f
   simulatedtemperaturesensormodule: suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-8b750676416b0533079d878826c2705cb0f9f45f
-  opcplcmodule:
-  opcpublishermodule:
+  opcplcmodule: mcr.microsoft.com/iotedge/opc-plc:2.2.0
+  opcpublishermodule: suneetnangia/distributed-az-iot-edge-opcuapublisher:latest
