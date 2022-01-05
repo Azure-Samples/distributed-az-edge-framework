@@ -1,4 +1,4 @@
-# System OPC PLC/OPC Publisher module/pod
+# System OPC Publisher module/pod
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -37,16 +37,6 @@ spec:
             - key: pn.json
               path: pn.json
       containers:
-      - name: opc-plc-module
-        image: {{ .Values.images.opcplcmodule }}
-        imagePullPolicy: Always
-        args: 
-        - --pn=50000 
-        - --aa 
-        - --fn=40 
-        - --vfr=1000
-        ports:
-        - containerPort: 50000
       - name: opc-publisher-module
         image: {{ .Values.images.opcpublishermodule }}
         imagePullPolicy: Always

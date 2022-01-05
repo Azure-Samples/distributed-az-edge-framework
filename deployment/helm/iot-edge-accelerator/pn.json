@@ -1,6 +1,6 @@
 [
   {
-    "EndpointUrl": "opc.tcp://localhost:50000",
+    "EndpointUrl": "opc.tcp://opc-plc-module.default.svc.cluster.local:50000",
     "UseSecurity": false,
     "DataSetWriterId": "9f70b74d-248f-4ba3-90fe-c1de907a2f7b",
     "DataSetWriterGroup": "9f70b74d-248f-4ba3-90fe-c1de907a2f7b",
