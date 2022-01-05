@@ -77,21 +77,8 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 
 ## Outstanding (Work in Progress)
 
-### Performance
-1. Impact of making use of CloudEvents.
-2. Performance test accelerator components e.g. Dapr components as well as custom ones.
+These are now moved to GitHub project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
 
-### Management Plane
-
-1. Guidance on how to manage edge workloads in nested/ISA 95 scenarios.
-
-### Others
-
-1. Develop multi ML model execution engine/design (potentially using [pipe and filter pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/pipes-and-filters) in a single pod/container).
-
-### Stretch
-
-1. Develop capability to run Web Assembly based modules using [Krustlet](https://github.com/krustlet/krustlet).
 
 ## Disclaimer
 
