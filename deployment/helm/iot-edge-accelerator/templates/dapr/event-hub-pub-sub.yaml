@@ -20,12 +20,13 @@ spec:
   #   value: 0
   # Lock down type of access for each service.
   - name: publishingScopes
-    value: "simulated-temperature-sensor-module=;data-gateway-module=telemetry"
+    value: "simulated-temperature-sensor-module=;data-gateway-module=telemetry;opc-publisher-module=telemetry"
   - name: subscriptionScopes
-    value: "simulated-temperature-sensor-module=;data-gateway-module="
+    value: "simulated-temperature-sensor-module=;data-gateway-module=;opc-publisher-module="
   # Lock down the topics on this pubsub component.
   - name: allowedTopics
     value: "telemetry"
 scopes:
 - data-gateway-module
+- opc-publisher-module
 {{ end }}

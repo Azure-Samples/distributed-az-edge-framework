@@ -1,0 +1,41 @@
+# System OPC PLC module/pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opc-plc-module-deployment
+  labels:
+    app: opc-plc-module
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opc-plc-module
+  template:
+    metadata:
+      labels:
+        app: opc-plc-module
+    spec:
+      containers:
+      - name: opc-plc-module
+        image: {{ .Values.images.opcplcmodule }}
+        imagePullPolicy: Always
+        args: 
+        - --pn=50000 
+        - --aa 
+        - --fn=40 
+        - --vfr=1000
+        ports:
+        - containerPort: 50000
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opc-plc-module
+spec:
+  selector:
+    app: opc-plc-module
+  ports:
+    - protocol: TCP
+      port: 50000
+      targetPort: 50000

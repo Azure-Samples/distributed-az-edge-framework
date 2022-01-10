@@ -7,6 +7,15 @@ dataGatewayModule:
   storageAccountName: "replace_with_storage_account_name_at_deploy_time"
   storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
 
+# OPC Publisher module settings
+opcPublisherModule:
+  mm: PubSub
+  pubsub: local-pub-sub
+  topic: telemetry
+
+# Docker images
 images:
-  datagatewaymodule:
-  simulatedtemperaturesensormodule:
+  datagatewaymodule: suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-40c99e12a1e8db086fcc20780b2533b14fab3668
+  simulatedtemperaturesensormodule: suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-40c99e12a1e8db086fcc20780b2533b14fab3668
+  opcplcmodule: mcr.microsoft.com/iotedge/opc-plc:2.2.0
+  opcpublishermodule: suneetnangia/distributed-az-iot-edge-opcuapublisher:latest

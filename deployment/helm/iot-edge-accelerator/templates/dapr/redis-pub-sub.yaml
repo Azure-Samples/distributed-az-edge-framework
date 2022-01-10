@@ -16,9 +16,9 @@ spec:
       key: redis-password
   # Lock down type of access for each service.
   - name: publishingScopes
-    value: "simulated-temperature-sensor-module=telemetry;data-gateway-module="
+    value: "simulated-temperature-sensor-module=telemetry;data-gateway-module=;opc-publisher-module=telemetry"
   - name: subscriptionScopes
-    value: "simulated-temperature-sensor-module=;data-gateway-module=telemetry"
+    value: "simulated-temperature-sensor-module=;data-gateway-module=telemetry;opc-publisher-module="
   # Lock down the topics on this pubsub component.
   - name: allowedTopics
     value: "telemetry"
@@ -29,3 +29,4 @@ spec:
 scopes:
 - data-gateway-module
 - simulated-temperature-sensor-module
+- opc-publisher-module
