@@ -1,7 +1,7 @@
 # Setup an developer environment
 
 ## Introduction
-This environment is used to setup a fast developer environment, which means that Acr and Flux is not included
+This environment is used to setup a fast developer environment, which means that Arc and Flux is not included
 in the environment.
 
 ## How to execute it

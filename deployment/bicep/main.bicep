@@ -36,7 +36,7 @@ module aks 'modules/aks.bicep' = {
   }
 }
 
-module acr 'modules/arc.bicep' = {
+module acr 'modules/acr.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'acrDeployment'
   params: {
