@@ -9,7 +9,7 @@ Param(
     $ApplicationName,
     [string]
     [Parameter(mandatory=$true)]
-    aksClusterPrincipalID,
+    $aksClusterPrincipalID,
     [string]
     $Location = 'westeurope'
 )

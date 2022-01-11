@@ -30,7 +30,7 @@ $startTime = Get-Date
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\az-demo-aks.bicep --parameters applicationName=$ApplicationName `
+           --template-file .\bicep\core-infrastructure.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $aksName = $r.properties.outputs.aksName.value
@@ -42,6 +42,9 @@ Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
 
 $env:RESOURCEGROUPNAME=$resourceGroupName
+
+Write-Title($aksClusterPrincipalID)
+
 $env:AKSCLUSTERPRINCIPALID=$aksClusterPrincipalID
 
 $runningTime = New-TimeSpan -Start $startTime

@@ -9,15 +9,15 @@ Param(
 )
 
 # ----- Copy scripts from source location
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-az-demo-aks.ps1" -OutFile "deploy-az-demo-aks.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-app.ps1" -OutFile "deploy-app.ps1"
 
 mkdir -p bicep/modules
 
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/bicep/az-demo-aks.bicep" -OutFile "./bicep/az-demo-aks.bicep"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/bicep/core-infrastructure.bicep" -OutFile "./bicep/core-infrastructure.bicep"
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
 
-./deploy-az-demo-aks.ps1 -ApplicationName $ApplicationName
+./deploy-core-infrastructure.ps1 -ApplicationName $ApplicationName
 ./deploy-core-platform.ps1 -ApplicationName $ApplicationName
 ./deploy-app.ps1 -ApplicationName $ApplicationName -aksClusterPrincipalID $env:AKSCLUSTERPRINCIPALID
