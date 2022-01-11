@@ -33,8 +33,8 @@ $r = (az deployment sub create --location $Location `
            --template-file .\bicep\az-demo-aks.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
-$acrName = $r.properties.outputs.acrName.value
 $aksName = $r.properties.outputs.aksName.value
+$aksClusterPrincipalID = $r.properties.outputs.clusterPrincipalID
 $resourceGroupName = $r.properties.outputs.resourceGroupName.value
 
 # ----- Get Cluster Credentials
@@ -42,6 +42,7 @@ Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
 
 $env:RESOURCEGROUPNAME=$resourceGroupName
+$env:AKSCLUSTERPRINCIPALID=$aksClusterPrincipalID
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow

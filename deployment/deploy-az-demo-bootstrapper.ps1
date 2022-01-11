@@ -19,3 +19,4 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distribut
 
 ./deploy-az-demo-aks.ps1 -ApplicationName $ApplicationName
 ./deploy-core-platform.ps1 -ApplicationName $ApplicationName
+./deploy-app.ps1 -ApplicationName $ApplicationName -aksClusterPrincipalID $env:AKSCLUSTERPRINCIPALID
