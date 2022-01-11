@@ -4,8 +4,7 @@
 # ------------------------------------------------------------
 
 # ----- Copy scripts from source location
-Write-Title("Download scripts and other artifacts.")
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/deploy-az-demo.ps1" -OutFile "deploy-az-demo.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-az-demo.ps1" -OutFile "deploy-az-demo.ps1"
 
 mkdir -p bicep/modules
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
