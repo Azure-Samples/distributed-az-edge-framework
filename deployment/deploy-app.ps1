@@ -33,7 +33,7 @@ $startTime = Get-Date
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName aksClusterPrincipalID=aksClusterPrincipalID `
+           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName aksClusterPrincipalID=$aksClusterPrincipalID `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $acrName = $r.properties.outputs.acrName.value
@@ -44,10 +44,10 @@ $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 
 # ----- Copy (System) Public Container Images and Push to Private ACR
 Write-Title("Copy and Push Containers (System)")
-$deploymentDir = Get-Location
-az acr login -n $acrName
-docker pull suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest -a
-docker tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest $acrName/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest | docker push $acrName/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+# $deploymentDir = Get-Location
+# az acr login -n $acrName
+# docker pull suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest -a
+# docker tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest $acrName/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest | docker push $acrName/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
 
 # ----- Copy and Push Containers (OPC Publisher) to ACR
 Write-Title("Build and Push Containers (OPC Publisher)")
