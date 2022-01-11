@@ -19,7 +19,6 @@ param location string = 'westeurope'
 var applicationNameWithoutDashes = '${replace(applicationName,'-','')}'
 var resourceGroupName = 'rg-${applicationNameWithoutDashes}'
 var aksName = '${take('aks-${applicationNameWithoutDashes}',20)}'
-var acrName = 'acr${applicationNameWithoutDashes}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   name: resourceGroupName
@@ -34,19 +33,5 @@ module aks 'modules/aks.bicep' = {
   }
 }
 
-module acr 'modules/acr.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'acrDeployment'
-  params: {
-    acrName: acrName
-    aksPrincipalId: aks.outputs.clusterPrincipalID
-  }
-
-  dependsOn: [
-    aks
-  ]
-}
-
-output acrName string = acrName
 output aksName string = aks.outputs.aksName
 output resourceGroupName string = resourceGroupName
