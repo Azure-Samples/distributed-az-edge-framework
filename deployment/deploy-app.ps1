@@ -43,29 +43,22 @@ $storageName = $r.properties.outputs.storageName.Value
 $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 
 # ----- Copy (System) Public Container Images and Push to Private ACR
-Write-Title("Copy and Push Containers (System)")
-# $deploymentDir = Get-Location
-# az acr login -n $acrName
-# docker pull suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest -a
-# docker tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest $acrName/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest | docker push $acrName/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+# Write-Title("Copy and Push Containers (System)")
 
-# ----- Copy and Push Containers (OPC Publisher) to ACR
-Write-Title("Build and Push Containers (OPC Publisher)")
+# ----- Copy and Push Containers (OPC Publisher) to Private ACR
+# Write-Title("Build and Push Containers (OPC Publisher)")
 
 # ----- Run Helm
-# Write-Title("Install Pod/Containers with Helm in Cluster")
-# $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
-# $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
-# $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
-# $opcpublisherimage = $acrName + ".azurecr.io/dapr-adapter/iotedge/opc-publisher:" + $deploymentId
-# helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
-#     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
-#     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
-#     --set-string images.opcplcmodule="$opcplcimage" `
-#     --set-string images.opcpublishermodule="$opcpublisherimage" `
-#     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
-#     --set-string dataGatewayModule.storageAccountName="$storageName" `
-#     --set-string dataGatewayModule.storageAccountKey="$storageKey"
+# Write-Title("Install latest release of helm chart (not using ARC).")
+
+helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
+helm repo update
+helm install az-edge-accelerator aziotaccl/iot-edge-accelerator `
+--namespace edge-core `
+--wait `
+--set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
+--set-string dataGatewayModule.storageAccountName="$storageName" `
+--set-string dataGatewayModule.storageAccountKey="$storageKey"
 
 $env:RESOURCEGROUPNAME=$resourceGroupName
 
