@@ -29,7 +29,7 @@ $deploymentId = Get-Random
 Write-Title("Start Deploying")
 $startTime = Get-Date
 
-#----- Dapr
+# ----- Dapr
 Write-Title("Install Dapr")
 helm repo add dapr https://dapr.github.io/helm-charts/
 helm repo update
@@ -39,13 +39,12 @@ helm upgrade --install dapr dapr/dapr `
     --create-namespace `
     --wait
 
-#----- Redis
+# ----- Redis
 Write-Title("Install Redis")
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 helm install redis bitnami/redis `
-    --namespace edge-core `
-    --create-namespace `
+    --namespace edge-core `    
     --wait
 
 # ----- Clean up
