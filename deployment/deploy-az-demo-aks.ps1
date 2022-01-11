@@ -8,9 +8,7 @@ Param(
     [Parameter(mandatory=$true)]
     $ApplicationName,
     [string]
-    $Location = 'westeurope',
-    [switch]
-    $DeleteResourceGroup
+    $Location = 'westeurope'
 )
 
 Function Write-Title ($text) {
@@ -42,16 +40,6 @@ $resourceGroupName = $r.properties.outputs.resourceGroupName.value
 # ----- Get Cluster Credentials
 Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
-
-# ----- Clean up
-if($DeleteResourceGroup)
-{
-    Write-Title("Delete Resources")
-    if(Remove-AzResourceGroup -Name $resourceGroupName -Force)
-    {
-        Write-Host "All resources deleted" -ForegroundColor Yellow
-    }
-}
 
 $env:RESOURCEGROUPNAME=$resourceGroupName
 

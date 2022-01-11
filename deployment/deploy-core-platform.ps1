@@ -8,9 +8,7 @@ Param(
     [Parameter(mandatory=$true)]
     $ApplicationName,
     [string]
-    $Location = 'westeurope',
-    [switch]
-    $DeleteResourceGroup
+    $Location = 'westeurope'
 )
 
 Function Write-Title ($text) {
@@ -44,18 +42,8 @@ Write-Title("Install Redis")
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 helm install redis bitnami/redis `
-    --namespace edge-core `    
+    --namespace edge-core `
     --wait
-
-# ----- Clean up
-if($DeleteResourceGroup)
-{
-    Write-Title("Delete Resources")
-    if(Remove-AzResourceGroup -Name $resourceGroupName -Force)
-    {
-        Write-Host "All resources deleted" -ForegroundColor Yellow
-    }
-}
 
 $env:RESOURCEGROUPNAME=$resourceGroupName
 
