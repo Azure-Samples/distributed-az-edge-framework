@@ -60,14 +60,14 @@ Solution components are split into three layers from deployment perspective:
     * Core Infrastructure Package for Demo on Azure cloud.
   
 2. **Core Platform Components** (Dapr, Arc and Flux extensions on Kubernetes).
-   This deployment is a responsibility of customer's devops team, we will provide a pre-built deployment package (Helm/CNAB-Porter) which can be run by customer to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
+   This deployment is a responsibility of customer's devops team, we will provide a pre-built deployment package/scripts which can be run by customer to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
     * Core Platform Package for Kubernetes in Cloud/On-prem.
   
 3. **Application Components/Package** (Cloud and Kubernetes artifacts for the application).
-   This deployment is a responsibility of customer's devops team, customer will use standard CNAB bundle to package application components which may span across Azure (App1 RG) and Kubernetes on the edge (App1 Namespace). The edge component will comprise of a Flux configuration manifest which in turn will configure Flux extension on Kubernetes to sync and deploy remote/local Helm package. Pre-Built Packages Available:
+   This deployment is a responsibility of customer's devops team, customer will use scripts to deploy application components which may span across Azure (App1 RG) and Kubernetes on the edge (App1 Namespace). The edge component will comprise of a Flux configuration manifest which in turn will configure Flux extension on Kubernetes to sync and deploy remote/local Helm package. Pre-Built Packages Available:
     * Sample Application Package for Accelerator in Cloud/Hybrid mode.
 
-Deployment of the above artifacts may require multiple tools, this is where we can attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, az cmds and other scripts to deploy the solution and its dependencies.
+Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, az cmds and other scripts to deploy the solution and its dependencies.
 
 ## Outstanding (Work in Progress)
 
