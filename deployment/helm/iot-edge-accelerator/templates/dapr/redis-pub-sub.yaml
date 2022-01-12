@@ -3,13 +3,13 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: local-pub-sub
-  namespace: default
+  namespace: edge-app
 spec:
   type: pubsub.redis
   version: v1
   metadata:
   - name: redisHost
-    value: redis-master.default.svc.cluster.local:6379
+    value: redis-master.edge-core.svc.cluster.local:6379
   - name: redisPassword
     secretKeyRef:
       name: redis

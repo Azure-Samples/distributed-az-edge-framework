@@ -29,14 +29,14 @@ resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   location: location
 }
 
-module acr 'modules/acr.bicep' = {
-  scope: resourceGroup(rg.name)
-  name: 'acrDeployment'
-  params: {
-    acrName: acrName
-    aksPrincipalId: aksClusterPrincipalID
-  }
-}
+// module acr 'modules/acr.bicep' = {
+//   scope: resourceGroup(rg.name)
+//   name: 'acrDeployment'
+//   params: {
+//     acrName: acrName
+//     aksPrincipalId: aksClusterPrincipalID
+//   }
+// }
 
 module storage 'modules/azurestorage.bicep' = {
   scope: resourceGroup(rg.name)

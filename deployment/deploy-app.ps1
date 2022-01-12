@@ -49,16 +49,24 @@ $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 # Write-Title("Build and Push Containers (OPC Publisher)")
 
 # ----- Run Helm
-# Write-Title("Install latest release of helm chart (not using ARC).")
+Write-Title("Install latest release of helm chart (not using Flux).")
+
+# Copy Redis secret from edge-core ns to app ns.
+# TODO: 'edge-app' ns name can be a variable.
+kubectl get secret redis --namespace=edge-core -o yaml | sed 's/namespace: .*/namespace: edge-app/' | kubectl apply -f -
 
 helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
 helm repo update
 helm install az-edge-accelerator aziotaccl/iot-edge-accelerator `
 --namespace edge-app `
+--create-namespace `
 --wait `
 --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
 --set-string dataGatewayModule.storageAccountName="$storageName" `
 --set-string dataGatewayModule.storageAccountKey="$storageKey"
+
+# ----- Fluxv2 and Arc 
+# az k8s-configuration flux create -g <AKS Resource Group> -c <AKS cluster name> -t connectedClusters -n edge-framework-ci-config --namespace edge-framework-ci-ns --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
 
 $env:RESOURCEGROUPNAME=$resourceGroupName
 

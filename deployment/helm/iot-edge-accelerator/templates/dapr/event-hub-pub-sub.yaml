@@ -3,7 +3,7 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: remote-pub-sub
-  namespace: default
+  namespace: edge-app
 spec:
   type: pubsub.azure.eventhubs
   version: v1
