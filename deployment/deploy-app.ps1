@@ -54,7 +54,7 @@ $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
 helm repo update
 helm install az-edge-accelerator aziotaccl/iot-edge-accelerator `
---namespace edge-core `
+--namespace edge-app `
 --wait `
 --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
 --set-string dataGatewayModule.storageAccountName="$storageName" `

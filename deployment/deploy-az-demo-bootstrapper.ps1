@@ -5,7 +5,7 @@
 Param(
     [string]
     [Parameter(mandatory=$true)]
-    $ApplicationName    
+    $ApplicationName
 )
 
 # ----- Copy scripts from source location
