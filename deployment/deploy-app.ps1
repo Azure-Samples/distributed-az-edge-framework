@@ -63,7 +63,8 @@ helm install az-edge-accelerator aziotaccl/iot-edge-accelerator `
 --wait `
 --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
 --set-string dataGatewayModule.storageAccountName="$storageName" `
---set-string dataGatewayModule.storageAccountKey="$storageKey"
+--set-string dataGatewayModule.storageAccountKey="$storageKey" `
+--set-string localPubSubModule.redisUri="redis-master.edge-core.svc.cluster.local:6379"
 
 # ----- Fluxv2 and Arc 
 # az k8s-configuration flux create -g <AKS Resource Group> -c <AKS cluster name> -t connectedClusters -n edge-framework-ci-config --namespace edge-framework-ci-ns --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
