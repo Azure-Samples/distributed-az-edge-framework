@@ -8,7 +8,7 @@ spec:
   version: v1
   metadata:
   - name: redisHost
-    value: redis-master.default.svc.cluster.local:6379
+    value: {{ .Values.localPubSubModule.redisUri }}
   - name: redisPassword
     secretKeyRef:
       name: redis

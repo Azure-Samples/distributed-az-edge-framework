@@ -7,6 +7,10 @@ dataGatewayModule:
   storageAccountName: "replace_with_storage_account_name_at_deploy_time"
   storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
 
+# Local Pub Sub module settings
+localPubSubModule:
+  redisUri: "redis-master.default.svc.cluster.local:6379"
+
 # OPC Publisher module settings
 opcPublisherModule:
   mm: PubSub
