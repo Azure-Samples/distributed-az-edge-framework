@@ -1,8 +1,7 @@
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: iot-edge-accelerator-release
-  namespace: edge-app
+  name: iot-edge-accelerator-release  
 spec:
   interval: 1m
   chart:
