@@ -6,21 +6,59 @@ targetScope = 'subscription'
 
 @description('The common name for this application')
 param applicationName string
-@description('AKS principal Id')
-param aksClusterPrincipalID string
 
 @description('Location of resources')
 @allowed([
-  'westeurope'
-  'northeurope'
-  'westus'
-  'swedencentral'
+'eastasia'
+'southeastasia'
+'centralus'
+'eastus'
+'eastus2'
+'westus'
+'northcentralus'
+'southcentralus'
+'northeurope'
+'westeurope'
+'japanwest'
+'japaneast'
+'brazilsouth'
+'australiaeast'
+'australiasoutheast'
+'southindia'
+'centralindia'
+'westindia'
+'jioindiawest'
+'jioindiacentral'
+'canadacentral'
+'canadaeast'
+'uksouth'
+'ukwest'
+'westcentralus'
+'westus2'
+'koreacentral'
+'koreasouth'
+'francecentral'
+'francesouth'
+'australiacentral'
+'australiacentral2'
+'uaecentral'
+'uaenorth'
+'southafricanorth'
+'southafricawest'
+'switzerlandnorth'
+'switzerlandwest'
+'germanynorth'
+'germanywestcentral'
+'norwaywest'
+'norwayeast'
+'brazilsoutheast'
+'westus3'
+'swedencentral'
 ])
 param location string = 'westeurope'
 
 var applicationNameWithoutDashes = '${replace(applicationName,'-','')}'
 var resourceGroupName = 'rg-${applicationNameWithoutDashes}'
-// var acrName = 'acr${applicationNameWithoutDashes}'
 var storageAccountName = 'st${take(applicationNameWithoutDashes,14)}'
 var eventHubNameSpaceName = 'evh${take(applicationNameWithoutDashes,14)}'
 
@@ -28,15 +66,6 @@ resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   name: resourceGroupName
   location: location
 }
-
-// module acr 'modules/acr.bicep' = {
-//   scope: resourceGroup(rg.name)
-//   name: 'acrDeployment'
-//   params: {
-//     acrName: acrName
-//     aksPrincipalId: aksClusterPrincipalID
-//  }
-//}
 
 module storage 'modules/azurestorage.bicep' = {
   scope: resourceGroup(rg.name)
@@ -54,7 +83,6 @@ module eventhub 'modules/eventhub.bicep' = {
   }
 }
 
-// output acrName string = acrName
 output resourceGroupName string = resourceGroupName
 output storageName string = storage.outputs.storageName
 output storageKey string = storage.outputs.storageKey

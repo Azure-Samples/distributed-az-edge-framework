@@ -9,9 +9,6 @@ Param(
     $ApplicationName,
     [string]
     [Parameter(mandatory=$true)]
-    $AKSClusterPrincipalID,
-    [string]
-    [Parameter(mandatory=$true)]
     $AKSClusterName,
     [string]
     [Parameter(mandatory=$true)]
@@ -40,24 +37,12 @@ $startTime = Get-Date
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep Files")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName aksClusterPrincipalID=$aksClusterPrincipalID `
+           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
-#$acrName = $r.properties.outputs.acrName.value
 $storageKey = $r.properties.outputs.storageKey.value
 $storageName = $r.properties.outputs.storageName.value
 $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
-
-# Commented as we do not use ACR for pulling images currently, we can enable this feature in future and uncomment this and other ACR code.
-# ----- Copy (System) Public Container Images and Push to Private ACR
-# Write-Title("Copy and Push Containers (System)")
-# az acr import --name $acrName --source docker.io/suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest --image distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
-# az acr import --name $acrName --source docker.io/suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-ci-latest --image distributed-az-iot-edge-datagatewaymodule:main-ci-latest
-
-# ----- Copy and Push Containers (OPC Publisher) to Private ACR
-# Write-Title("Build and Push Containers (OPC Publisher)")
-# az acr import --name $acrName --source mcr.microsoft.com/iotedge/opc-plc:2.2.0 --image opc-plc:2.2.0
-# az acr import --name $acrName --source docker.io/suneetnangia/distributed-az-iot-edge-opcuapublisher:latest --image distributed-az-iot-edge-opcuapublisher:latest
 
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
@@ -67,7 +52,6 @@ kubectl create namespace $appKubernetesNamespace
 kubectl get secret redis --namespace=edge-core -o yaml | sed "s/namespace: .*/namespace: $appKubernetesNamespace/" | kubectl apply -f -
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
-Write-Host "--------------------- $eventHubConnectionString -------------------- "
 $dataGatewaySecretsSeed=@"
 localPubSubModule:
   redisUri: redis-master.edge-core.svc.cluster.local:6379
