@@ -24,7 +24,7 @@ Function Write-Title ($text) {
 
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying")
+Write-Title("Start Deploying Core Infrastructure")
 $startTime = Get-Date
 
 # ----- Deploy Bicep
@@ -42,7 +42,9 @@ Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksClusterName --resource-group $resourceGroupName --overwrite-existing
 
 # ----- Connect AKS to Arc -----
+Write-Host "Installing Arc providers, they may take some time to finish."
 az feature register --namespace Microsoft.ContainerService --name AKS-ExtensionManager
+az provider register --namespace Microsoft.ContainerService --wait
 az provider register --namespace Microsoft.Kubernetes --wait
 az provider register --namespace Microsoft.KubernetesConfiguration --wait
 az provider register --namespace Microsoft.ExtendedLocation --wait

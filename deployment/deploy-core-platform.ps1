@@ -24,7 +24,7 @@ Function Write-Title ($text) {
 
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying")
+Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 
 # ----- Dapr
