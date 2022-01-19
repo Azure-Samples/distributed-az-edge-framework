@@ -24,4 +24,8 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distribut
 
 ./deploy-core-infrastructure.ps1 -ApplicationName $ApplicationName
 ./deploy-core-platform.ps1 -ApplicationName $ApplicationName
-./deploy-app.ps1 -ApplicationName $ApplicationName -aksClusterPrincipalID echo $env:AKSCLUSTERPRINCIPALID
+./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterPrincipalID $env:AKSCLUSTERPRINCIPALID -AKSClusterResourceGroupName $env:RESOURCEGROUPNAME -AKSClusterName $env:AKSCLUSTERNAME
+
+Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
+Write-Host "Distributed Edge Accelerator is now deployed, please use the Event Hub instance in Azure to view the OPC UA and Simulated Sensor telemetry." -ForegroundColor Yellow
+Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow

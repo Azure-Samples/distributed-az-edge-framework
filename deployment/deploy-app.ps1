@@ -9,7 +9,13 @@ Param(
     $ApplicationName,
     [string]
     [Parameter(mandatory=$true)]
-    $aksClusterPrincipalID,
+    $AKSClusterPrincipalID,
+    [string]
+    [Parameter(mandatory=$true)]
+    $AKSClusterName,
+    [string]
+    [Parameter(mandatory=$true)]
+    $AKSClusterResourceGroupName,
     [string]
     $Location = 'westeurope'
 )
@@ -25,51 +31,56 @@ Function Write-Title ($text) {
     Write-Host $title.PadRight($width, "=") -ForegroundColor green
 }
 
+$appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying")
+Write-Title("Start Deploying Application")
 $startTime = Get-Date
 
 # ----- Deploy Bicep
-Write-Title("Deploy Bicep files")
+Write-Title("Deploy Bicep Files")
 $r = (az deployment sub create --location $Location `
            --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName aksClusterPrincipalID=$aksClusterPrincipalID `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
-$acrName = $r.properties.outputs.acrName.value
-$resourceGroupName = $r.properties.outputs.resourceGroupName.value
-$storageKey = $r.properties.outputs.storageKey.Value
-$storageName = $r.properties.outputs.storageName.Value
+#$acrName = $r.properties.outputs.acrName.value
+$storageKey = $r.properties.outputs.storageKey.value
+$storageName = $r.properties.outputs.storageName.value
 $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 
+# Commented as we do not use ACR for pulling images currently, we can enable this feature in future and uncomment this and other ACR code.
 # ----- Copy (System) Public Container Images and Push to Private ACR
 # Write-Title("Copy and Push Containers (System)")
+# az acr import --name $acrName --source docker.io/suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest --image distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+# az acr import --name $acrName --source docker.io/suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-ci-latest --image distributed-az-iot-edge-datagatewaymodule:main-ci-latest
 
 # ----- Copy and Push Containers (OPC Publisher) to Private ACR
 # Write-Title("Build and Push Containers (OPC Publisher)")
+# az acr import --name $acrName --source mcr.microsoft.com/iotedge/opc-plc:2.2.0 --image opc-plc:2.2.0
+# az acr import --name $acrName --source docker.io/suneetnangia/distributed-az-iot-edge-opcuapublisher:latest --image distributed-az-iot-edge-opcuapublisher:latest
 
 # ----- Run Helm
-Write-Title("Install latest release of helm chart (not using Flux).")
+Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
 
-# Copy Redis secret from edge-core ns to app ns.
-# TODO: 'edge-app' ns name can be a variable.
-kubectl get secret redis --namespace=edge-core -o yaml | sed 's/namespace: .*/namespace: edge-app/' | kubectl apply -f -
+kubectl create namespace $appKubernetesNamespace
+# Copy Redis secret from edge-core namesapce to edge-appp namespace where application is deployed.
+kubectl get secret redis --namespace=edge-core -o yaml | sed "s/namespace: .*/namespace: $appKubernetesNamespace/" | kubectl apply -f -
 
-helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
-helm repo update
-helm install az-edge-accelerator aziotaccl/iot-edge-accelerator `
---namespace edge-app `
---create-namespace `
---wait `
---set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
---set-string dataGatewayModule.storageAccountName="$storageName" `
---set-string dataGatewayModule.storageAccountKey="$storageKey" `
---set-string localPubSubModule.redisUri="redis-master.edge-core.svc.cluster.local:6379"
+# Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
+Write-Host "--------------------- $eventHubConnectionString -------------------- "
+$dataGatewaySecretsSeed=@"
+localPubSubModule:
+  redisUri: redis-master.edge-core.svc.cluster.local:6379
+dataGatewayModule:
+  eventHubConnectionString: {0}
+  storageAccountName: {1}
+  storageAccountKey: {2}
+"@ -f $eventHubConnectionString, $storageName, $storageKey
 
-# ----- Fluxv2 and Arc 
-# az k8s-configuration flux create -g <AKS Resource Group> -c <AKS cluster name> -t connectedClusters -n edge-framework-ci-config --namespace edge-framework-ci-ns --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
+kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
-$env:RESOURCEGROUPNAME=$resourceGroupName
+# Deploy Flux v2 configuration to install app on kubernetes edge.
+az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow

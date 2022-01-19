@@ -45,17 +45,5 @@ helm install redis bitnami/redis `
     --namespace edge-core `
     --wait
 
-# ----- Fluxv2 and Arc
-az feature register --namespace Microsoft.ContainerService --name AKS-ExtensionManager 
-az provider register --namespace Microsoft.Kubernetes --wait
-az provider register --namespace Microsoft.ContainerService --wait
-az provider register --namespace Microsoft.KubernetesConfiguration --wait
-az extension add -n k8s-configuration
-az extension add -n k8s-extension
-# az connectedk8s connect --name aks-sun1 --resource-group rg-sun1
-
-
-$env:RESOURCEGROUPNAME=$resourceGroupName
-
 $runningTime = New-TimeSpan -Start $startTime
 Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow

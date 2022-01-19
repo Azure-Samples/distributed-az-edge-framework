@@ -34,4 +34,5 @@ module aks 'modules/aks.bicep' = {
 }
 
 output aksName string = aks.outputs.aksName
-output resourceGroupName string = resourceGroupName
+output clusterPrincipalID string = aks.outputs.clusterPrincipalID
+output resourceGroupName string = rg.name
