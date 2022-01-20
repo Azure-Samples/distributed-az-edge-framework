@@ -73,11 +73,9 @@ Deployment of the above artifacts may require multiple tools, this is where we c
 
 In Azure, for demo purposes we deploy all the three layers for you.
 
-Run the following cmdline in Azure Cloud Shell:
+Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
-
-[Launch Cloud Shell](https://shell.azure.com/powershell)
 
 ## Outstanding (Work in Progress)
 

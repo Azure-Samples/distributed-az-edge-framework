@@ -24,7 +24,11 @@ Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bice
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
 
 ./deploy-core-infrastructure.ps1 -ApplicationName $ApplicationName
+
+clear
 ./deploy-core-platform.ps1 -ApplicationName $ApplicationName
+
+clear
 ./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $env:RESOURCEGROUPNAME -AKSClusterName $env:AKSCLUSTERNAME
 
 Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
