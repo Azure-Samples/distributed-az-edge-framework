@@ -31,6 +31,7 @@ clear
 clear
 ./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $env:RESOURCEGROUPNAME -AKSClusterName $env:AKSCLUSTERNAME
 
+clear
 Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
-Write-Host "Distributed Edge Accelerator is now deployed in Azure Resource Group '$env:RESOURCEGROUPNAME', please use the Event Hub instance, to view the OPC UA and Simulated Sensor telemetry." -ForegroundColor Yellow
+Write-Host "Distributed Edge Accelerator is now deployed in Azure Resource Group '$env:RESOURCEGROUPNAME', please use the Event Hub instance to view the OPC UA and Simulated Sensor telemetry." -ForegroundColor Yellow
 Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
