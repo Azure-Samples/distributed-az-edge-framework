@@ -55,21 +55,24 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 
 Solution components are split into three layers from deployment perspective:
 
-1. **Core Infrastructure** (Kubernetes, Kubectl/Helm clients configuration).
+1. **Core Infrastructure Layer** (Kubernetes, Kubectl/Helm clients configuration).
    This deployment is a responsibility of customer's infrastructure team, customer may already have this infrastructure in place or may need to cater for specific requirements due to external constraints. Pre-Built Packages Available:
     * Core Infrastructure Package for Demo on Azure cloud.
   
-2. **Core Platform Components** (Dapr, Arc and Flux extensions on Kubernetes).
+2. **Core Platform Layer** (Dapr, Arc and Flux extensions on Kubernetes).
    This deployment is a responsibility of customer's devops team, we will provide a pre-built deployment package/scripts which can be run by customer to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
     * Core Platform Package for Kubernetes in Cloud/On-prem.
   
-3. **Application Components/Package** (Cloud and Kubernetes artifacts for the application).
+3. **Application Layer** (Cloud and Kubernetes artifacts for the application).
    This deployment is a responsibility of customer's devops team, customer will use scripts to deploy application components which may span across Azure (App1 RG) and Kubernetes on the edge (App1 Namespace). The edge component will comprise of a Flux configuration manifest which in turn will configure Flux extension on Kubernetes to sync and deploy remote/local Helm package. Pre-Built Packages Available:
     * Sample Application Package for Accelerator in Cloud/Hybrid mode.
 
 Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, az cmds and other scripts to deploy the solution and its dependencies.
 
 ### Try It on Azure
+
+In Azure, for demo purposes we deploy all the three layers for you.
+
 Run the following cmdline in Azure Cloud Shell:
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
@@ -79,7 +82,6 @@ Run the following cmdline in Azure Cloud Shell:
 ## Outstanding (Work in Progress)
 
 These are now moved to GitHub project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
-
 
 ## Disclaimer
 
