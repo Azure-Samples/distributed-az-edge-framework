@@ -70,7 +70,7 @@ Solution components are split into three layers from deployment perspective:
 Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, az cmds and other scripts to deploy the solution and its dependencies.
 
 ### Try It on Azure
-Run the following cmdline in Azure Shell:
+Run the following cmdline in Azure Cloud Shell:
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
