@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 @maxLength(20)
-@description('AKS Name')
+@description('Azure Event Hub Namespace.')
 param eventHubNameSpaceName string
 
 resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
@@ -29,20 +29,16 @@ resource eventHubNamespaceName_eventHubName 'Microsoft.EventHub/namespaces/event
   }
 }
 
-resource eventHubNamespaceName_eventHubName_ListenSend 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
+resource eventHubNamespaceName_eventHubName_Send 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
   parent: eventHubNamespaceName_eventHubName
   name: 'iot-edge'
   properties: {
-    rights: [
-      'Listen'
+    rights: [      
       'Send'
     ]
-  }
-  dependsOn: [
-    eventHubNamespace
-  ]
+  } 
 }
-var eventHubConnectionString = listKeys(eventHubNamespaceName_eventHubName_ListenSend.id, eventHubNamespaceName_eventHubName_ListenSend.apiVersion).primaryConnectionString
 
+var eventHubConnectionString = listKeys(eventHubNamespaceName_eventHubName_Send.id, eventHubNamespaceName_eventHubName_Send.apiVersion).primaryConnectionString
 output eventHubConnectionString string = eventHubConnectionString
 output eventHubName string = eventHubName

@@ -49,36 +49,37 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 5. Well known and understood configuration and secret management.
 6. End to end observability at both application and platform level, using OpenTelemetry.
 
-## Solution Deployment Steps
+## Solution Deployment
 
-### Prerequisites
+![alt text](architecture/deployment-hld.png "Deployment Strategy")
 
-    1. Kubectl client, configured to a K8s cluster.
-    2. Helm client
+Solution components are split into three layers from deployment perspective:
 
-### Steps
+1. **Core Infrastructure Layer** (Kubernetes, Kubectl/Helm clients configuration).
+   This deployment is a responsibility of customer's infrastructure team, customer may already have this infrastructure in place or may need to cater for specific requirements due to external constraints. Pre-Built Packages Available:
+    * Core Infrastructure Package for Demo on Azure cloud.
+  
+2. **Core Platform Layer** (Dapr, Arc and Flux extensions on Kubernetes).
+   This deployment is a responsibility of customer's devops team, we will provide a pre-built deployment package/scripts which can be run by customer to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
+    * Core Platform Package for Kubernetes in Cloud/On-prem.
+  
+3. **Application Layer** (Cloud and Kubernetes artifacts for the application).
+   This deployment is a responsibility of customer's devops team, customer will use scripts to deploy application components which may span across Azure (App1 RG) and Kubernetes on the edge (App1 Namespace). The edge component will comprise of a Flux configuration manifest which in turn will configure Flux extension on Kubernetes to sync and deploy remote/local Helm package. Pre-Built Packages Available:
+    * Sample Application Package for Accelerator in Cloud/Hybrid mode.
 
-1. Deploy Dapr on K8s cluster if not already deployed, please refer to the guidance [here](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-deploy/#install-with-helm-advanced).
-2. Deploy Redis on K8s cluster if not already deployed:
+Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, az cmds and other scripts to deploy the solution and its dependencies.
 
-    ```
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo update
-    helm install redis bitnami/redis
-    ```
+### Try It on Azure
 
-3. Deploy the accelerator with the latest release, via Helm as below:
+In Azure, for demo purposes we deploy all the three layers for you.
 
-    ```
-   helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
-   helm repo update
-   helm install az-edge-accelerator aziotaccl/iot-edge-accelerator --set dataGatewayModule.eventHubConnectionString="<Event Hub Connection String with Entity>",dataGatewayModule.storageAccountName="<Storage Account Name>",dataGatewayModule.storageAccountKey="<Storage Account Key>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
-    ```
+Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
+
+`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
 ## Outstanding (Work in Progress)
 
 These are now moved to GitHub project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
-
 
 ## Disclaimer
 
