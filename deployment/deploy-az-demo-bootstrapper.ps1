@@ -9,7 +9,7 @@ Param(
 )
 
 # ----- Copy scripts from source location
-$baseLocation = "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update"
+$baseLocation = "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/az-deploy"
 
 Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1"
 Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1"
