@@ -73,7 +73,7 @@ helm repo add dapr https://dapr.github.io/helm-charts/
 helm repo update
 helm upgrade --install dapr dapr/dapr `
     --version=1.5 `
-    --namespace dapr-system `
+    --namespace edge-core `
     --create-namespace `
     --wait
 
@@ -81,7 +81,14 @@ helm upgrade --install dapr dapr/dapr `
 Write-Title("Install Redis")
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install redis bitnami/redis --wait
+helm install redis bitnami/redis --wait `
+--namespace edge-core `
+--create-namespace `
+--wait
+
+# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
+kubectl create namespace edge-app1
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
 
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
@@ -97,7 +104,11 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey"
-
+    --set-string dataGatewayModule.storageAccountKey="$storageKey" `
+    --namespace edge-app1 `
+    --create-namespace `
+    --wait
+    
 # ----- Clean up
 if($DeleteResourceGroup)
 {

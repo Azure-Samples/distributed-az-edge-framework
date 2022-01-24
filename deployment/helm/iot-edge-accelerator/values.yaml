@@ -9,7 +9,7 @@ dataGatewayModule:
 
 # Local Pub Sub module settings
 localPubSubModule:
-  redisUri: "redis-master.default.svc.cluster.local:6379"
+  redisUri: "redis-master.edge-core.svc.cluster.local:6379"
 
 # OPC Publisher module settings
 opcPublisherModule:
