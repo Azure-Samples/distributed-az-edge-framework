@@ -5,7 +5,7 @@ This environment is used to setup a fast developer environment, which means that
 in the environment.
 
 ## How to execute it
-Go to the `development` folder and run `deploy-aks-dapr.ps1 -ApplicationName <short-name>`
+Go to the `deployment` folder and run `deploy-aks-dapr.ps1 -ApplicationName <short-name>`
 
 ## The main functions in the script
 1. Deploy infrastructure with Bicep
