@@ -49,7 +49,7 @@ Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
 
 kubectl create namespace $appKubernetesNamespace
 # Copy Redis secret from edge-core namesapce to edge-appp namespace where application is deployed.
-kubectl get secret redis --namespace=edge-core -o yaml | sed "s/namespace: .*/namespace: $appKubernetesNamespace/" | kubectl apply -f -
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f -
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
 $dataGatewaySecretsSeed=@"
