@@ -103,7 +103,7 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
-    --set-string dataGatewayModule.storageAccountKey="$storageKey"
+    --set-string dataGatewayModule.storageAccountKey="$storageKey" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
     --namespace edge-app1 `
     --create-namespace `
