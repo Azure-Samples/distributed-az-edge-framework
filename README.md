@@ -75,7 +75,7 @@ In Azure, for demo purposes we deploy all the three layers for you.
 
 Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
 
-`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/feature/docs-update/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
+`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
 ## Outstanding (Work in Progress)
 
