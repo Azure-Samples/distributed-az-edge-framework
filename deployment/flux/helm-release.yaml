@@ -8,6 +8,9 @@ spec:
   chart:
     spec:
       chart: ./deployment/helm
+      # Enable this if you want to deploy only a specific chart version.
+      # https://fluxcd.io/docs/guides/helmreleases/#define-a-helm-release
+      # version: "0.18.0"
       sourceRef:
         kind: GitRepository        
         name: iot-edge-accelerator-repo
