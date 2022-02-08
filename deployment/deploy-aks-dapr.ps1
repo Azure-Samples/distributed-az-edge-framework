@@ -67,6 +67,13 @@ Set-Location -Path $deploymentDir
 Write-Title("Get AKS Credentials")
 az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
 
+#----- Proxy
+Write-Title("Install Proxy")
+helm install squid-proxy ./helm/squid-proxy `
+    --namespace edge-proxy `
+    --create-namespace `
+    --wait
+
 #----- Dapr
 Write-Title("Install Dapr")
 helm repo add dapr https://dapr.github.io/helm-charts/

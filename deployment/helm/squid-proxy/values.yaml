@@ -1,0 +1,4 @@
+# Squid proxy settings
+squidProxy:
+  image: datadog/squid
+  port: 3128

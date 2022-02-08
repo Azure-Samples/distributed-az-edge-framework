@@ -27,6 +27,13 @@ $deploymentId = Get-Random
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 
+#----- Proxy
+Write-Title("Install Proxy")
+helm install squid-proxy ./helm/squid-proxy `
+    --namespace edge-proxy `
+    --create-namespace `
+    --wait
+
 # ----- Dapr
 Write-Title("Install Dapr")
 helm repo add dapr https://dapr.github.io/helm-charts/
