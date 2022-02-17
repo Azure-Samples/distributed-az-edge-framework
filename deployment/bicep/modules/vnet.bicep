@@ -116,7 +116,7 @@ resource assignNetworkContributorToAks1 'Microsoft.Authorization/roleAssignments
   name: guid(resourceGroup().id, vnetName, aks1ClientId, 'AssignNetworkContributorToAks1')
   scope: vnet
   properties: {
-    description: 'Assign Network Contributor role to second AKS'
+    description: 'Assign Network Contributor role to AKS #1'
     principalId: aks1ClientId
     principalType: 'ServicePrincipal'
     roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${roleNetworkContributor}'
@@ -127,7 +127,7 @@ resource assignNetworkContributorToAks2 'Microsoft.Authorization/roleAssignments
   name: guid(resourceGroup().id, vnetName, aks2ClientId, 'AssignNetworkContributorToAks2')
   scope: vnet
   properties: {
-    description: 'Assign Network Contributor role to second AKS'
+    description: 'Assign Network Contributor role to AKS #2'
     principalId: aks2ClientId
     principalType: 'ServicePrincipal'
     roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${roleNetworkContributor}'
