@@ -18,7 +18,7 @@ var nsgName3 = 's3-${vnetName}'
 
 var subnetName1 = 's1'
 var subnetName2 = 's2'
-var subnetName3 = 's2'
+var subnetName3 = 's3'
 
 var vnetAddressPrefix = '172.16.0.0/16'
 var subnetAddressPrefix1 = '172.16.0.0/18'
@@ -137,3 +137,4 @@ resource assignNetworkContributorToAks2 'Microsoft.Authorization/roleAssignments
 output vnetId string = vnet.id
 output subnetId1 string = '${vnet.id}/subnets/${subnetName1}'
 output subnetId2 string = '${vnet.id}/subnets/${subnetName2}'
+output subnetId3 string = '${vnet.id}/subnets/${subnetName3}'
