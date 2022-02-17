@@ -16,9 +16,23 @@ param applicationName string
 ])
 param location string = 'westeurope'
 
+@description('The AKS #1 service principal client id')
+param aks1ClientId string
+
+@description('The AKS #1 service principal client secret')
+param aks1ClientSecret string
+
+@description('The AKS #2 service principal client id')
+param aks2ClientId string
+
+@description('The AKS #2 service principal client secret')
+param aks2ClientSecret string
+
 var applicationNameWithoutDashes = '${replace(applicationName,'-','')}'
 var resourceGroupName = 'rg-${applicationNameWithoutDashes}'
-var aksName = '${take('aks-${applicationNameWithoutDashes}',20)}'
+var vnetName = 'vnet-${applicationNameWithoutDashes}'
+var aks1Name = '${take('aks1-${applicationNameWithoutDashes}',20)}'
+var aks2Name = '${take('aks2-${applicationNameWithoutDashes}',20)}'
 var acrName = 'acr${applicationNameWithoutDashes}'
 var storageAccountName = 'st${take(applicationNameWithoutDashes,14)}'
 var eventHubNameSpaceName = 'evh${take(applicationNameWithoutDashes,14)}'
@@ -28,11 +42,35 @@ resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   location: location
 }
 
-module aks 'modules/aks.bicep' = {
-  name: 'aksDeployment'
+module vnet 'modules/vnet.bicep' = {
+  scope: resourceGroup(rg.name)
+  name: 'vnetDeployment'
+  params: {
+    vnetName: vnetName
+    aks1ClientId: aks1ClientId
+    aks2ClientId: aks2ClientId
+  }
+}
+
+module aks1 'modules/aks.bicep' = {
+  name: 'aks1Deployment'
   scope: resourceGroup(rg.name)
   params: {
-    aksName: aksName
+    aksName: aks1Name
+    aksClientId: aks1ClientId
+    aksClientSecret: aks1ClientSecret
+    vnetSubnetID: vnet.outputs.subnetId1
+  }
+}
+
+module aks2 'modules/aks.bicep' = {
+  name: 'aks2Deployment'
+  scope: resourceGroup(rg.name)
+  params: {
+    aksName: aks2Name
+    aksClientId: aks2ClientId
+    aksClientSecret: aks2ClientSecret
+    vnetSubnetID: vnet.outputs.subnetId2
   }
 }
 
@@ -41,11 +79,13 @@ module acr 'modules/acr.bicep' = {
   name: 'acrDeployment'
   params: {
     acrName: acrName
-    aksPrincipalId: aks.outputs.clusterPrincipalID
+    aks1PrincipalId: aks1ClientId
+    aks2PrincipalId: aks2ClientId
   }
 
   dependsOn: [
-    aks
+    aks1
+    aks2
   ]
 }
 
@@ -66,7 +106,8 @@ module eventhub 'modules/eventhub.bicep' = {
 }
 
 output acrName string = acrName
-output aksName string = aks.outputs.aksName
+output aks1Name string = aks1.outputs.aksName
+output aks2Name string = aks2.outputs.aksName
 output resourceGroupName string = resourceGroupName
 output storageKey string = storage.outputs.storageKey
 output storageName string = storage.outputs.storageName
