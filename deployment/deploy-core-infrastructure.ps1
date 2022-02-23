@@ -27,10 +27,25 @@ $deploymentId = Get-Random
 Write-Title("Start Deploying Core Infrastructure")
 $startTime = Get-Date
 
+# ----- Create AKS Service Principals
+Write-Title("Create AKS Service Principals")
+$aks1ServicePrincipalName = $ApplicationName + "-aks1-sp"
+$aks2ServicePrincipalName = $ApplicationName + "-aks2-sp"
+
+$aks1ServicePrincipal = (az ad sp create-for-rbac -n $aks1ServicePrincipalName) | ConvertFrom-Json
+$aks2ServicePrincipal = (az ad sp create-for-rbac -n $aks2ServicePrincipalName) | ConvertFrom-Json
+
+$aks1ClientId = $aks1ServicePrincipal.appId
+$aks2ClientId = $aks2ServicePrincipal.appId
+$aks1ClientSecret = $aks1ServicePrincipal.password
+$aks2ClientSecret = $aks2ServicePrincipal.password
+
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 $r = (az deployment sub create --location $Location `
            --template-file .\bicep\core-infrastructure.bicep --parameters applicationName=$ApplicationName `
+           aks1ClientId=$aks1ClientId aks1ClientSecret=$aks1ClientSecret `
+           aks2ClientId=$aks2ClientId aks2ClientSecret=$aks2ClientSecret `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $aksClusterName = $r.properties.outputs.aksName.value

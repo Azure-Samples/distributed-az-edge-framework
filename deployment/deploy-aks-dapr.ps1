@@ -29,14 +29,30 @@ $deploymentId = Get-Random
 Write-Title("Start Deploying")
 $startTime = Get-Date
 
+# ----- Create AKS Service Principals
+Write-Title("Create AKS Service Principals")
+$aks1ServicePrincipalName = $ApplicationName + "-aks1-sp"
+$aks2ServicePrincipalName = $ApplicationName + "-aks2-sp"
+
+$aks1ServicePrincipal = (az ad sp create-for-rbac -n $aks1ServicePrincipalName) | ConvertFrom-Json
+$aks2ServicePrincipal = (az ad sp create-for-rbac -n $aks2ServicePrincipalName) | ConvertFrom-Json
+
+$aks1ClientId = $aks1ServicePrincipal.appId
+$aks2ClientId = $aks2ServicePrincipal.appId
+$aks1ClientSecret = $aks1ServicePrincipal.password
+$aks2ClientSecret = $aks2ServicePrincipal.password
+
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 $r = (az deployment sub create --location $Location `
            --template-file .\bicep\main.bicep --parameters applicationName=$ApplicationName `
+           aks1ClientId=$aks1ClientId aks1ClientSecret=$aks1ClientSecret `
+           aks2ClientId=$aks2ClientId aks2ClientSecret=$aks2ClientSecret `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $acrName = $r.properties.outputs.acrName.value
-$aksName = $r.properties.outputs.aksName.value
+$aks1Name = $r.properties.outputs.aks1Name.value
+$aks2Name = $r.properties.outputs.aks2Name.value
 $resourceGroupName = $r.properties.outputs.resourceGroupName.value
 $storageKey = $r.properties.outputs.storageKey.Value
 $storageName = $r.properties.outputs.storageName.Value
@@ -64,8 +80,8 @@ $Env:Version_Prefix = $deploymentId
 Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials
-Write-Title("Get AKS Credentials")
-az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
+Write-Title("Get AKS #1 Credentials")
+az aks get-credentials --admin --name $aks1Name --resource-group $resourceGroupName --overwrite-existing
 
 #----- Proxy
 Write-Title("Install Proxy")
@@ -115,7 +131,88 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --namespace edge-app1 `
     --create-namespace `
     --wait
+
+# ----- Get AKS #1 Proxy IP Address
+Write-Title("Get AKS #1 Proxy IP Address")
+$proxy1 = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
+$proxy1Ip = $proxy1.status.loadBalancer.ingress.ip
+$proxy1Url = "http://" + $proxy1Ip + ":3128"
+
+# ----- Enroll AKS #1 with Arc
+Write-Title("Enroll AKS #1 with Arc")
+az extension add --name "connectedk8s"
+az extension add --name "k8s-configuration"
+az extension add --name "k8s-extension"
+az extension add --name "customlocation"
+az connectedk8s connect --name $aks1Name --resource-group $resourceGroupName --location $Location --proxy-http $proxy1Url --proxy-https $proxy1Url --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
+az connectedk8s enable-features -n $aks1Name -g $resourceGroupName --features cluster-connect
+
+# ----- Get Cluster Credentials
+Write-Title("Get AKS #2 Credentials")
+az aks get-credentials --admin --name $aks2Name --resource-group $resourceGroupName --overwrite-existing
+
+#----- Proxy
+Write-Title("Install Proxy")
+helm install squid-proxy ./helm/squid-proxy `
+    --set-string parent.ipAddress="$proxy1Ip" `
+    --set-string parent.port="3128" `
+    --namespace edge-proxy `
+    --create-namespace `
+    --wait
     
+#----- Dapr
+Write-Title("Install Dapr")
+helm repo add dapr https://dapr.github.io/helm-charts/
+helm repo update
+helm upgrade --install dapr dapr/dapr `
+    --version=1.5 `
+    --namespace edge-core `
+    --create-namespace `
+    --wait
+
+#----- Redis
+Write-Title("Install Redis")
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install redis bitnami/redis --wait `
+--namespace edge-core `
+--create-namespace `
+--wait
+
+# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
+kubectl create namespace edge-app1
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
+
+# ----- Run Helm
+Write-Title("Install Pod/Containers with Helm in Cluster")
+$datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
+$simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
+$opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
+$opcpublisherimage = $acrName + ".azurecr.io/dapr-adapter/iotedge/opc-publisher:" + $deploymentId
+helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
+    --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+    --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
+    --set-string images.opcplcmodule="$opcplcimage" `
+    --set-string images.opcpublishermodule="$opcpublisherimage" `
+    --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
+    --set-string dataGatewayModule.storageAccountName="$storageName" `
+    --set-string dataGatewayModule.storageAccountKey="$storageKey" `
+    --set-string dataGatewayModule.storageAccountKey="$storageKey" `
+    --namespace edge-app1 `
+    --create-namespace `
+    --wait
+
+# ----- Get AKS #2 Proxy IP Address
+Write-Title("Get AKS #2 Proxy IP Address")
+$proxy2 = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
+$proxy2Ip = $proxy2.status.loadBalancer.ingress.ip
+$proxy2Url = "http://" + $proxy2Ip + ":3128"
+
+# ----- Enroll AKS #2 with Arc
+Write-Title("Enroll AKS #2 with Arc")
+az connectedk8s connect --name $aks2Name --resource-group $resourceGroupName --location $Location --proxy-http $proxy2Url --proxy-https $proxy2Url --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
+az connectedk8s enable-features -n $aks2Name -g $resourceGroupName --features cluster-connect
+
 # ----- Clean up
 if($DeleteResourceGroup)
 {
@@ -124,6 +221,10 @@ if($DeleteResourceGroup)
     {
         Write-Host "All resources deleted" -ForegroundColor Yellow
     }
+
+    Write-Title("Delete AKS Service Principals")
+    az ad sp delete --id $aks1ClientId
+    az ad sp delete --id $aks2ClientId
 }
 
 $env:RESOURCEGROUPNAME=$resourceGroupName

@@ -17,12 +17,18 @@ param agentCount int = 3
 
 param agentVMSize string = 'Standard_B4ms'
 
+@description('The AKS virtual network subnet')
+param vnetSubnetID string
+
+@description('The AKS service principal client id')
+param aksClientId string
+
+@description('The AKS service principal client secret')
+param aksClientSecret string
+
 resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
   name: aksName
   location: resourceGroup().location
-  identity: {
-    type: 'SystemAssigned'
-  }
   properties: {
     enableRBAC: true
     dnsPrefix: uniqueString(aksName)
@@ -35,14 +41,15 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
         vmSize: agentVMSize
         osType: 'Linux'
         mode: 'System'
+        vnetSubnetID: vnetSubnetID
       }
     ]
     servicePrincipalProfile: {
-      clientId: 'msi'
+      clientId: aksClientId
+      secret: aksClientSecret
     }
   }
 }
 
 output controlPlaneFQDN string = aks.properties.fqdn
 output aksName string = aks.name
-output clusterPrincipalID string = aks.properties.identityProfile.kubeletidentity.objectId
