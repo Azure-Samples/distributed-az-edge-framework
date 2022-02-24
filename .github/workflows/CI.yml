@@ -44,7 +44,6 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/distributed-az-iot-edge-datagatewaymodule
         tags: |
-          # minimal
           type=edge
         
     # - name: Login to GitHub Registry
