@@ -43,7 +43,9 @@ jobs:
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
         images: ${{ env.REGISTRY }}/distributed-az-iot-edge-datagatewaymodule
-        tags:  type=edge
+        tags: |
+          # minimal
+          type=edge
         
     # - name: Login to GitHub Registry
     #  run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
