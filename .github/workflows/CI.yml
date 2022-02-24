@@ -5,6 +5,10 @@ on:
       - readiness/azure-samples
     paths-ignore:
       - 'deployment/**'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  
 jobs:
   Build-Code:
     runs-on: ubuntu-latest
@@ -38,7 +42,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/${{ steps.vars.outputs.tag }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME  }}
         
     # - name: Login to GitHub Registry
     #  run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
