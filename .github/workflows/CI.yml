@@ -38,7 +38,7 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/suneetnangia/distributed-az-iot-edge-datagatewaymodule
         tags: |
-          type=raw,value={{branch}}-{{sha}},format=long
+          type=raw,value={{branch}}-{{sha}}
             
     - name: Build and push DataGatewayModule Docker image
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
@@ -55,7 +55,7 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/suneetnangia/distributed-az-iot-edge-datagatewaymodule
         tags: |
-          type=raw,value={{branch}}-{{sha}},format=long
+          type=raw,value={{branch}}-{{sha}}
 
     - name: Build and push SimulatedTemperatureSensorModule Docker image
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
