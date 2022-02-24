@@ -44,7 +44,7 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/suneetnangia/distributed-az-iot-edge-datagatewaymodule
         tags: |
-          type=edge
+          type=raw,value=mytag-{{branch}}-{{sha}}
         
     # - name: Login to GitHub Registry
     #  run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
