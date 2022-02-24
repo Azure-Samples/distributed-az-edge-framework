@@ -77,9 +77,9 @@ Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powersh
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
-## Outstanding (Work in Progress)
+## Further Enhancements
 
-These are now moved to GitHub project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
+This solution can be further enhanced with the features defined in the project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
 
 ## Disclaimer
 
