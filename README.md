@@ -21,10 +21,10 @@ Each pod contains two containers:
 
 Apart from the above arrangement, the following system modules/pods are part of the solution:
 
-1. [**Data Gateway Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Data-Gateway-Module), purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud.
-2. [**OPC UA Publisher Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/OPC-UA-Publisher-Module), OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios.
-3. [**OPC UA Plc Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/OPC-UA-Plc-Module), OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
-4. [**Simulated Temperature Sensor Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Simulated-Temperature-Sensor-Module), emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
+1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud.
+2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios.
+3. **OPC UA Plc Module**, OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
+4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
 
 The accelerator makes use of the following products and services:
 
