@@ -5,6 +5,10 @@ on:
       - main
     paths-ignore:
       - 'deployment/**'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  
 jobs:
   Build-Code:
     runs-on: ubuntu-latest
@@ -20,30 +24,45 @@ jobs:
       run: dotnet build iotedge/Distributed.IoT.Edge --no-restore
     - name: Test
       run: dotnet test iotedge/Distributed.IoT.Edge --no-build --verbosity normal
-    - name: Login to DockerHub Registry
-      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-    - name: Get the version
-      id: vars
-      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
-    - name: Echo Docker images tag
-      run: echo ${{steps.vars.outputs.tag}}
+    
+    - name: Log in to the Container registry
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
       
-    - name: Build the tagged Docker image for Data Gateway module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
-    - name: Push the tagged Docker image for Data Gateway module.
-      run: docker push suneetnangia/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
+    - name: Extract metadata (tags, labels) for DataGatewayModule Docker
+      id: dataGatewayMeta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/suneetnangia/distributed-az-iot-edge-datagatewaymodule
+        tags: |
+          type=raw,value={{branch}}-{{sha}}
+            
+    - name: Build and push DataGatewayModule Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: iotedge/Distributed.IoT.Edge/.
+        file: iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile
+        push: true
+        tags: ${{ steps.dataGatewayMeta.outputs.tags }}
+        labels: ${{ steps.dataGatewayMeta.outputs.labels }}
+          
+    - name: Extract metadata (tags, labels) for SimulatedTemperatureSensorModule Docker
+      id: tempSensorMeta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule
+        tags: |
+          type=raw,value={{branch}}-{{sha}}
 
-    - name: Build the latest Docker image for Data Gateway module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-ci-latest
-    - name: Push the latest Docker image for Data Gateway module.
-      run: docker push suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-ci-latest
-      
-    - name: Build the tagged Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
-    - name: Push the tagged Docker image for Simulated Temperature Sensor module.
-      run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
-
-    - name: Build the latest Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
-    - name: Push the latest Docker image for Simulated Temperature Sensor module.
-      run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+    - name: Build and push SimulatedTemperatureSensorModule Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: iotedge/Distributed.IoT.Edge/.
+        file: iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile
+        push: true
+        tags: ${{ steps.tempSensorMeta.outputs.tags }}
+        labels: ${{ steps.tempSensorMeta.outputs.labels }}
+    
