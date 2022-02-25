@@ -2,7 +2,7 @@ name: Main Branch Release
 on: 
   push:
     branches: 
-      - main
+      - readiness/azure-samples
     paths:
       # Only run this when chart file is updated.
       - 'deployment/helm/iot-edge-accelerator/Chart.yaml'
