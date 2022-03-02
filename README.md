@@ -83,4 +83,9 @@ This solution can be further enhanced with the features defined in the project [
 
 ## Disclaimer
 
-This is still a work in progress, you are however free to use this to guide your thinking to develop a solution for your own use. Equally, we would welcome any contribution you could make to progress this work.
+This project has been created to accelerate the development of heavy edge solution on Kubernetes.
+No guarantees can be offered as to response times on issues, feature requests, or to the long term road map/support for the project.
+
+Taking the above statement into account the team involved in this effort wish for the project to evolve into a stable, production ready resource with active contributors from Microsoft and the wider community.
+
+This project uses GitHub Issues to track bugs and feature requests. Please search the existing issues before filing new issues to avoid duplicates. For new issues, file your bug or feature request as a new Issue.
