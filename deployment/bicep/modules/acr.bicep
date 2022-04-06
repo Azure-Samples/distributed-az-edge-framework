@@ -2,9 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-@description('ACR Name')
+@description('ACR name')
 @maxLength(20)
 param acrName string
+
+@description('ACR location')
+@maxLength(20)
+param acrLocation string = resourceGroup().location
 
 @description('The AKS #1 service principal client id')
 param aks1PrincipalId string
@@ -14,13 +18,13 @@ param aks2PrincipalId string
 
 @allowed([
   'b24988ac-6180-42a0-ab88-20f7382dd24c' // Contributor
-  'acdd72a7-3385-48ef-bd42-f606fba81ae7' // Reader
+  '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
 ])
-param roleAcrPull string = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+param roleAcrPull string = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
   name: acrName
-  location: resourceGroup().location
+  location: acrLocation
   sku: {
     name: 'Standard'
   }

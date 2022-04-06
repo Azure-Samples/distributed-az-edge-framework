@@ -6,9 +6,13 @@
 @description('Azure Event Hub Namespace.')
 param eventHubNameSpaceName string
 
+@description('Event Hub namespace location')
+@maxLength(20)
+param eventHubNamespaceLocation string = resourceGroup().location
+
 resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
   name: eventHubNameSpaceName
-  location: resourceGroup().location
+  location: eventHubNamespaceLocation
   sku: {
     name: 'Standard'
     tier: 'Standard'

@@ -6,6 +6,10 @@
 @description('AKS Name')
 param aksName string
 
+@description('AKS location')
+@maxLength(20)
+param aksLocation string = resourceGroup().location
+
 // optional params
 @minValue(0)
 @maxValue(1023)
@@ -28,7 +32,7 @@ param aksClientSecret string
 
 resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
   name: aksName
-  location: resourceGroup().location
+  location: aksLocation
   properties: {
     enableRBAC: true
     dnsPrefix: uniqueString(aksName)
