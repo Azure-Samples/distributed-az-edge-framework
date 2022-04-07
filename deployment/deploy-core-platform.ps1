@@ -8,6 +8,15 @@ Param(
     [Parameter(mandatory=$true)]
     $ApplicationName,
     [string]
+    [Parameter(mandatory=$true)]
+    $AksCluster1Name,
+    [string]
+    [Parameter(mandatory=$true)]
+    $AksCluster2Name,
+    [string]
+    [Parameter(mandatory=$true)]
+    $ResourceGroupName,
+    [string]
     $Location = 'westeurope'
 )
 
@@ -24,8 +33,28 @@ Function Write-Title ($text) {
 
 $deploymentId = Get-Random
 
+# ----- Deploy Bicep -- this section to be moved back into deploy-app.ps1 / separate app related 
+Write-Title("Deploy Bicep Files")
+$r = (az deployment sub create --location $Location `
+           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName `
+           --name "dep-$deploymentId" -o json) | ConvertFrom-Json
+
+$storageKey = $r.properties.outputs.storageKey.value
+$storageName = $r.properties.outputs.storageName.value
+$eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
+
+
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
+
+
+# ----- Get Cluster Credentials #1
+Write-Title("Get AKS #1 Credentials")
+az aks get-credentials `
+    --admin `
+    --name $AksCluster1Name `
+    --resource-group $ResourceGroupName `
+    --overwrite-existing
 
 #----- Proxy
 Write-Title("Install Proxy")
@@ -34,7 +63,7 @@ helm install squid-proxy ./helm/squid-proxy `
     --create-namespace `
     --wait
 
-# ----- Dapr
+#----- Dapr
 Write-Title("Install Dapr")
 helm repo add dapr https://dapr.github.io/helm-charts/
 helm repo update
@@ -44,13 +73,120 @@ helm upgrade --install dapr dapr/dapr `
     --create-namespace `
     --wait
 
-# ----- Redis
+#----- Redis
 Write-Title("Install Redis")
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install redis bitnami/redis `
-    --namespace edge-core `
+helm install redis bitnami/redis --wait `
+--namespace edge-core `
+--create-namespace `
+--wait
+
+# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
+kubectl create namespace edge-app1
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
+
+
+# TODO app RUN Helm from deploy-aks-dapr // check on moving this to deploy-app.ps1 instead TODO
+
+# Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
+$dataGatewaySecretsSeed=@"
+localPubSubModule:
+  redisUri: redis-master.edge-core.svc.cluster.local:6379
+dataGatewayModule:
+  eventHubConnectionString: {0}
+  storageAccountName: {1}
+  storageAccountKey: {2}
+"@ -f $eventHubConnectionString, $storageName, $storageKey
+
+kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n edge-app1
+
+# Deploy Flux v2 configuration to install app on kubernetes edge.
+az k8s-configuration flux create -g $ResourceGroupName -c $AksCluster1Name -t connectedClusters -n edge-framework-ci-config --namespace edge-app1 --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
+
+
+# ----- Get AKS #1 Proxy IP Address
+Write-Title("Get AKS #1 Proxy IP Address")
+$proxy1 = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
+$proxy1Ip = $proxy1.status.loadBalancer.ingress.ip
+$proxy1Port = $proxy1.spec.ports.port
+$proxy1Url = "http://" + $proxy1Ip + ":" + $proxy1Port
+
+# ----- Enroll AKS #1 with Arc
+Write-Title("Enroll AKS #1 with Arc")
+az connectedk8s connect --name $AksCluster1Name --resource-group $ResourceGroupName --location $Location --proxy-http $proxy1Url --proxy-https $proxy1Url --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
+az connectedk8s enable-features -n $AksCluster1Name -g $ResourceGroupName --features cluster-connect
+
+# ------ AKS #2 -------------
+
+# ----- Get Cluster Credentials #2
+Write-Title("Get AKS #2 Credentials")
+az aks get-credentials --admin --name $AksCluster2Name --resource-group $ResourceGroupName --overwrite-existing
+
+#----- Proxy
+Write-Title("Install Proxy")
+helm install squid-proxy ./helm/squid-proxy `
+    --set-string parent.ipAddress="$proxy1Ip" `
+    --set-string parent.port="3128" `
+    --namespace edge-proxy `
+    --create-namespace `
     --wait
+    
+#----- Dapr
+Write-Title("Install Dapr")
+helm repo add dapr https://dapr.github.io/helm-charts/
+helm repo update
+helm upgrade --install dapr dapr/dapr `
+    --version=1.5 `
+    --namespace edge-core `
+    --create-namespace `
+    --wait
+
+#----- Redis
+Write-Title("Install Redis")
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install redis bitnami/redis --wait `
+--namespace edge-core `
+--create-namespace `
+--wait
+
+# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
+kubectl create namespace edge-app1
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
+
+# TODO app RUN Helm from deploy-aks-dapr // check on moving this to deploy-app.ps1 instead TODO
+
+
+# Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
+$dataGatewaySecretsSeed=@"
+localPubSubModule:
+  redisUri: redis-master.edge-core.svc.cluster.local:6379
+dataGatewayModule:
+  eventHubConnectionString: {0}
+  storageAccountName: {1}
+  storageAccountKey: {2}
+"@ -f $eventHubConnectionString, $storageName, $storageKey
+
+kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n edge-app1
+
+# Deploy Flux v2 configuration to install app on kubernetes edge.
+az k8s-configuration flux create -g $ResourceGroupName -c $AksCluster2Name -t connectedClusters -n edge-framework-ci-config --namespace edge-app1 --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
+
+
+
+# ----- Get AKS #2 Proxy IP Address
+Write-Title("Get AKS #2 Proxy IP Address")
+$proxy2 = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
+$proxy2Ip = $proxy2.status.loadBalancer.ingress.ip
+$proxy2Port = $proxy2.spec.ports.port
+$proxy2Url = "http://" + $proxy2Ip + ":" + $proxy2Port
+
+# ----- Enroll AKS #2 with Arc
+Write-Title("Enroll AKS #2 with Arc")
+az connectedk8s connect --name $AksCluster2Name --resource-group $ResourceGroupName --location $Location --proxy-http $proxy2Url --proxy-https $proxy2Url --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
+az connectedk8s enable-features -n $AksCluster2Name -g $ResourceGroupName --features cluster-connect
+
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow

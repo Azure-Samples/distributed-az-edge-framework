@@ -72,6 +72,7 @@ module storage 'modules/azurestorage.bicep' = {
   name: 'storageDeployment'
   params: {
     storageAccountName: storageAccountName
+    storageAccountLocation: location
   }
 }
 
@@ -80,6 +81,7 @@ module eventhub 'modules/eventhub.bicep' = {
   name: 'eventHubDeployment'
   params: {
     eventHubNameSpaceName: eventHubNameSpaceName
+    eventHubNamespaceLocation: location
   }
 }
 
