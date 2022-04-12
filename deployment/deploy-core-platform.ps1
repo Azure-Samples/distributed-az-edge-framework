@@ -3,12 +3,14 @@
 #  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 # ------------------------------------------------------------
 
-Param(
-    [string]
+Param(    
     [Parameter(mandatory=$true)]
-    $ApplicationName,
+    [String]
+    $AKSClusterName,
+
+    [Parameter(mandatory=$true)]
     [string]
-    $Location = 'westeurope'
+    $ResourceGroupName
 )
 
 Function Write-Title ($text) {
@@ -27,12 +29,8 @@ $deploymentId = Get-Random
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 
-#----- Proxy
-Write-Title("Install Proxy")
-helm install squid-proxy ./helm/squid-proxy `
-    --namespace edge-proxy `
-    --create-namespace `
-    --wait
+# ----- Get AKS Cluster Credentials
+az aks get-credentials --admin --name $AKSClusterName --resource-group $ResourceGroupName --overwrite-existing
 
 # ----- Dapr
 Write-Title("Install Dapr")

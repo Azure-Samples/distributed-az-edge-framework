@@ -7,12 +7,15 @@ Param(
     [string]
     [Parameter(mandatory=$true)]
     $ApplicationName,
+
     [string]
     [Parameter(mandatory=$true)]
     $AKSClusterName,
+
     [string]
     [Parameter(mandatory=$true)]
     $AKSClusterResourceGroupName,
+
     [string]
     $Location = 'westeurope'
 )
@@ -37,7 +40,7 @@ $startTime = Get-Date
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep Files")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName `
+           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $storageKey = $r.properties.outputs.storageKey.value
@@ -47,8 +50,11 @@ $eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
 
+# ----- Get AKS Cluster Credentials
+az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
+
 kubectl create namespace $appKubernetesNamespace
-# Copy Redis secret from edge-core namesapce to edge-appp namespace where application is deployed.
+# Copy Redis secret from edge-core namesapce to edge-app namespace where application is deployed.
 kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f -
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
@@ -64,7 +70,7 @@ dataGatewayModule:
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
 # Deploy Flux v2 configuration to install app on kubernetes edge.
-az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
+az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch readiness/azure-samples --kustomization name=flux-kustomization prune=true path=/deployment/flux
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
