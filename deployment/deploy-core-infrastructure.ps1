@@ -51,7 +51,7 @@ $aks2ClientSecret = $aks2ServicePrincipal.password
 $currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFrom-Json)
 
 # ----- Deploy Bicep
-Write-Title("Deploy Bicep files")
+Write-Title("Deploy Bicep core-infrastructure")
 $r = (az deployment sub create --location $Location `
            --template-file .\bicep\core-infrastructure.bicep `
            --parameters currentAzUsernameId=$currentAzUsernameId applicationName=$ApplicationName `
@@ -63,6 +63,8 @@ $aks1Name = $r.properties.outputs.aks1Name.value
 $aks2Name = $r.properties.outputs.aks2Name.value
 $resourceGroupName = $r.properties.outputs.resourceGroupName.value
 
+Write-Title("Done deploying Bicep core-infrastructure")
+
 # ----- Connect AKS to Arc -----
 Write-Host "Installing Arc providers, they may take some time to finish."
 az feature register --namespace Microsoft.ContainerService --name AKS-ExtensionManager
@@ -70,6 +72,8 @@ az provider register --namespace Microsoft.ContainerService --wait
 az provider register --namespace Microsoft.Kubernetes --wait
 az provider register --namespace Microsoft.KubernetesConfiguration --wait
 az provider register --namespace Microsoft.ExtendedLocation --wait
+
+Write-Title("Saving outputs into environment variables")
 
 $env:RESOURCEGROUPNAME = $resourceGroupName
 $env:AKS1NAME = $aks1Name

@@ -31,22 +31,8 @@ Function Write-Title ($text) {
     Write-Host $title.PadRight($width, "=") -ForegroundColor green
 }
 
-$deploymentId = Get-Random
-
-# ----- Deploy Bicep -- this section to be moved back into deploy-app.ps1 / separate app related 
-Write-Title("Deploy Bicep Files")
-$r = (az deployment sub create --location $Location `
-           --template-file .\bicep\app.bicep --parameters applicationName=$ApplicationName `
-           --name "dep-$deploymentId" -o json) | ConvertFrom-Json
-
-$storageKey = $r.properties.outputs.storageKey.value
-$storageName = $r.properties.outputs.storageName.value
-$eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
-
-
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
-
 
 # ----- Get Cluster Credentials #1
 Write-Title("Get AKS #1 Credentials")
@@ -81,29 +67,6 @@ helm install redis bitnami/redis --wait `
 --namespace edge-core `
 --create-namespace `
 --wait
-
-# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
-kubectl create namespace edge-app1
-kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
-
-
-# TODO app RUN Helm from deploy-aks-dapr // check on moving this to deploy-app.ps1 instead TODO
-
-# Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
-$dataGatewaySecretsSeed=@"
-localPubSubModule:
-  redisUri: redis-master.edge-core.svc.cluster.local:6379
-dataGatewayModule:
-  eventHubConnectionString: {0}
-  storageAccountName: {1}
-  storageAccountKey: {2}
-"@ -f $eventHubConnectionString, $storageName, $storageKey
-
-kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n edge-app1
-
-# Deploy Flux v2 configuration to install app on kubernetes edge.
-az k8s-configuration flux create -g $ResourceGroupName -c $AksCluster1Name -t connectedClusters -n edge-framework-ci-config --namespace edge-app1 --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
-
 
 # ----- Get AKS #1 Proxy IP Address
 Write-Title("Get AKS #1 Proxy IP Address")
@@ -150,29 +113,6 @@ helm install redis bitnami/redis --wait `
 --namespace edge-core `
 --create-namespace `
 --wait
-
-# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
-kubectl create namespace edge-app1
-kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
-
-# TODO app RUN Helm from deploy-aks-dapr // check on moving this to deploy-app.ps1 instead TODO
-
-
-# Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
-$dataGatewaySecretsSeed=@"
-localPubSubModule:
-  redisUri: redis-master.edge-core.svc.cluster.local:6379
-dataGatewayModule:
-  eventHubConnectionString: {0}
-  storageAccountName: {1}
-  storageAccountKey: {2}
-"@ -f $eventHubConnectionString, $storageName, $storageKey
-
-kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n edge-app1
-
-# Deploy Flux v2 configuration to install app on kubernetes edge.
-az k8s-configuration flux create -g $ResourceGroupName -c $AksCluster2Name -t connectedClusters -n edge-framework-ci-config --namespace edge-app1 --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
-
 
 
 # ----- Get AKS #2 Proxy IP Address

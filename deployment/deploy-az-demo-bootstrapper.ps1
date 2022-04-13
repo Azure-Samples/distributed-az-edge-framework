@@ -29,7 +29,7 @@ clear
 ./deploy-core-platform.ps1 -ApplicationName $ApplicationName -AksCluster1Name $env:AKS1NAME -AksCluster2Name $env:AKS2NAME -ResourceGroupName $env:RESOURCEGROUPNAME
 
 clear
-./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $env:RESOURCEGROUPNAME -AKSClusterName $env:AKSCLUSTERNAME
+./deploy-app.ps1 -ApplicationName $ApplicationName -AksCluster1Name $env:AKS1NAME -AksCluster2Name $env:AKS2NAME -ResourceGroupName $env:RESOURCEGROUPNAME
 
 clear
 Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow
