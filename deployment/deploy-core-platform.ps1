@@ -44,7 +44,9 @@ az aks get-credentials `
 
 #----- Proxy
 Write-Title("Install Proxy")
-helm install squid-proxy ./helm/squid-proxy `
+helm repo add squid https://suneetnangia.github.io/distributed-az-edge-framework
+helm repo update
+helm install squid squid/squid-proxy `
     --namespace edge-proxy `
     --create-namespace `
     --wait
@@ -88,7 +90,9 @@ az aks get-credentials --admin --name $AksCluster2Name --resource-group $Resourc
 
 #----- Proxy
 Write-Title("Install Proxy")
-helm install squid-proxy ./helm/squid-proxy `
+helm repo add squid https://suneetnangia.github.io/distributed-az-edge-framework
+helm repo update
+helm install squid squid/squid-proxy `
     --set-string parent.ipAddress="$proxy1Ip" `
     --set-string parent.port="3128" `
     --namespace edge-proxy `
