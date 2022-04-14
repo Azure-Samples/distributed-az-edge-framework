@@ -22,14 +22,15 @@ Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/app.bicep" -OutFile "./bi
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnet.bicep" -OutFile "./bicep/modules/vnet.bicep"
 
 ./deploy-core-infrastructure.ps1 -ApplicationName $ApplicationName
 
 clear
-./deploy-core-platform.ps1 -ApplicationName $ApplicationName
+./deploy-core-platform.ps1 -ApplicationName $ApplicationName -AksCluster1Name $env:AKS1NAME -AksCluster2Name $env:AKS2NAME -ResourceGroupName $env:RESOURCEGROUPNAME
 
 clear
-./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $env:RESOURCEGROUPNAME -AKSClusterName $env:AKSCLUSTERNAME
+./deploy-app.ps1 -ApplicationName $ApplicationName -AksCluster1Name $env:AKS1NAME -AksCluster2Name $env:AKS2NAME -ResourceGroupName $env:RESOURCEGROUPNAME
 
 clear
 Write-Host "-------------------------------------------------------------------------------------------------------------------------------------------" -ForegroundColor Yellow

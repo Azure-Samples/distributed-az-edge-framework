@@ -37,17 +37,27 @@ $aks2ServicePrincipalName = $ApplicationName + "-aks2-sp"
 $aks1ServicePrincipal = (az ad sp create-for-rbac -n $aks1ServicePrincipalName) | ConvertFrom-Json
 $aks2ServicePrincipal = (az ad sp create-for-rbac -n $aks2ServicePrincipalName) | ConvertFrom-Json
 
+# Sleep to allow SP to be replicated across AAD instances.
+# TODO: Update this to be more deterministic.
+Start-Sleep -s 30
+
 $aks1ClientId = $aks1ServicePrincipal.appId
 $aks2ClientId = $aks2ServicePrincipal.appId
+$aks1ObjectId = (az ad sp show --id $aks1ServicePrincipal.appId | ConvertFrom-Json).objectId
+$aks2ObjectId = (az ad sp show --id $aks2ServicePrincipal.appId | ConvertFrom-Json).objectId
 $aks1ClientSecret = $aks1ServicePrincipal.password
 $aks2ClientSecret = $aks2ServicePrincipal.password
+
+# ----- Retrieve Object Id of current user who is deploying solution.
+$currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFrom-Json)
 
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\main.bicep --parameters applicationName=$ApplicationName `
-           aks1ClientId=$aks1ClientId aks1ClientSecret=$aks1ClientSecret `
-           aks2ClientId=$aks2ClientId aks2ClientSecret=$aks2ClientSecret `
+           --template-file .\bicep\main.bicep `
+           --parameters currentAzUsernameId=$currentAzUsernameId applicationName=$ApplicationName `
+           aks1ObjectId=$aks1ObjectId aks1ClientId=$aks1ClientId aks1ClientSecret=$aks1ClientSecret `
+           aks2ObjectId=$aks2ObjectId aks2ClientId=$aks2ClientId aks2ClientSecret=$aks2ClientSecret `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $acrName = $r.properties.outputs.acrName.value
@@ -81,7 +91,11 @@ Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials
 Write-Title("Get AKS #1 Credentials")
-az aks get-credentials --admin --name $aks1Name --resource-group $resourceGroupName --overwrite-existing
+az aks get-credentials `
+    --admin `
+    --name $aks1Name `
+    --resource-group $resourceGroupName `
+    --overwrite-existing
 
 #----- Proxy
 Write-Title("Install Proxy")
@@ -136,14 +150,18 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
 Write-Title("Get AKS #1 Proxy IP Address")
 $proxy1 = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
 $proxy1Ip = $proxy1.status.loadBalancer.ingress.ip
-$proxy1Url = "http://" + $proxy1Ip + ":3128"
+$proxy1Port = $proxy1.spec.ports.port
+$proxy1Url = "http://" + $proxy1Ip + ":" + $proxy1Port
 
-# ----- Enroll AKS #1 with Arc
-Write-Title("Enroll AKS #1 with Arc")
+# ----- Install Arc CLI Extensions
+Write-Title("Azure Arc CLI Extensions")
 az extension add --name "connectedk8s"
 az extension add --name "k8s-configuration"
 az extension add --name "k8s-extension"
 az extension add --name "customlocation"
+
+# ----- Enroll AKS #1 with Arc
+Write-Title("Enroll AKS #1 with Arc")
 az connectedk8s connect --name $aks1Name --resource-group $resourceGroupName --location $Location --proxy-http $proxy1Url --proxy-https $proxy1Url --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
 az connectedk8s enable-features -n $aks1Name -g $resourceGroupName --features cluster-connect
 
@@ -183,7 +201,7 @@ helm install redis bitnami/redis --wait `
 kubectl create namespace edge-app1
 kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
 
-# ----- Run Helm
+# ----- Deploy Edge App via Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
@@ -206,7 +224,8 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
 Write-Title("Get AKS #2 Proxy IP Address")
 $proxy2 = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
 $proxy2Ip = $proxy2.status.loadBalancer.ingress.ip
-$proxy2Url = "http://" + $proxy2Ip + ":3128"
+$proxy2Port = $proxy2.spec.ports.port
+$proxy2Url = "http://" + $proxy2Ip + ":" + $proxy2Port
 
 # ----- Enroll AKS #2 with Arc
 Write-Title("Enroll AKS #2 with Arc")

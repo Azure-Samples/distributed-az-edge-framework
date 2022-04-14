@@ -3,7 +3,7 @@ apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
   name: iot-edge-accelerator-repo
-  namespace: flux-system
+  namespace: edge-app1
 spec:
   interval: 1m
   url: https://suneetnangia.github.io/distributed-az-edge-framework

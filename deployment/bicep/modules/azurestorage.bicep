@@ -7,9 +7,13 @@
 @description('Azure Stroage Account name which is not already in use.')
 param storageAccountName string
 
+@description('Storage account location')
+@maxLength(20)
+param storageAccountLocation string = resourceGroup().location
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   name: storageAccountName
-  location: resourceGroup().location
+  location: storageAccountLocation
   sku: {
     name: 'Standard_LRS'
   }

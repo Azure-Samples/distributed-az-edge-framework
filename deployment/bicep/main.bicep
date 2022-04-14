@@ -9,18 +9,68 @@ param applicationName string
 
 @description('Location of resources')
 @allowed([
-  'westeurope'
-  'northeurope'
+  'eastasia'
+  'southeastasia'
+  'centralus'
+  'eastus'
+  'eastus2'
   'westus'
+  'northcentralus'
+  'southcentralus'
+  'northeurope'
+  'westeurope'
+  'japanwest'
+  'japaneast'
+  'brazilsouth'
+  'australiaeast'
+  'australiasoutheast'
+  'southindia'
+  'centralindia'
+  'westindia'
+  'jioindiawest'
+  'jioindiacentral'
+  'canadacentral'
+  'canadaeast'
+  'uksouth'
+  'ukwest'
+  'westcentralus'
+  'westus2'
+  'koreacentral'
+  'koreasouth'
+  'francecentral'
+  'francesouth'
+  'australiacentral'
+  'australiacentral2'
+  'uaecentral'
+  'uaenorth'
+  'southafricanorth'
+  'southafricawest'
+  'switzerlandnorth'
+  'switzerlandwest'
+  'germanynorth'
+  'germanywestcentral'
+  'norwaywest'
+  'norwayeast'
+  'brazilsoutheast'
+  'westus3'
   'swedencentral'
-])
+  ])
 param location string = 'westeurope'
+
+@description('Current Azure user name Id')
+param currentAzUsernameId string
+
+@description('The AKS #1 service principal object id')
+param aks1ObjectId string
 
 @description('The AKS #1 service principal client id')
 param aks1ClientId string
 
 @description('The AKS #1 service principal client secret')
 param aks1ClientSecret string
+
+@description('The AKS #2 service principal object id')
+param aks2ObjectId string
 
 @description('The AKS #2 service principal client id')
 param aks2ClientId string
@@ -47,8 +97,10 @@ module vnet 'modules/vnet.bicep' = {
   name: 'vnetDeployment'
   params: {
     vnetName: vnetName
-    aks1ClientId: aks1ClientId
-    aks2ClientId: aks2ClientId
+    vnetLocation: location
+    currentAzUsernameId: currentAzUsernameId
+    aks1ObjectId: aks1ObjectId
+    aks2ObjectId: aks2ObjectId
   }
 }
 
@@ -57,6 +109,7 @@ module aks1 'modules/aks.bicep' = {
   scope: resourceGroup(rg.name)
   params: {
     aksName: aks1Name
+    aksLocation: location
     aksClientId: aks1ClientId
     aksClientSecret: aks1ClientSecret
     vnetSubnetID: vnet.outputs.subnetId1
@@ -68,6 +121,7 @@ module aks2 'modules/aks.bicep' = {
   scope: resourceGroup(rg.name)
   params: {
     aksName: aks2Name
+    aksLocation: location
     aksClientId: aks2ClientId
     aksClientSecret: aks2ClientSecret
     vnetSubnetID: vnet.outputs.subnetId2
@@ -79,8 +133,9 @@ module acr 'modules/acr.bicep' = {
   name: 'acrDeployment'
   params: {
     acrName: acrName
-    aks1PrincipalId: aks1ClientId
-    aks2PrincipalId: aks2ClientId
+    acrLocation: location
+    aks1PrincipalId: aks1ObjectId
+    aks2PrincipalId: aks2ObjectId
   }
 
   dependsOn: [
@@ -94,14 +149,16 @@ module storage 'modules/azurestorage.bicep' = {
   name: 'storageDeployment'
   params: {
     storageAccountName: storageAccountName
+    storageAccountLocation: location
   }
 }
 
 module eventhub 'modules/eventhub.bicep' = {
   scope: resourceGroup(rg.name)
-  name: 'eventHubDeployment'
+  name: 'eventHubDeployment'  
   params: {
     eventHubNameSpaceName: eventHubNameSpaceName
+    eventHubNamespaceLocation: location
   }
 }
 
