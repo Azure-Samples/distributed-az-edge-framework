@@ -42,8 +42,7 @@ class Aks {
       $parentProxyIp = $proxyConfig.ProxyIp
       $parentProxyPort = $proxyConfig.ProxyPort
 
-      Write-Title("Install Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
-      # TODO: Can we just pass empty object/members to signify no parent ip address provided.
+      Write-Title("Install Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")      
       helm install squid squid/squid-proxy `
           --set-string parent.ipAddress="$parentProxyIp" `
           --set-string parent.port="$parentProxyPort" `
@@ -89,7 +88,7 @@ $currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFro
 
 # ----- Create AKS Service Principals
 Write-Title("Create AKS Service Principals")
-$aksServicePrincipalName = "boot20" # $ApplicationName
+$aksServicePrincipalName = $ApplicationName
 $aksServicePrincipal = (az ad sp create-for-rbac -n $aksServicePrincipalName) | ConvertFrom-Json
 
 $aksClientId = $aksServicePrincipal.appId
