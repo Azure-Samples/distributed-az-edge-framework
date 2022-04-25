@@ -142,6 +142,6 @@ $config = [PSCustomObject]@{
     }
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Title("Running time:" $runningTime.ToString())
+Write-Title("Running time: $runningTime")
 
 return $config
