@@ -52,7 +52,7 @@ metadata:
   labels:
     app: squid-proxy-module
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: squid-proxy-module
