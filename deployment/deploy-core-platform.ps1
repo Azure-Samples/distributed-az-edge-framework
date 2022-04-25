@@ -3,26 +3,18 @@
 #  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 # ------------------------------------------------------------
 
-Param(    
+Param(
     [Parameter(mandatory=$true)]
     [String]
-    $AKSClusterName,
+    $AksClusterName,
 
     [Parameter(mandatory=$true)]
     [string]
-    $ResourceGroupName
+    $AksClusterResourceGroupName
 )
 
-Function Write-Title ($text) {
-    $width = (Get-Host).UI.RawUI.WindowSize.Width
-    $title = ""
-    if($text.length -ne 0)
-    {
-        $title = "=[ " + $text + " ]="
-    }
-
-    Write-Host $title.PadRight($width, "=") -ForegroundColor green
-}
+# Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
+# Import-Module -Name .\modules\text-utils.psm1
 
 $deploymentId = Get-Random
 
@@ -30,7 +22,7 @@ Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 
 # ----- Get AKS Cluster Credentials
-az aks get-credentials --admin --name $AKSClusterName --resource-group $ResourceGroupName --overwrite-existing
+az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing
 
 # ----- Dapr
 Write-Title("Install Dapr")
@@ -51,4 +43,4 @@ helm install redis bitnami/redis `
     --wait
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Running time: $runningTime")

@@ -57,10 +57,10 @@ param applicationName string
 ])
 param location string = 'westeurope'
 
-var applicationNameWithoutDashes = '${replace(applicationName,'-','')}'
-var resourceGroupName = 'rg-${applicationNameWithoutDashes}'
-var storageAccountName = 'st${take(applicationNameWithoutDashes,14)}'
-var eventHubNameSpaceName = 'evh${take(applicationNameWithoutDashes,14)}'
+var applicationNameWithoutDashes = replace(applicationName, '-', '')
+var resourceGroupName = '${applicationName}-App'
+var storageAccountName = 'st${take(toLower(applicationNameWithoutDashes),22)}'
+var eventHubNameSpaceName = 'evh${take(toLower(applicationNameWithoutDashes),14)}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   name: resourceGroupName

@@ -2,54 +2,59 @@
 #  Copyright (c) Microsoft Corporation.  All rights reserved.
 #  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 # ------------------------------------------------------------
-
 Param(
+    [Parameter(ValueFromPipeline = $true)]
+    [PSCustomObject]
+    $ParentConfig,
+
     [string]
     [Parameter(mandatory=$true)]
-    $ApplicationName,
-    
+    $ApplicationName,  
+
     [string]
-    $Location = 'westeurope'
+    $Location = 'westeurope',
+
+    [Parameter(mandatory=$true)]
+    [string]
+    $VnetAddressPrefix,
+
+    [Parameter(mandatory=$true)]
+    [string]
+    $SubnetAddressPrefix
 )
 
-Function Write-Title ([string]$text) {
-    $width = (Get-Host).UI.RawUI.WindowSize.Width
-    $title = ""
-    if($text.length -ne 0)
-    {
-        $title = "=[ " + $text + " ]="
-    }
+# Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
+# Import-Module -Name .\modules\text-utils.psm1
 
-    Write-Host $title.PadRight($width, "=") -ForegroundColor green
-}
-
-class AKS {
-    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig){    
+class Aks {
+    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig){
+    
     # ----- Get AKS Cluster Credentials
-    Write-Title("Get AKS $aksName Credentials")
-
+    Write-Title("Get AKS $aksName in $resourceGroupName Credentials")
     az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
     
     #----- Install AKS Proxy
-    # TODO: Change this to use proxy package from GH.
+    helm repo add squid https://suneetnangia.github.io/distributed-az-edge-framework
+    helm repo update
+
     if($proxyConfig)
     {
       $parentProxyIp = $proxyConfig.ProxyIp
       $parentProxyPort = $proxyConfig.ProxyPort
 
       Write-Title("Install Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
-
-      helm install squid-proxy ./helm/squid-proxy `
+      # TODO: Can we just pass empty object/members to signify no parent ip address provided.
+      helm install squid squid/squid-proxy `
           --set-string parent.ipAddress="$parentProxyIp" `
           --set-string parent.port="$parentProxyPort" `
           --namespace edge-proxy `
           --create-namespace `
-          --wait 
+          --wait          
     }
     else
     {
-      Write-Title("Install Proxy")
-      helm install squid-proxy ./helm/squid-proxy `
+      Write-Title("Install Proxy without Parent")
+      helm install squid squid/squid-proxy `
           --namespace edge-proxy `
           --create-namespace `
           --wait
@@ -60,20 +65,16 @@ class AKS {
     $proxy = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
     $proxyIp = $proxy.status.loadBalancer.ingress.ip
     $proxyPort = $proxy.spec.ports.port
-    $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort
+    $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort    
 
     # ----- Enroll AKS with Arc
     Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
     az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-https $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
     az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
-
-    # $env:RESOURCEGROUPNAME = $resourceGroupName
-    # $env:AKSCLUSTERPRINCIPALID = $aksClusterPrincipalID
-    # $env:AKSCLUSTERNAME = $aksClusterName    
     
     return [PSCustomObject]@{
       ProxyIp = $proxyIp
-      ProxyPort = $proxyPort
+      ProxyPort = $proxyPort     
     }
   }
 }
@@ -88,34 +89,35 @@ $currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFro
 
 # ----- Create AKS Service Principals
 Write-Title("Create AKS Service Principals")
-$aks1ServicePrincipalName = $ApplicationName
-# $aks2ServicePrincipalName = $ApplicationName + "-aks2-sp"
+$aksServicePrincipalName = "boot20" # $ApplicationName
+$aksServicePrincipal = (az ad sp create-for-rbac -n $aksServicePrincipalName) | ConvertFrom-Json
 
-$aks1ServicePrincipal = (az ad sp create-for-rbac -n $aks1ServicePrincipalName) | ConvertFrom-Json
-# $aks2ServicePrincipal = (az ad sp create-for-rbac -n $aks2ServicePrincipalName) | ConvertFrom-Json
-
-$aks1ClientId = $aks1ServicePrincipal.appId
-$aks2ClientId = $aks1ServicePrincipal.appId
-$aks1ObjectId = (az ad sp show --id $aks1ServicePrincipal.appId | ConvertFrom-Json).objectId
-$aks2ObjectId = (az ad sp show --id $aks1ServicePrincipal.appId | ConvertFrom-Json).objectId
-$aks1ClientSecret = $aks1ServicePrincipal.password
-$aks2ClientSecret = $aks1ServicePrincipal.password
-
-# TODO: REMOVE IT LATER
-$ApplicationName = $ApplicationName + "5"
+$aksClientId = $aksServicePrincipal.appId
+$aksObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).objectId
+$aksClientSecret = $aksServicePrincipal.password
 
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
+
+$ParentConfigVnetName = If ($ParentConfig -eq $null) {""} Else {$ParentConfig.VnetName}
+$ParentConfigVnetResourceGroup = If ($ParentConfig -eq $null) {""} Else {$ParentConfig.VnetResourceGroup}
+
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\core-infrastructure.bicep --parameters currentAzUsernameId=$currentAzUsernameId `
+           --template-file .\bicep\core-infrastructure.bicep --parameters `
            applicationName=$ApplicationName `
-           aks1ObjectId=$aks1ObjectId aks1ClientId=$aks1ClientId aks1ClientSecret=$aks1ClientSecret `
-           aks2ObjectId=$aks2ObjectId aks2ClientId=$aks2ClientId aks2ClientSecret=$aks2ClientSecret `
+           remoteVnetName=$ParentConfigVnetName `
+           remoteVnetResourceGroupName=$ParentConfigVnetResourceGroup `
+           vnetName=$ApplicationName `
+           vnetAddressPrefix=$vnetAddressPrefix `
+           subnetAddressPrefix=$subnetAddressPrefix `
+           currentAzUsernameId=$currentAzUsernameId `
+           aksObjectId=$aksObjectId `
+           aksClientId=$aksClientId `
+           aksClientSecret=$aksClientSecret `
     )| ConvertFrom-Json
 
-$aks1Name = $r.properties.outputs.aks1Name.value
-$aks2Name = $r.properties.outputs.aks2Name.value
-$resourceGroupName = $r.properties.outputs.resourceGroupName.value
+$aksClusterName = $r.properties.outputs.aksName.value
+$aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
 
 # ----- Install Arc CLI Extensions
 Write-Title("Azure Arc CLI Extensions")
@@ -124,11 +126,20 @@ az extension add --name "k8s-configuration"
 az extension add --name "k8s-extension"
 az extension add --name "customlocation"
 
-# ----- Install core dependencies in AKS clusters
+# ----- Install core dependencies in AKS cluster
 $aks = [AKS]::new()
+$proxyConfig = $aks.Prepare($aksClusterResourceGroupName, $aksClusterName, $ParentConfig)
 
-$proxyConfig = $aks.Prepare($resourceGroupName, $aks1Name, $null)
-$proxyConfig = $aks.Prepare($resourceGroupName, $aks2Name, $proxyConfig)
+$config = [PSCustomObject]@{
+      AksClusterName = $aksClusterName
+      AksClusterResourceGroupName = $aksClusterResourceGroupName
+      ProxyIp = $proxyConfig.ProxyIp
+      ProxyPort = $proxyConfig.ProxyPort
+      VnetName = $ApplicationName
+      VnetResourceGroup = $aksClusterResourceGroupName
+    }
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Running time:" $runningTime.ToString())
+
+return $config

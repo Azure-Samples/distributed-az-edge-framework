@@ -10,26 +10,18 @@ Param(
 
     [string]
     [Parameter(mandatory=$true)]
-    $AKSClusterName,
+    $AksClusterName,
 
     [string]
     [Parameter(mandatory=$true)]
-    $AKSClusterResourceGroupName,
+    $AksClusterResourceGroupName,
 
     [string]
     $Location = 'westeurope'
 )
 
-Function Write-Title ($text) {
-    $width = (Get-Host).UI.RawUI.WindowSize.Width
-    $title = ""
-    if($text.length -ne 0)
-    {
-        $title = "=[ " + $text + " ]="
-    }
-
-    Write-Host $title.PadRight($width, "=") -ForegroundColor green
-}
+# Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
+# Import-Module -Name .\modules\text-utils.psm1
 
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
