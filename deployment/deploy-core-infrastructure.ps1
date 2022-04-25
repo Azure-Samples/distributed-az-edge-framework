@@ -91,6 +91,10 @@ Write-Title("Create AKS Service Principals")
 $aksServicePrincipalName = $ApplicationName
 $aksServicePrincipal = (az ad sp create-for-rbac -n $aksServicePrincipalName) | ConvertFrom-Json
 
+# Sleep to allow SP to be replicated across AAD instances.
+# TODO: Update this to be more deterministic.
+Start-Sleep -s 30
+
 $aksClientId = $aksServicePrincipal.appId
 $aksObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).objectId
 $aksClientSecret = $aksServicePrincipal.password
