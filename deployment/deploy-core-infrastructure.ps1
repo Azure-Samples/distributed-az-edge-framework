@@ -96,6 +96,9 @@ $aksClientId = $aksServicePrincipal.appId
 $aksObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).objectId
 $aksClientSecret = $aksServicePrincipal.password
 
+# ----- Retrieve Object Id of current user who is deploying solution.
+$currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFrom-Json)
+
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 

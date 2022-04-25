@@ -30,7 +30,7 @@ Write-Title("Start Deploying Application")
 $startTime = Get-Date
 
 # ----- Deploy Bicep
-Write-Title("Deploy Bicep Files")
+Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
            --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
