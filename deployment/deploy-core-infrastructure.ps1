@@ -133,7 +133,7 @@ az extension add --name "k8s-extension"
 az extension add --name "customlocation"
 
 # ----- Install core dependencies in AKS cluster
-$aks = [AKS]::new()
+$aks = [Aks]::new()
 $proxyConfig = $aks.Prepare($aksClusterResourceGroupName, $aksClusterName, $ParentConfig)
 
 $config = [PSCustomObject]@{
