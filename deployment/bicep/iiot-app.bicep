@@ -57,14 +57,31 @@ param applicationName string
 ])
 param location string = 'westeurope'
 
+@description('The AKS service principal object id')
+param aksObjectId string
+
+@description('Whether to create Azure Container registry with Service Principal role assignment')
+param acrCreate bool = false
+
 var applicationNameWithoutDashes = replace(applicationName, '-', '')
 var resourceGroupName = '${applicationName}-App'
 var storageAccountName = 'st${take(toLower(applicationNameWithoutDashes),22)}'
 var eventHubNameSpaceName = 'evh${take(toLower(applicationNameWithoutDashes),14)}'
+var acrName = 'acr${applicationNameWithoutDashes}'
 
 resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   name: resourceGroupName
   location: location
+}
+
+module acr 'modules/acr.bicep' = if(acrCreate && !empty(aksObjectId)) {
+  scope: resourceGroup(rg.name)
+  name: 'acrDeployment'
+  params: {
+    acrName: acrName
+    acrLocation: location
+    aksPrincipalId: aksObjectId
+  }
 }
 
 module storage 'modules/azurestorage.bicep' = {
@@ -89,3 +106,4 @@ output resourceGroupName string = resourceGroupName
 output storageName string = storage.outputs.storageName
 output storageKey string = storage.outputs.storageKey
 output eventHubConnectionString string = eventhub.outputs.eventHubConnectionString
+output acrName string = acrName

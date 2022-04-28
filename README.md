@@ -77,6 +77,8 @@ Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powersh
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
+Optionally, for deploying a developer environment with local application building and deployment please see [Setup a developer environment on Azure with local application deployment](./deployment/deploy-dev.md).
+
 ## Further Enhancements
 
 This solution can be further enhanced with the features defined in the project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)

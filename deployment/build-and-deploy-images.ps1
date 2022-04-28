@@ -18,16 +18,8 @@ if(!$ResourceGroupName)
     $ResourceGroupName = $env:RESOURCEGROUPNAME
 }
 
-Function Write-Title ($text) {
-    $width = (Get-Host).UI.RawUI.WindowSize.Width
-    $title = ""
-    if($text.length -ne 0)
-    {
-        $title = "=[ " + $text + " ]="
-    }
-
-    Write-Host $title.PadRight($width, "=") -ForegroundColor green
-}
+# Import text utilities module.
+Import-Module -Name .\modules\text-utils.psm1
 
 $deploymentId = Get-Random
 $startTime = Get-Date
