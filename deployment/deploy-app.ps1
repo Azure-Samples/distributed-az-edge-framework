@@ -32,7 +32,7 @@ $startTime = Get-Date
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName `
+           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId="" acrCreate=false `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $storageKey = $r.properties.outputs.storageKey.value
