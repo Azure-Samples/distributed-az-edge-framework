@@ -42,6 +42,6 @@ $lowestLevelCoreInfra = .\deploy-core-infrastructure.ps1 -ApplicationName ($Appl
 ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName
 
 # Deploy app layer on the lowest infrastructure level, L2.
-./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AKSClusterName $lowestLevelCoreInfra.AksClusterName
+./deploy-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AksClusterName $lowestLevelCoreInfra.AksClusterName
 
 Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Group with suffix -App, please use the Event Hub instance in tha Resource Group to view the OPC UA and Simulated Sensor telemetry.")

@@ -31,7 +31,7 @@ Param(
 # Import-Module -Name .\modules\text-utils.psm1
 
 class Aks {
-    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$EnableArc){
+    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc){
     
     # ----- Get AKS Cluster Credentials
     Write-Title("Get AKS $aksName in $resourceGroupName Credentials")
@@ -70,7 +70,7 @@ class Aks {
     $proxyPort = $proxy.spec.ports.port
     $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort    
 
-    if($EnableArc)
+    if($enableArc)
     {
       # ----- Enroll AKS with Arc
       Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")

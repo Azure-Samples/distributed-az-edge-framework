@@ -31,11 +31,11 @@ $lowestLevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($Appl
 ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName
 
 # 3. Deploy app resources, build images and deploy helm.
-./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AKSClusterName $lowestLevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L2")
+./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L2")
 
 $runningTime = New-TimeSpan -Start $startTime
 
-Write-Host "Running time bootstrapper:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Running time bootstrapper: " + $runningTime.ToString())
 Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Groups $ApplicationName and $ApplicationName-App.")
 Write-Title("Please use the Event Hub instance in the Resource Group $ApplicationName-App to view the OPC UA and Simulated Sensor telemetry.")
 

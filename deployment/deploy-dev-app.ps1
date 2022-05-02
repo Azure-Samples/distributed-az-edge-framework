@@ -101,4 +101,4 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --wait
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Host "Running time app deployment:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Running time app deployment: " + $runningTime.ToString())

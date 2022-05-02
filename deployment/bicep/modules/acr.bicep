@@ -34,7 +34,7 @@ resource assignAcrPullToAks 'Microsoft.Authorization/roleAssignments@2020-04-01-
   name: guid(resourceGroup().id, acrName, aksPrincipalId, 'AssignAcrPullToAks')
   scope: acr
   properties: {
-    description: 'Assign AcrPull role to AKS provided (level 3)'
+    description: 'Assign AcrPull role to AKS ServicePrincipal object'
     principalId: aksPrincipalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${roleAcrPull}'

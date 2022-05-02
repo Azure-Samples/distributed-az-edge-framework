@@ -32,7 +32,7 @@ $startTime = Get-Date
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId="" acrCreate=false `
+           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $storageKey = $r.properties.outputs.storageKey.value
@@ -65,4 +65,4 @@ kubectl create secret generic data-gateway-module-secrets-seed --from-literal=da
 az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch readiness/azure-samples --kustomization name=flux-kustomization prune=true path=/deployment/flux
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Running time app deployment:" + $runningTime.ToString())

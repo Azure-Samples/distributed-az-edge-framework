@@ -43,6 +43,7 @@ resource eventHubNamespaceName_eventHubName_Send 'Microsoft.EventHub/namespaces/
   } 
 }
 
+// TODO: Remove keys from output.
 var eventHubConnectionString = listKeys(eventHubNamespaceName_eventHubName_Send.id, eventHubNamespaceName_eventHubName_Send.apiVersion).primaryConnectionString
 output eventHubConnectionString string = eventHubConnectionString
 output eventHubName string = eventHubName

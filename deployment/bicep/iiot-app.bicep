@@ -58,7 +58,7 @@ param applicationName string
 param location string = 'westeurope'
 
 @description('The AKS service principal object id')
-param aksObjectId string
+param aksObjectId string = ''
 
 @description('Whether to create Azure Container registry with Service Principal role assignment')
 param acrCreate bool = false
@@ -74,7 +74,7 @@ resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   location: location
 }
 
-module acr 'modules/acr.bicep' = if(acrCreate && !empty(aksObjectId)) {
+module acr 'modules/acr.bicep' = if(acrCreate && aksObjectId!='') {
   scope: resourceGroup(rg.name)
   name: 'acrDeployment'
   params: {
