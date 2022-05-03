@@ -58,6 +58,7 @@ helm upgrade iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
+    --reuse-values `
     --namespace $appKubernetesNamespace
 $runningTime = New-TimeSpan -Start $startTime
 
