@@ -35,9 +35,18 @@ $r = (az deployment sub create --location $Location `
            --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
-$storageKey = $r.properties.outputs.storageKey.value
 $storageName = $r.properties.outputs.storageName.value
-$eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
+$resourceGroupApp = $r.properties.outputs.resourceGroupName.value
+$eventHubNamespace = $r.properties.outputs.eventHubNameSpaceName.value
+$eventHubSendRuleName = $r.properties.outputs.eventHubSendRuleName.value
+$eventHubName = $r.properties.outputs.eventHubName.value
+
+$eventHubConnectionString = (az eventhubs eventhub authorization-rule keys list --resource-group $resourceGroupApp `
+        --namespace-name $eventHubNamespace --eventhub-name $eventHubName `
+        --name $eventHubSendRuleName --query primaryConnectionString) | ConvertFrom-Json
+
+$storageKey = (az storage account keys list  --resource-group $resourceGroupApp `
+                --account-name $storageName --query [0].value -o tsv)
 
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")

@@ -104,6 +104,7 @@ module eventhub 'modules/eventhub.bicep' = {
 
 output resourceGroupName string = resourceGroupName
 output storageName string = storage.outputs.storageName
-output storageKey string = storage.outputs.storageKey
-output eventHubConnectionString string = eventhub.outputs.eventHubConnectionString
+output eventHubNameSpaceName string = eventHubNameSpaceName
+output eventHubSendRuleName string = eventhub.outputs.eventHubSendRuleName
+output eventHubName string = eventhub.outputs.eventHubName
 output acrName string = acrName

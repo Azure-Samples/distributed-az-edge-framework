@@ -42,11 +42,20 @@ Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
            --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId=$aksSpObjectId acrCreate=true `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
-
+ 
 $acrName = $r.properties.outputs.acrName.value
-$storageKey = $r.properties.outputs.storageKey.value
 $storageName = $r.properties.outputs.storageName.value
-$eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
+$resourceGroupApp = $r.properties.outputs.resourceGroupName.value
+$eventHubNamespace = $r.properties.outputs.eventHubNameSpaceName.value
+$eventHubSendRuleName = $r.properties.outputs.eventHubSendRuleName.value
+$eventHubName = $r.properties.outputs.eventHubName.value
+
+$eventHubConnectionString = (az eventhubs eventhub authorization-rule keys list --resource-group $resourceGroupApp `
+        --namespace-name $eventHubNamespace --eventhub-name $eventHubName `
+        --name $eventHubSendRuleName --query primaryConnectionString) | ConvertFrom-Json
+
+$storageKey = (az storage account keys list  --resource-group $resourceGroupApp `
+                --account-name $storageName --query [0].value -o tsv)
 
 # ----- Build and Push Containers
 Write-Title("Build and Push Containers")
@@ -94,7 +103,6 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
-    --set-string dataGatewayModule.storageAccountKey="$storageKey" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
     --namespace $appKubernetesNamespace `
     --create-namespace `

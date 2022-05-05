@@ -10,6 +10,8 @@ param eventHubNameSpaceName string
 @maxLength(20)
 param eventHubNamespaceLocation string = resourceGroup().location
 
+var eventHubSendRuleName = 'iot-edge'
+
 resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = {
   name: eventHubNameSpaceName
   location: eventHubNamespaceLocation
@@ -35,7 +37,7 @@ resource eventHubNamespaceName_eventHubName 'Microsoft.EventHub/namespaces/event
 
 resource eventHubNamespaceName_eventHubName_Send 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
   parent: eventHubNamespaceName_eventHubName
-  name: 'iot-edge'
+  name: eventHubSendRuleName
   properties: {
     rights: [      
       'Send'
@@ -43,7 +45,5 @@ resource eventHubNamespaceName_eventHubName_Send 'Microsoft.EventHub/namespaces/
   } 
 }
 
-// TODO: Remove keys from output.
-var eventHubConnectionString = listKeys(eventHubNamespaceName_eventHubName_Send.id, eventHubNamespaceName_eventHubName_Send.apiVersion).primaryConnectionString
-output eventHubConnectionString string = eventHubConnectionString
+output eventHubSendRuleName string = eventHubSendRuleName
 output eventHubName string = eventHubName

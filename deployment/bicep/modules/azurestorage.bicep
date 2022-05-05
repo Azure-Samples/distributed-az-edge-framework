@@ -23,6 +23,4 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' = {
   }
 }
 
-// TODO: Remove keys from output.
-output storageKey string = storageAccount.listKeys().keys[0].value
 output storageName string = storageAccountName
