@@ -25,6 +25,7 @@ Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app.ps1" -OutFile "deplo
 mkdir -p bicep/modules
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infrastructure.bicep" -OutFile "./bicep/core-infrastructure.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
@@ -41,6 +42,6 @@ $lowestLevelCoreInfra = .\deploy-core-infrastructure.ps1 -ApplicationName ($Appl
 ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName
 
 # Deploy app layer on the lowest infrastructure level, L2.
-./deploy-app.ps1 -ApplicationName $ApplicationName -AKSClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AKSClusterName $lowestLevelCoreInfra.AksClusterName
+./deploy-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AksClusterName $lowestLevelCoreInfra.AksClusterName
 
 Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Group with suffix -App, please use the Event Hub instance in tha Resource Group to view the OPC UA and Simulated Sensor telemetry.")

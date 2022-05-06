@@ -16,8 +16,6 @@ Param(
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name .\modules\text-utils.psm1
 
-$deploymentId = Get-Random
-
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 
@@ -43,4 +41,4 @@ helm install redis bitnami/redis `
     --wait
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Title("Running time: $runningTime")
+Write-Title("Running time core platform: $runningTime")
