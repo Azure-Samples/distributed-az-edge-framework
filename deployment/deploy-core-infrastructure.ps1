@@ -20,14 +20,18 @@ Param(
 
     [Parameter(mandatory=$true)]
     [string]
-    $SubnetAddressPrefix
+    $SubnetAddressPrefix,
+
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $SetupArc = $true
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name .\modules\text-utils.psm1
 
 class Aks {
-    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig){
+    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc){
     
     # ----- Get AKS Cluster Credentials
     Write-Title("Get AKS $aksName in $resourceGroupName Credentials")
@@ -66,19 +70,24 @@ class Aks {
     $proxyPort = $proxy.spec.ports.port
     $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort    
 
-    # ----- Enroll AKS with Arc
-    Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
-    az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-https $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
-    az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
-    
+    if($enableArc)
+    {
+      # ----- Enroll AKS with Arc
+      Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
+      az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-https $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
+      az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
+    }
+    else
+    {
+      Write-Title("Not enrolling AKS $aksName with Arc")
+    }
+
     return [PSCustomObject]@{
       ProxyIp = $proxyIp
       ProxyPort = $proxyPort     
     }
   }
 }
-
-$deploymentId = Get-Random
 
 Write-Title("Start Deploying Core Infrastructure")
 $startTime = Get-Date
@@ -134,7 +143,7 @@ az extension add --name "customlocation"
 
 # ----- Install core dependencies in AKS cluster
 $aks = [Aks]::new()
-$proxyConfig = $aks.Prepare($aksClusterResourceGroupName, $aksClusterName, $ParentConfig)
+$proxyConfig = $aks.Prepare($aksClusterResourceGroupName, $aksClusterName, $ParentConfig, $SetupArc)
 
 $config = [PSCustomObject]@{
       AksClusterName = $aksClusterName
@@ -146,6 +155,6 @@ $config = [PSCustomObject]@{
     }
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Title("Running time: $runningTime")
+Write-Title("Running time core infra: $runningTime")
 
 return $config
