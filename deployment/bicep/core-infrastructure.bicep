@@ -7,6 +7,15 @@ targetScope = 'subscription'
 @description('The common name for this application')
 param applicationName string
 
+@description('Remote virtual network name')
+param remoteVnetName string = 'defaultvnet'
+
+@description('Remote virtual network resource group')
+param remoteVnetResourceGroupName string
+
+@description('Virtual network name')
+param vnetName string
+
 @description('Location of resources')
 @allowed([
   'eastasia'
@@ -57,76 +66,84 @@ param applicationName string
 ])
 param location string = 'westeurope'
 
+@description('Vnet Address Range')
+param vnetAddressPrefix string
+
+@description('Subnet Address Range')
+param subnetAddressPrefix string
 
 @description('Current Azure user name Id')
 param currentAzUsernameId string
 
-@description('The AKS #1 service principal object id')
-param aks1ObjectId string
+@description('The AKS service principal object id')
+param aksObjectId string
 
-@description('The AKS #1 service principal client id')
-param aks1ClientId string
+@description('The AKS service principal client id')
+param aksClientId string
 
-@description('The AKS #1 service principal client secret')
-param aks1ClientSecret string
+@description('The AKS service principal client secret')
+param aksClientSecret string
 
-@description('The AKS #2 service principal object id')
-param aks2ObjectId string
-
-@description('The AKS #2 service principal client id')
-param aks2ClientId string
-
-@description('The AKS #2 service principal client secret')
-param aks2ClientSecret string
-
-var applicationNameWithoutDashes = '${replace(applicationName,'-','')}'
-var resourceGroupName = 'rg-${applicationNameWithoutDashes}'
-var vnetName = 'vnet-${applicationNameWithoutDashes}'
-var aks1Name = '${take('aks1-${applicationNameWithoutDashes}',20)}'
-var aks2Name = '${take('aks2-${applicationNameWithoutDashes}',20)}'
+var applicationNameWithoutDashes = replace(applicationName, '-', '')
+var aksName = take('aks-${applicationNameWithoutDashes}', 20)
+var resourceGroupName = applicationName
 
 resource rg 'Microsoft.Resources/resourceGroups@2020-10-01' = {
   name: resourceGroupName
   location: location
 }
 
-
 module vnet 'modules/vnet.bicep' = {
   scope: resourceGroup(rg.name)
   name: 'vnetDeployment'
   params: {
     vnetName: vnetName
+    vnetAddressPrefix: vnetAddressPrefix
+    subnetAddressPrefix: subnetAddressPrefix
     vnetLocation: location
     currentAzUsernameId: currentAzUsernameId
-    aks1ObjectId: aks1ObjectId
-    aks2ObjectId: aks2ObjectId
+    aksName: aksName
+    aksObjectId: aksObjectId
   }
 }
 
-module aks1 'modules/aks.bicep' = {
-  name: 'aks1Deployment'
+module upstreamvnetpeering 'modules/vnetpeering.bicep' = if (!empty(remoteVnetResourceGroupName) && !empty(remoteVnetName)) {
+  scope: resourceGroup(rg.name)
+  name: 'upstreamVnetPeeringDeployment'
+  params: {
+    vnetName: vnetName
+    remoteVnetName: remoteVnetName
+    remoteVnetResourceGroupName: remoteVnetResourceGroupName
+  }
+  dependsOn: [
+    vnet
+  ]
+}
+
+module downstreamvnetpeering 'modules/vnetpeering.bicep' = if (!empty(remoteVnetResourceGroupName) && !empty(remoteVnetName)) {
+  scope: resourceGroup(remoteVnetResourceGroupName)
+  name: 'downstreamVnetPeeringDeployment'
+  params: {
+    vnetName: remoteVnetName
+    remoteVnetName: vnetName
+    remoteVnetResourceGroupName: rg.name
+  }
+  dependsOn: [
+    vnet
+  ]
+}
+
+module aks 'modules/aks.bicep' = {
+  name: 'aksDeployment'
   scope: resourceGroup(rg.name)
   params: {
-    aksName: aks1Name
+    aksName: aksName
     aksLocation: location
-    aksClientId: aks1ClientId
-    aksClientSecret: aks1ClientSecret
-    vnetSubnetID: vnet.outputs.subnetId1
+    aksClientId: aksClientId
+    aksClientSecret: aksClientSecret
+    vnetSubnetID: vnet.outputs.subnetId
   }
 }
 
-module aks2 'modules/aks.bicep' = {
-  name: 'aks2Deployment'
-  scope: resourceGroup(rg.name)
-  params: {
-    aksName: aks2Name
-    aksLocation: location
-    aksClientId: aks2ClientId
-    aksClientSecret: aks2ClientSecret
-    vnetSubnetID: vnet.outputs.subnetId2
-  }
-}
-
-output aks1Name string = aks1.outputs.aksName
-output aks2Name string = aks2.outputs.aksName
-output resourceGroupName string = resourceGroupName
+output aksName string = aksName
+output aksResourceGroup string = resourceGroupName
