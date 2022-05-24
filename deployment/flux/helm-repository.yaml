@@ -6,4 +6,4 @@ metadata:
   namespace: edge-app1
 spec:
   interval: 1m
-  url: https://suneetnangia.github.io/distributed-az-edge-framework
+  url: https://azure-samples.github.io/distributed-az-edge-framework

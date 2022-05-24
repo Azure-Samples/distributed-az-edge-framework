@@ -71,7 +71,7 @@ dataGatewayModule:
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
 # Deploy Flux v2 configuration to install app on kubernetes edge.
-az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/suneetnangia/distributed-az-edge-framework --branch readiness/azure-samples --kustomization name=flux-kustomization prune=true path=/deployment/flux
+az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/azure-samples/distributed-az-edge-framework --branch readiness/azure-samples --kustomization name=flux-kustomization prune=true path=/deployment/flux
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time app deployment:" + $runningTime.ToString())
