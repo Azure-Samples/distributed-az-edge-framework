@@ -6,4 +6,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://suneetnangia.github.io/distributed-az-edge-framework
+  url: https://Azure-Samples.github.io/distributed-az-edge-framework

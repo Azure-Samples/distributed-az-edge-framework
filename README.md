@@ -1,6 +1,6 @@
 # Distributed Azure IoT Workload Accelerator for K8s
 
-[![GitHub CI](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml)
+[![GitHub CI](https://github.com/Azure-Samples/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/Azure-Samples/distributed-az-edge-framework/actions/workflows/CI.yml)
 
 Edge computing comes in various forms, the spectrum of compute scale can vary hugely between use cases and industries. At the lower end of scale we have constrained devices like MCU (Micro Controller Units) and on the higher end we have heavy compute infrastructure which is processing images and high throughput data streams for anomalies. The latter is more frequent in manufacturing industry, these customers often provision high-density hosting platforms on the edge to deploy both cloud connected and locally managed workloads.
 
@@ -21,10 +21,10 @@ Each pod contains two containers:
 
 Apart from the above arrangement, the following system modules/pods are part of the solution:
 
-1. [**Data Gateway Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Data-Gateway-Module), purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud.
-2. [**OPC UA Publisher Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/OPC-UA-Publisher-Module), OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios.
-3. [**OPC UA Plc Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/OPC-UA-Plc-Module), OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
-4. [**Simulated Temperature Sensor Module**](https://github.com/suneetnangia/distributed-az-edge-framework/wiki/Simulated-Temperature-Sensor-Module), emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
+1. [**Data Gateway Module**](https://github.com/Azure-Samples/distributed-az-edge-framework/wiki/Data-Gateway-Module), purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud.
+2. [**OPC UA Publisher Module**](https://github.com/Azure-Samples/distributed-az-edge-framework/wiki/OPC-UA-Publisher-Module), OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios.
+3. [**OPC UA Plc Module**](https://github.com/Azure-Samples/distributed-az-edge-framework/wiki/OPC-UA-Plc-Module), OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
+4. [**Simulated Temperature Sensor Module**](https://github.com/Azure-Samples/distributed-az-edge-framework/wiki/Simulated-Temperature-Sensor-Module), emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
 
 The accelerator makes use of the following products and services:
 
@@ -70,14 +70,14 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 3. Deploy the accelerator with the latest release, via Helm as below:
 
     ```
-   helm repo add aziotaccl 'https://suneetnangia.github.io/distributed-az-edge-framework'
+   helm repo add aziotaccl 'https://Azure-Samples.github.io/distributed-az-edge-framework'
    helm repo update
    helm install az-edge-accelerator aziotaccl/iot-edge-accelerator --set dataGatewayModule.eventHubConnectionString="<Event Hub Connection String with Entity>",dataGatewayModule.storageAccountName="<Storage Account Name>",dataGatewayModule.storageAccountKey="<Storage Account Key>",simulatedTemperatureSensorFeedIntervalInMilliseconds=3000
     ```
 
 ## Outstanding (Work in Progress)
 
-These are now moved to GitHub project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
+These are now moved to GitHub project [here](https://github.com/Azure-Samples/distributed-az-edge-framework/projects/1)
 
 
 ## Disclaimer

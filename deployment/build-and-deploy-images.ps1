@@ -45,7 +45,7 @@ Set-Location -Path $deploymentDir
 Write-Title("Build and Push Containers (OPC Publisher)")
 if (!(Test-Path .\..\..\Industrial-IoT-Temp))
 {
-    git clone -b feature/dapr-adapter https://github.com/suneetnangia/Industrial-IoT .\..\..\Industrial-IoT-Temp
+    git clone -b feature/dapr-adapter https://github.com/Azure-Samples/Industrial-IoT .\..\..\Industrial-IoT-Temp
 }
 Set-Location -Path .\..\..\Industrial-IoT-Temp
 git pull

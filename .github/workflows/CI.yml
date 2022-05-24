@@ -29,21 +29,21 @@ jobs:
       run: echo ${{steps.vars.outputs.tag}}
       
     - name: Build the tagged Docker image for Data Gateway module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
+      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag Azure-Samples/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
     - name: Push the tagged Docker image for Data Gateway module.
-      run: docker push suneetnangia/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
+      run: docker push Azure-Samples/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
 
     - name: Build the latest Docker image for Data Gateway module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-ci-latest
+      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag Azure-Samples/distributed-az-iot-edge-datagatewaymodule:main-ci-latest
     - name: Push the latest Docker image for Data Gateway module.
-      run: docker push suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-ci-latest
+      run: docker push Azure-Samples/distributed-az-iot-edge-datagatewaymodule:main-ci-latest
       
     - name: Build the tagged Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
+      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag Azure-Samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
     - name: Push the tagged Docker image for Simulated Temperature Sensor module.
-      run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
+      run: docker push Azure-Samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
 
     - name: Build the latest Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag Azure-Samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
     - name: Push the latest Docker image for Simulated Temperature Sensor module.
-      run: docker push suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
+      run: docker push Azure-Samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-ci-latest
