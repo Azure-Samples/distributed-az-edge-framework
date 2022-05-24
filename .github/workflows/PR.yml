@@ -25,7 +25,7 @@ jobs:
       run: echo ${{steps.vars.outputs.tag}}
       
     - name: Build the tagged Docker image for Data Gateway module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
+      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile --tag azure-samples/distributed-az-iot-edge-datagatewaymodule:${{steps.vars.outputs.tag}}
      
     - name: Build the tagged Docker image for Simulated Temperature Sensor module.
-      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
+      run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag azure-samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
