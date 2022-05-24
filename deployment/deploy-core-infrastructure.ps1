@@ -38,7 +38,7 @@ class Aks {
     az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
     
     #----- Install AKS Proxy
-    helm repo add squid https://Azure-Samples.github.io/distributed-az-edge-framework
+    helm repo add squid https://azure-samples.github.io/distributed-az-edge-framework
     helm repo update
 
     if($proxyConfig)

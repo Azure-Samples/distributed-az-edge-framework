@@ -13,7 +13,7 @@ Param(
 
 mkdir -p modules
 # Copy scripts from source location
-$baseLocation = "https://raw.githubusercontent.com/Azure-Samples/distributed-az-edge-framework/$ScriptsBranch"
+$baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
 # Import text utilities module.
 Import-Module -Name .\modules\text-utils.psm1
