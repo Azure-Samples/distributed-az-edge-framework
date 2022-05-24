@@ -19,7 +19,7 @@ opcPublisherModule:
 
 # Docker images
 images:
-  datagatewaymodule: ghcr.io/suneetnangia/distributed-az-iot-edge-datagatewaymodule:main-13660f9
-  simulatedtemperaturesensormodule: ghcr.io/suneetnangia/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-13660f9
+  datagatewaymodule: ghcr.io/Azure-Samples/distributed-az-iot-edge-datagatewaymodule:main-13660f9
+  simulatedtemperaturesensormodule: ghcr.io/Azure-Samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:main-13660f9
   opcplcmodule: mcr.microsoft.com/iotedge/opc-plc:2.2.0
-  opcpublishermodule: ghcr.io/suneetnangia/distributed-az-iot-edge-opcuapublisher:latest
+  opcpublishermodule: ghcr.io/Azure-Samples/distributed-az-iot-edge-opcuapublisher:latest

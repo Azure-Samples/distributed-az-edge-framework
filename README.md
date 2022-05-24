@@ -1,6 +1,6 @@
 # Distributed Azure IoT Workload Accelerator for K8s
 
-[![GitHub CI](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/suneetnangia/distributed-az-edge-framework/actions/workflows/CI.yml)
+[![GitHub CI](https://github.com/Azure-Samples/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/Azure-Samples/distributed-az-edge-framework/actions/workflows/CI.yml)
 
 Edge computing comes in various forms, the spectrum of compute scale can vary hugely between use cases and industries. At the lower end of scale we have constrained devices like MCU (Micro Controller Units) and on the higher end we have heavy compute infrastructure which is processing images and high throughput data streams for anomalies. The latter is more frequent in manufacturing industry, these customers often provision high-density hosting platforms on the edge to deploy both cloud connected and locally managed workloads.
 
@@ -75,13 +75,13 @@ In Azure, for demo purposes we deploy all the three layers for you.
 
 Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
 
-`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/suneetnangia/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
+`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Azure-Samples/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
 Optionally, for deploying a developer environment with local application building and deployment please see [Setup a developer environment on Azure with local application deployment](./deployment/deploy-dev.md).
 
 ## Further Enhancements
 
-This solution can be further enhanced with the features defined in the project [here](https://github.com/suneetnangia/distributed-az-edge-framework/projects/1)
+This solution can be further enhanced with the features defined in the project [here](https://github.com/Azure-Samples/distributed-az-edge-framework/projects/1)
 
 ## Disclaimer
 
