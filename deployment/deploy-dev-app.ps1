@@ -7,40 +7,55 @@ Param(
     [string]
     [Parameter(mandatory=$true)]
     $ApplicationName,
+
     [string]
-    $Location = 'westeurope',
-    [switch]
-    $DeleteResourceGroup
+    [Parameter(mandatory=$true)]
+    $AksClusterName,
+
+    [string]
+    [Parameter(mandatory=$true)]
+    $AksClusterResourceGroupName,
+
+    [string]
+    [Parameter(Mandatory=$true)]
+    $AksServicePrincipalName,
+
+    [string]
+    $Location = 'westeurope'
 )
 
-Function Write-Title ($text) {
-    $width = (Get-Host).UI.RawUI.WindowSize.Width
-    $title = ""
-    if($text.length -ne 0)
-    {
-        $title = "=[ " + $text + " ]="
-    }
+# Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
+# Import-Module -Name .\modules\text-utils.psm1
 
-    Write-Host $title.PadRight($width, "=") -ForegroundColor green
-}
-
+$appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying")
+Write-Title("Start Deploying Application")
 $startTime = Get-Date
 
-# ----- Deploy Bicep
-Write-Title("Deploy Bicep files")
-$r = (az deployment sub create --location $Location `
-           --template-file .\bicep\main.bicep --parameters applicationName=$ApplicationName `
-           --name "dep-$deploymentId" -o json) | ConvertFrom-Json
+# Get AKS SP object ID
+$aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalName | ConvertFrom-Json | Select-Object -First 1
+$aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).objectId
 
+# ----- Deploy Bicep
+Write-Title("Deploy Bicep File")
+$r = (az deployment sub create --location $Location `
+           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId=$aksSpObjectId acrCreate=true `
+           --name "dep-$deploymentId" -o json) | ConvertFrom-Json
+ 
 $acrName = $r.properties.outputs.acrName.value
-$aksName = $r.properties.outputs.aksName.value
-$resourceGroupName = $r.properties.outputs.resourceGroupName.value
-$storageKey = $r.properties.outputs.storageKey.Value
-$storageName = $r.properties.outputs.storageName.Value
-$eventHubConnectionString = $r.properties.outputs.eventHubConnectionString.value
+$storageName = $r.properties.outputs.storageName.value
+$resourceGroupApp = $r.properties.outputs.resourceGroupName.value
+$eventHubNamespace = $r.properties.outputs.eventHubNameSpaceName.value
+$eventHubSendRuleName = $r.properties.outputs.eventHubSendRuleName.value
+$eventHubName = $r.properties.outputs.eventHubName.value
+
+$eventHubConnectionString = (az eventhubs eventhub authorization-rule keys list --resource-group $resourceGroupApp `
+        --namespace-name $eventHubNamespace --eventhub-name $eventHubName `
+        --name $eventHubSendRuleName --query primaryConnectionString) | ConvertFrom-Json
+
+$storageKey = (az storage account keys list  --resource-group $resourceGroupApp `
+                --account-name $storageName --query [0].value -o tsv)
 
 # ----- Build and Push Containers
 Write-Title("Build and Push Containers")
@@ -65,30 +80,15 @@ Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials
 Write-Title("Get AKS Credentials")
-az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
-
-#----- Dapr
-Write-Title("Install Dapr")
-helm repo add dapr https://dapr.github.io/helm-charts/
-helm repo update
-helm upgrade --install dapr dapr/dapr `
-    --version=1.5 `
-    --namespace edge-core `
-    --create-namespace `
-    --wait
-
-#----- Redis
-Write-Title("Install Redis")
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo update
-helm install redis bitnami/redis --wait `
---namespace edge-core `
---create-namespace `
---wait
+az aks get-credentials `
+    --admin `
+    --name $AksClusterName `
+    --resource-group $AksClusterResourceGroupName `
+    --overwrite-existing
 
 # Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
-kubectl create namespace edge-app1
-kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: edge-app1")} | kubectl apply -f - 
+kubectl create namespace $appKubernetesNamespace
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f - 
 
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
@@ -103,23 +103,10 @@ helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
-    --set-string dataGatewayModule.storageAccountKey="$storageKey"
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
-    --namespace edge-app1 `
+    --namespace $appKubernetesNamespace `
     --create-namespace `
     --wait
-    
-# ----- Clean up
-if($DeleteResourceGroup)
-{
-    Write-Title("Delete Resources")
-    if(Remove-AzResourceGroup -Name $resourceGroupName -Force)
-    {
-        Write-Host "All resources deleted" -ForegroundColor Yellow
-    }
-}
-
-$env:RESOURCEGROUPNAME=$resourceGroupName
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Running time app deployment: " + $runningTime.ToString())

@@ -18,20 +18,13 @@ if(!$ResourceGroupName)
     $ResourceGroupName = $env:RESOURCEGROUPNAME
 }
 
-Function Write-Title ($text) {
-    $width = (Get-Host).UI.RawUI.WindowSize.Width
-    $title = ""
-    if($text.length -ne 0)
-    {
-        $title = "=[ " + $text + " ]="
-    }
-
-    Write-Host $title.PadRight($width, "=") -ForegroundColor green
-}
+# Import text utilities module.
+Import-Module -Name .\modules\text-utils.psm1
 
 $deploymentId = Get-Random
 $startTime = Get-Date
 $acrName = (az acr list -g $ResourceGroupName --query [].name -o tsv)
+$appKubernetesNamespace = "edge-app1"
 
 # ----- Build and Push Containers
 Write-Title("Build and Push Containers")
@@ -65,8 +58,9 @@ helm upgrade iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
-
+    --reuse-values `
+    --namespace $appKubernetesNamespace
 $runningTime = New-TimeSpan -Start $startTime
 
-Write-Host "Tag: " $deploymentId -ForegroundColor Green
-Write-Host "Running time:" $runningTime.ToString() -ForegroundColor Yellow
+Write-Title("Tag:  $deploymentId")
+Write-Title("Running time: " + $runningTime.ToString())
