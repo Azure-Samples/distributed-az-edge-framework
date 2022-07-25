@@ -93,7 +93,7 @@ Write-Title("Start Deploying Core Infrastructure")
 $startTime = Get-Date
 
 # ----- Retrieve Object Id of current user who is deploying solution.
-$currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFrom-Json)
+$currentAzUsernameId = $(az ad signed-in-user show --query id | ConvertFrom-Json)
 
 # ----- Create AKS Service Principals
 Write-Title("Create AKS Service Principals")
@@ -105,11 +105,8 @@ $aksServicePrincipal = (az ad sp create-for-rbac -n $aksServicePrincipalName) | 
 Start-Sleep -s 30
 
 $aksClientId = $aksServicePrincipal.appId
-$aksObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).objectId
+$aksObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).id
 $aksClientSecret = $aksServicePrincipal.password
-
-# ----- Retrieve Object Id of current user who is deploying solution.
-$currentAzUsernameId = $(az ad signed-in-user show --query objectId | ConvertFrom-Json)
 
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
