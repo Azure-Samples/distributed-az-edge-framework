@@ -35,12 +35,12 @@ $startTime = Get-Date
 
 # Get AKS SP object ID
 $aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalName | ConvertFrom-Json | Select-Object -First 1
-$aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).objectId
+$aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).id
 
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId=$aksSpObjectId acrCreate=true `
+           --template-file ./bicep/iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId=$aksSpObjectId acrCreate=true `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
  
 $acrName = $r.properties.outputs.acrName.value
@@ -67,15 +67,15 @@ Set-Location -Path $deploymentDir
 
 # ----- Build and Push Containers (OPC Publisher)
 Write-Title("Build and Push Containers (OPC Publisher)")
-if (!(Test-Path .\..\..\Industrial-IoT-Temp))
+if (!(Test-Path ./../../Industrial-IoT-Temp))
 {
-    git clone -b feature/dapr-adapter https://github.com/azure-samples/Industrial-IoT .\..\..\Industrial-IoT-Temp
+    git clone -b feature/dapr-adapter https://github.com/suneetnangia/Industrial-IoT ./../../Industrial-IoT-Temp
 }
-Set-Location -Path .\..\..\Industrial-IoT-Temp
+Set-Location -Path ./../../Industrial-IoT-Temp
 git pull
 $Env:BUILD_SOURCEBRANCH = "feature/dapr-adapter"
 $Env:Version_Prefix = $deploymentId
-.\tools\scripts\acr-build.ps1 -Path .\modules\src\Microsoft.Azure.IIoT.Modules.OpcUa.Publisher\src -Registry $acrName
+./tools/scripts/acr-build.ps1 -Path ./modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
 Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials
@@ -95,7 +95,7 @@ Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
-$opcpublisherimage = $acrName + ".azurecr.io/dapr-adapter/iotedge/opc-publisher:" + $deploymentId
+$opcpublisherimage = $acrName + ".azurecr.io/dapr-adapter/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
 helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
