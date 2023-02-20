@@ -157,6 +157,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 { $"ec|edgehubconnectionstring=|dc=|deviceconnectionstring=|{StandaloneCliConfigKeys.EdgeHubConnectionString}=",
                     "A edge hub or iot hub connection string to use if you run OPC Publisher outside of IoT Edge. The connection string can be obtained from the IoT Hub portal. Use this setting for testing only.\nDefault: `not set`.\n",
                     dc => this[StandaloneCliConfigKeys.EdgeHubConnectionString] = dc },
+                { "dapr|daprconnectionstring=", "A Dapr connection string to use",
+                        dc => this[StandaloneCliConfigKeys.DaprConnectionString] = dc },
                 { $"{StandaloneCliConfigKeys.BypassCertVerificationKey}=",
                     "Enables bypass of certificate verification for upstream communication to edgeHub. This setting is for debugging purposes only and should not be used in production.\nDefault: `False`\n",
                     (bool b) => this[StandaloneCliConfigKeys.BypassCertVerificationKey] = b.ToString() },

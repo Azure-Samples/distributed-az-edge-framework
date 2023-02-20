@@ -5,6 +5,7 @@
     <Description>Azure Industrial IoT edge module service framework</Description>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Dapr.Client" Version="1.9.0" />
     <PackageReference Include="MQTTnet" Version="4.1.4.563" />
     <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.1.4.563" />
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.41.3" />

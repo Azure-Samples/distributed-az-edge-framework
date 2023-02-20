@@ -351,5 +351,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// Key for configuring reporting of OPC Publisher restarts.
         /// </summary>
         public const string RuntimeStateReporting = "RuntimeStateReporting";
+
+        /// <summary>
+        /// Key for the Dapr connection string.
+        /// </summary>
+        public const string DaprConnectionString = ModuleConfig.kDaprConnectionStringKey;
     }
 }

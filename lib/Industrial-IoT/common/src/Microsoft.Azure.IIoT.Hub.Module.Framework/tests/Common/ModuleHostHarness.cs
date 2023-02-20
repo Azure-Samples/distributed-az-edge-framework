@@ -98,6 +98,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
             public string MqttClientConnectionString => null;
 
+            public string DaprConnectionString => null;
+
             public string TelemetryTopicTemplate => null;
 
             public bool BypassCertVerification => true;
