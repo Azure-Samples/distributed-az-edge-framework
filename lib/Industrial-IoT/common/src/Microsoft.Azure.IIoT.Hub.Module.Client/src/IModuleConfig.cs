@@ -16,6 +16,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
         string EdgeHubConnectionString { get; }
 
         /// <summary>
+        /// Dapr connection string
+        /// </summary>
+        string DaprConnectionString { get; }
+
+        /// <summary>
         /// MqttClient connection string
         /// </summary>
         string MqttClientConnectionString { get; }

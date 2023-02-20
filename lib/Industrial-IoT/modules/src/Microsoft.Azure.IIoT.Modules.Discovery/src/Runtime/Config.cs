@@ -21,12 +21,12 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Runtime {
         public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
         /// <inheritdoc/>
         public string MqttClientConnectionString => _module.MqttClientConnectionString;
-
         /// <inheritdoc/>
         public string TelemetryTopicTemplate => _module.TelemetryTopicTemplate;
         /// <inheritdoc/>
         public bool EnableOutputRouting => _module.EnableOutputRouting;
-
+        /// <inheritdoc/>
+        public string DaprConnectionString => _module.DaprConnectionString;
         /// <inheritdoc/>
         public bool BypassCertVerification => _module.BypassCertVerification;
         /// <inheritdoc/>

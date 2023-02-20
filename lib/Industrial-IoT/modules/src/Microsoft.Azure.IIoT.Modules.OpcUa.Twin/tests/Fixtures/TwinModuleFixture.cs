@@ -270,6 +270,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
             public string TelemetryTopicTemplate => null;
 
             /// <inheritdoc/>
+            public string DaprConnectionString => null;
+
+            /// <inheritdoc/>
             public bool BypassCertVerification => true;
 
             /// <inheritdoc/>

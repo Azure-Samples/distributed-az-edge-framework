@@ -244,7 +244,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
 
             /// <inheritdoc/>
             public string TelemetryTopicTemplate { get; }
-
+            
+            /// <inheritdoc/>
+            public string DaprConnectionString { get; }
             /// <inheritdoc/>
             public bool BypassCertVerification { get; }
             /// <inheritdoc/>

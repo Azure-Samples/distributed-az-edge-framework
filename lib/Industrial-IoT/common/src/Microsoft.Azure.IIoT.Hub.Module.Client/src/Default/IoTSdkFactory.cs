@@ -20,6 +20,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
+    using System.Net.Http;
+    using Newtonsoft.Json;
+    using Dapr.Client;
+    using System.Text;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Injectable factory that creates clients
@@ -105,9 +110,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     }
                     _timeout = TimeSpan.FromMinutes(5);
                 }
+                else if (!string.IsNullOrWhiteSpace(config.DaprConnectionString)) {
+                    deviceId = "dapr";
+                    _daprConnectionString = DaprConnectionString.Create(config.DaprConnectionString);
+                }
             }
             catch (Exception e) {
-                _logger.Error(e, "Bad configuration value in EdgeHubConnectionString config.");
+                _logger.Error(e, "Bad configuration value in connection string config.");
             }
 
             ModuleId = moduleId;
@@ -238,6 +247,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                     return DeviceClientAdapter.CreateAsync(product, _deviceClientCs, DeviceId,
                         transportSetting, timeout: _timeout, RetryPolicy, onError, _logger);
                 }
+                else if (_daprConnectionString != null)
+                {
+                    return DaprClientAdapter.CreateAsync(_daprConnectionString, _timeout, _logger);                    
+                }
                 else {
                     throw new InvalidConfigurationException(
                         "No connection string for device client specified.");
@@ -296,10 +309,215 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
 
+        public sealed class DaprClientAdapter : IClient {
+            /// <summary>
+            /// Message to be sent to the Dapr runtime.
+            /// </summary>
+            private sealed class DaprMessage {
+                /// <summary>
+                /// Body for the message.
+                /// </summary>
+                public string Body { get; }
+
+                /// <summary>
+                /// Metadata for the message.
+                /// </summary>
+                public IDictionary<string, string> Properties { get; }
+
+                /// <summary>
+                /// Constructor for the Dapr message.
+                /// </summary>
+                /// <param name="body"></param>
+                /// <param name="properties"></param>
+                public DaprMessage(string body, IDictionary<string, string> properties) {
+                    Body = body ?? throw new ArgumentNullException(nameof(body));
+                    Properties = properties ?? throw new ArgumentNullException(nameof(properties));
+                }
+            }
+
+            private const string kContentEncodingPropertyName = "iothub-content-encoding";
+            private const string kContentTypePropertyName = "iothub-content-type";
+
+            private readonly TimeSpan _timeout;
+            private readonly ILogger _logger;
+            private readonly DaprClient _daprClient;
+            private readonly string _pubsub;
+            private readonly string _topic;
+
+            /// <summary>
+            /// Adapter ready state.
+            /// </summary>
+            public bool IsClosed { get; private set; } = true;
+
+            /// <summary>
+            /// Constructor for the Dapr client adapter.
+            /// </summary>
+            /// <param name="daprClient">Dapr client.</param>
+            /// <param name="pubsub">Name of the pubsub component.</param>
+            /// <param name="topic">Name of the topic.</param>
+            /// <param name="timeout">Default for operations.</param>
+            /// <param name="logger">Logger for the operations.</param>
+            private DaprClientAdapter(DaprClient daprClient, string pubsub, string topic, TimeSpan timeout, ILogger logger) {
+                _daprClient = daprClient ?? throw new ArgumentNullException(nameof(daprClient));
+                _pubsub = pubsub ?? throw new ArgumentNullException(nameof(pubsub));
+                _topic = topic ?? throw new ArgumentNullException(nameof(topic));
+                _timeout = timeout;
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            }
+
+            /// <summary>
+            /// Create Dapr client adapter from a Dapr connection string.
+            /// </summary>
+            /// <param name="daprConnectionString">Dapr connection string.</param>
+            /// <param name="timeout">Default for operations.</param>
+            /// <param name="logger">Logger for the operations.</param>
+            /// <returns>A Dapr client adapter.</returns>
+            public static async Task<IClient> CreateAsync(DaprConnectionString daprConnectionString, TimeSpan timeout, ILogger logger) {
+                var cancellationTokenSource = new CancellationTokenSource();
+                cancellationTokenSource.CancelAfter(timeout);
+
+                // Create client and check sidecar health.
+                var daprClientBuilder = new DaprClientBuilder()
+                    .UseHttpEndpoint(daprConnectionString.HttpEndpoint)
+                    .UseGrpcEndpoint(daprConnectionString.GrpcEndpoint)
+                    .UseDaprApiToken(daprConnectionString.ApiToken);
+                var daprClient = daprClientBuilder.Build();
+                var daprClientAdapter = new DaprClientAdapter(daprClient, daprConnectionString.PubSub, daprConnectionString.Topic, timeout, logger);
+
+                try {
+                    if (!await daprClient.CheckHealthAsync(cancellationTokenSource.Token)) {
+                        throw new InvalidOperationException($"Sidecar is not available for {nameof(DaprClientAdapter)}.");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(daprConnectionString.HttpEndpoint)) {
+                        logger.Information($"Configured HTTP endpoint for {nameof(DaprClientAdapter)}: {{HttpEndpoint}}.", daprConnectionString.HttpEndpoint);
+                    }
+                    if (!string.IsNullOrWhiteSpace(daprConnectionString.GrpcEndpoint)) {
+                        logger.Information($"Configured gRPC endpoint for {nameof(DaprClientAdapter)}: {{GrpcEndpoint}}.", daprConnectionString.GrpcEndpoint);
+                    }
+                }
+                catch (Exception ex) {
+                    logger.Error($"Sidecar is not available for {nameof(DaprClientAdapter)}: {ex}.");
+                    throw;
+                }
+
+                daprClientAdapter.IsClosed = false;
+                return daprClientAdapter;
+            }
+
+            /// <inheritdoc />
+            public Task CloseAsync() {
+                lock (this) {
+                    if (IsClosed) {
+                        _logger.Warning($"{nameof(DaprClientAdapter)} is already closed.");
+                    }
+                    else {
+                        IsClosed = true;
+                    }
+                }
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
+            public void Dispose() {
+                lock (this) {
+                    if (!IsClosed) {
+                        CloseAsync().Wait();
+                    }
+                }
+            }
+
+            /// <inheritdoc />
+            public Task<Twin> GetTwinAsync() {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(GetTwinAsync)}");
+                return Task.FromResult<Twin>(null);
+            }
+
+            /// <inheritdoc />
+            public Task<MethodResponse> InvokeMethodAsync(string deviceId, string moduleId, MethodRequest methodRequest, CancellationToken cancellationToken = default) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(InvokeMethodAsync)}");
+                return Task.FromResult<MethodResponse>(null);
+            }
+
+            /// <inheritdoc />
+            public Task<MethodResponse> InvokeMethodAsync(string deviceId, MethodRequest methodRequest, CancellationToken cancellationToken = default) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(InvokeMethodAsync)}");
+                return Task.FromResult<MethodResponse>(null);
+            }
+
+            /// <inheritdoc />
+            public async Task SendEventAsync(Message message) {
+                lock (this) {
+                    if (IsClosed) {
+                        _logger.Warning($"{nameof(DaprClientAdapter)} is closed.");
+                        return;
+                    }
+                }
+
+                try {
+                    var cancellationTokenSource = new CancellationTokenSource();
+                    cancellationTokenSource.CancelAfter(_timeout);
+
+                    using var streamReader = new StreamReader(message.BodyStream, Encoding.UTF8);
+                    var body = await streamReader.ReadToEndAsync();
+
+                    var properties = new Dictionary<string, string>(message.Properties);
+                    if (!string.IsNullOrWhiteSpace(message.ContentType)) {
+                        properties[kContentTypePropertyName] = message.ContentType;
+                    }
+                    if (!string.IsNullOrWhiteSpace(message.ContentEncoding)) {
+                        properties[kContentEncodingPropertyName] = message.ContentEncoding;
+                    }
+
+                    var daprMessage = new DaprMessage(body, properties);
+                    await _daprClient.PublishEventAsync(_pubsub, _topic, daprMessage, cancellationTokenSource.Token);
+                }
+                catch (Exception ex) {
+                    _logger.Error($"{nameof(DaprClientAdapter)} is unable to publish message: {ex}.");
+                }
+            }
+
+            /// <inheritdoc />
+            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
+                return Task.WhenAll(messages.Select(x => SendEventAsync(x)));
+            }
+
+            /// <inheritdoc />
+            public Task SetDesiredPropertyUpdateCallbackAsync(DesiredPropertyUpdateCallback callback, object userContext) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(SetDesiredPropertyUpdateCallbackAsync)}");
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
+            public Task SetMethodDefaultHandlerAsync(MethodCallback methodHandler, object userContext) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(SetMethodDefaultHandlerAsync)}");
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
+            public Task SetMethodHandlerAsync(string methodName, MethodCallback methodHandler, object userContext) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(SetMethodDefaultHandlerAsync)}");
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
+            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(UpdateReportedPropertiesAsync)}");
+                return Task.CompletedTask;
+            }
+
+            /// <inheritdoc />
+            public Task UploadToBlobAsync(string blobName, Stream source) {
+                _logger.Warning($"Unsupported call in {nameof(DaprClientAdapter)}: {nameof(UploadToBlobAsync)}");
+                return Task.CompletedTask;
+            }
+        }
+
         private readonly TimeSpan _timeout;
         private readonly TransportOption _transport;
         private readonly IotHubConnectionStringBuilder _deviceClientCs;
         private readonly MqttClientConnectionStringBuilder _mqttClientCs;
+        private readonly DaprConnectionString _daprConnectionString;
         private readonly ILogger _logger;
         private readonly string _telemetryTopicTemplate;
         private readonly IDisposable _logHook;

@@ -39,6 +39,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             /// <inheritdoc/>
             public string MqttClientConnectionString { get; }
             /// <inheritdoc/>
+            public string DaprConnectionString { get; }
+            /// <inheritdoc/>
             public bool BypassCertVerification { get; }
             /// <inheritdoc/>
             public bool EnableMetrics { get; }

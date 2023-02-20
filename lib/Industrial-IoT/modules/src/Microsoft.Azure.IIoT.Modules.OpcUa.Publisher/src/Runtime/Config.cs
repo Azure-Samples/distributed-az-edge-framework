@@ -26,6 +26,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// <inheritdoc/>
         public bool EnableOutputRouting => _module.EnableOutputRouting;
         /// <inheritdoc/>
+        public string DaprConnectionString => _module.DaprConnectionString;
+        /// <inheritdoc/>
         public bool BypassCertVerification => _module.BypassCertVerification;
         /// <inheritdoc/>
         public bool EnableMetrics => _module.EnableMetrics;

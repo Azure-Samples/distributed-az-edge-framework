@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string kEdgeHubConnectionStringKey = "EdgeHubConnectionString";
+        public const string kDaprConnectionStringKey = "DaprConnectionString";
         public const string kMqttClientConnectionStringKey = "MqttClientConnectionString";
         public const string kBypassCertVerificationKey = "BypassCertVerification";
         public const string kTransportKey = "Transport";
@@ -30,6 +31,9 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
         /// <summary>Hub connection string</summary>
         public string EdgeHubConnectionString =>
             GetStringOrDefault(kEdgeHubConnectionStringKey);
+        /// <summary>Dapr connection string</summary>
+        public string DaprConnectionString =>
+            GetStringOrDefault(kDaprConnectionStringKey);
         /// <summary>Mqtt client connection string</summary>
         public string MqttClientConnectionString =>
             GetStringOrDefault(kMqttClientConnectionStringKey);
