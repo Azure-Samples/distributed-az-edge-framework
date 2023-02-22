@@ -9,7 +9,9 @@ spec:
   metadata:
   - name: redisHost
     value: {{ .Values.localPubSubModule.redisUri }}
+    #value: localhost:6379
   - name: redisPassword
+    # value: ""
     secretKeyRef:
       name: redis
       key: redis-password
