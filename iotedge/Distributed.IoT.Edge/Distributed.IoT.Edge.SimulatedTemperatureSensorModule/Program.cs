@@ -1,5 +1,5 @@
 ﻿// Local run cmd line.
-// dapr run --app-protocol grpc --components-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr --app-id simulated-temperature-sensor-module -- dotnet run -- [--feedIntervalInMilliseconds 1000] [--senderPubSubName local-pub-sub] [--senderPubSubTopicName telemetry]
+// dapr run --app-protocol grpc --resources-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr --app-id simulated-temperature-sensor-module -- dotnet run -- [--feedIntervalInMilliseconds 1000] [--senderPubSubName local-pub-sub] [--senderPubSubTopicName telemetry]
 
 using CommandLine;
 
