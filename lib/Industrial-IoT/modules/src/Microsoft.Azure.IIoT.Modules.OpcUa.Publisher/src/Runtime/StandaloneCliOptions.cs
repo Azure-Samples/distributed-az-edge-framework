@@ -397,6 +397,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
 
                 // Check that the important values are provided
                 else if (!ContainsKey(StandaloneCliConfigKeys.MqttClientConnectionString) &&
+                    !ContainsKey(StandaloneCliConfigKeys.DaprConnectionString) &&
                     !ContainsKey(StandaloneCliConfigKeys.EdgeHubConnectionString) &&
                     Environment.GetEnvironmentVariable(IoTEdgeVariables.IOTEDGE_DEVICEID) == null &&
                     Environment.GetEnvironmentVariable(StandaloneCliConfigKeys.EdgeHubConnectionString) == null) {

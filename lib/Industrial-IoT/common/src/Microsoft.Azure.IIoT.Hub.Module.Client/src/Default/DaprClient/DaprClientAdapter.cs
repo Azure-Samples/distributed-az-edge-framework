@@ -16,7 +16,8 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.DaprClient {
     using System.Threading.Tasks;
     using Serilog;
     using Microsoft.Azure.IIoT.Messaging;
-    
+    using System.Text;
+
     /// <summary>
     /// Client adapter for Dapr
     /// </summary>
@@ -151,24 +152,24 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Default.DaprClient {
         /// <inheritdoc />
         public async Task SendEventAsync(ITelemetryEvent message) {
             lock (this) {
-                if (IsClosed) {                   
+                if (IsClosed) {
                     return;
                 }
             }
 
             try {
-
                 var msg = (DaprClientAdapterMessage)message;
 
-                var cancellationTokenSource = new CancellationTokenSource();
-                cancellationTokenSource.CancelAfter(_timeout);
-
-                var topic = msg.Topic;
-                foreach (var body in msg.Buffers) {
-                    if (body != null) {                        
-                        await _daprClient.PublishEventAsync(_pubsub, _topic, Convert.ToString(body), cancellationTokenSource.Token);
+                using (var cancellationTokenSource = new CancellationTokenSource()) {
+                    cancellationTokenSource.CancelAfter(_timeout);
+                    var topic = msg.Topic;
+                    foreach (var body in msg.Buffers) {
+                        if (body != null) {
+                            // TODO: Potentially send raw bytes instead via Dapr.
+                            await _daprClient.PublishEventAsync(_pubsub, _topic, Encoding.UTF8.GetString(body), cancellationTokenSource.Token);                            
+                        }
                     }
-                }              
+                }
             }
             catch (Exception ex) {
                 _logger.Error($"{nameof(DaprClientAdapter)} is unable to publish message: {ex}.");

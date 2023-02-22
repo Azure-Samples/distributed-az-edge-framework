@@ -109,6 +109,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 else if (!string.IsNullOrWhiteSpace(config.DaprConnectionString)) {
                     deviceId = "dapr";
                     _daprConnectionString = DaprConnectionString.Create(config.DaprConnectionString);
+                    deviceId = _deviceClientCs.DeviceId;
+                    moduleId = _deviceClientCs.ModuleId;
+                    _timeout = TimeSpan.FromSeconds(15);
                 }
             }
             catch (Exception e) {
