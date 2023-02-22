@@ -67,15 +67,9 @@ Set-Location -Path $deploymentDir
 
 # ----- Build and Push Containers (OPC Publisher)
 Write-Title("Build and Push Containers (OPC Publisher)")
-if (!(Test-Path ./../../Industrial-IoT-Temp))
-{
-    git clone -b feature/dapr-adapter https://github.com/suneetnangia/Industrial-IoT ./../../Industrial-IoT-Temp
-}
-Set-Location -Path ./../../Industrial-IoT-Temp
-git pull
-$Env:BUILD_SOURCEBRANCH = "feature/dapr-adapter"
+$Env:BUILD_SOURCEBRANCH = ""
 $Env:Version_Prefix = $deploymentId
-./tools/scripts/acr-build.ps1 -Path ./modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
+../lib/Industrial-IoT/tools/scripts/acr-build.ps1 -Path ../lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
 Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials
