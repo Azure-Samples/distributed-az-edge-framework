@@ -2,9 +2,8 @@ namespace Distributed.IoT.Edge.DataGatewayModule.Services
 {
     using Dapr.AppCallback.Autogen.Grpc.v1;
     using Dapr.Client;
-
+    using Dapr.Client.Autogen.Grpc.v1;
     using Google.Protobuf.WellKnownTypes;
-
     using Grpc.Core;
 
     public class SubscriptionService : AppCallback.AppCallbackBase
@@ -53,8 +52,7 @@ namespace Distributed.IoT.Edge.DataGatewayModule.Services
             }
 
             var topicString = request.Data.ToStringUtf8();
-
-            _logger.LogTrace($"Sending event to message layer, pubsub name {_senderPubsubName}, topic {_senderPubsubTopicName}, object {topicString}");
+            _logger.LogTrace($"Sending event to message layer, pubsub name {_senderPubsubName}, topic {_senderPubsubTopicName}, object string: {topicString}");
 
             // TODO: Find way to specify partition key to allow ordering of messages within a defined scope, currently events are distributed evenly accross partitions.
             await _daprClient.PublishEventAsync(_senderPubsubName, _senderPubsubTopicName, topicString);

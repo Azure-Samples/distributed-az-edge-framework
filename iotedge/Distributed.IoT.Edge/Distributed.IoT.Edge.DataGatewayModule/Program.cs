@@ -1,5 +1,5 @@
 // Local run cmd line.
-// dapr run --app-id data-gateway-module --app-protocol grpc --app-port 5000 --components-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr -- dotnet run -- [--receiverPubSubName "local-pub-sub"] [--ReceiverPubSubTopicName "telemetry"] [--senderPubSubName "remote-pub-sub"] [--senderPubSubTopicName "telemetry"]
+// dapr run --app-id data-gateway-module --app-protocol grpc --app-port 5000 --resources-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr -- dotnet run -- --receiverPubSubName "local-pub-sub" --receiverPubSubTopicName "telemetry" --senderPubSubName "remote-pub-sub" --senderPubSubTopicName "telemetry"
 
 using CommandLine;
 

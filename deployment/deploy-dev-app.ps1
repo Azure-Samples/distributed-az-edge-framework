@@ -28,6 +28,7 @@ Param(
 # Import-Module -Name .\modules\text-utils.psm1
 
 $appKubernetesNamespace = "edge-app1"
+$staticBranchName = "dapr-support"
 $deploymentId = Get-Random
 
 Write-Title("Start Deploying Application")
@@ -67,15 +68,10 @@ Set-Location -Path $deploymentDir
 
 # ----- Build and Push Containers (OPC Publisher)
 Write-Title("Build and Push Containers (OPC Publisher)")
-if (!(Test-Path ./../../Industrial-IoT-Temp))
-{
-    git clone -b feature/dapr-adapter https://github.com/suneetnangia/Industrial-IoT ./../../Industrial-IoT-Temp
-}
-Set-Location -Path ./../../Industrial-IoT-Temp
-git pull
-$Env:BUILD_SOURCEBRANCH = "feature/dapr-adapter"
+# ----- Set Branch Name to Static
+$Env:BUILD_SOURCEBRANCH = "refs/heads/$staticBranchName"
 $Env:Version_Prefix = $deploymentId
-./tools/scripts/acr-build.ps1 -Path ./modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
+../lib/Industrial-IoT/tools/scripts/acr-build.ps1 -Path ../lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
 Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials
@@ -95,7 +91,7 @@ Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
-$opcpublisherimage = $acrName + ".azurecr.io/dapr-adapter/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
+$opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
 helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
