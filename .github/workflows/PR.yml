@@ -1,6 +1,6 @@
 name: Main Branch PR
 on: 
-  pull_request:
+  push:
     branches:
       - main
 jobs:
@@ -17,7 +17,17 @@ jobs:
     - name: Build
       run: dotnet build iotedge/Distributed.IoT.Edge --no-restore
     - name: Test
-      run: dotnet test iotedge/Distributed.IoT.Edge --no-build --verbosity normal    
+      run: dotnet test iotedge/Distributed.IoT.Edge --no-build --verbosity normal
+    - name: Build Dockerfile for OpcUa.Publisher module
+      id: dockerfileOpcUaPublisher
+      shell: pwsh
+      run: |
+        $definition = & ./deployment/build-opcuapublisher-dockerfile.ps1 -Path ./lib/Industrial-IoT/services/src/Microsoft.Azure.IIoT.Services.OpcUa.Publisher/src
+        $dockerfile = $definition.dockerfile
+        $contentPath = (Join-Path $definition.buildContext /.)
+        echo "DOCKERFILE=$dockerfile" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        echo "CONTENTPATH=$contentPath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+    
     - name: Get the version
       id: vars
       run: echo ::set-output name=tag::$(echo main-pr-$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH"))
@@ -29,3 +39,6 @@ jobs:
      
     - name: Build the tagged Docker image for Simulated Temperature Sensor module.
       run: docker build iotedge/Distributed.IoT.Edge/. --file iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile --tag azure-samples/distributed-az-iot-edge-simulatedtemperaturesensormodule:${{steps.vars.outputs.tag}}
+    
+    - name: Build the tagged Docker image for OpcUa.Publisher module.
+      run: docker build ${{ env.CONTENTPATH }} --file ${{ env.DOCKERFILE }} --tag azure-samples/distributed-az-iot-edge-opcuapublisher:${{steps.vars.outputs.tag}}
