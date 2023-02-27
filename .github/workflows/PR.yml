@@ -1,6 +1,6 @@
 name: Main Branch PR
 on: 
-  push:
+  pull_request:
     branches:
       - main
 jobs:

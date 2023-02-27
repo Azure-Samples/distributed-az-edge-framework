@@ -50,7 +50,7 @@ jobs:
       id: dataGatewayMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/datagatewaymodule
+        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/datagatewaymodule
         tags: |
           type=raw,value={{branch}}-{{sha}}
             
@@ -67,7 +67,7 @@ jobs:
       id: tempSensorMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/simulatedtemperaturesensormodule
+        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/simulatedtemperaturesensormodule
         tags: |
           type=raw,value={{branch}}-{{sha}}
 
@@ -84,7 +84,7 @@ jobs:
       id: opcUaPublisher
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/opcuapublisher
+        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/opcuapublisher
         tags: |
           type=raw,value={{branch}}-{{sha}}
 
