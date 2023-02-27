@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This environment is used to setup a fast developer environment which means that Arc and Flux is not included in the environment and only a single level (single cluster) is deployed.
+This flow is used to setup a developer environment in Azure without Azure Arc and Flux. Additionally, only one single level (single AKS cluster) is deployed. Everything is executed from the local developer machine.
 
 ## Prerequisites on developer machine
 
@@ -21,11 +21,11 @@ In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-
 1. Deploy infrastructure with Bicep, the script deploys AKS cluster.
     * AKS
     * VNET
-    * Deploy Squid proxy in each layer
+    * Squid proxy in cluster
 
 3. Download AKS credentials.
 
-4. Install Dapr with Helm in AKS.
+4. Install DAPR with Helm in AKS.
 
 5. Install Redis with Helm in AKS.
 
