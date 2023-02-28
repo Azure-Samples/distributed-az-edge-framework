@@ -30,7 +30,7 @@ jobs:
       id: dockerfileOpcUaPublisher
       shell: pwsh
       run: |
-        $definition = & ./deployment/build-opcuapublisher-dockerfile.ps1 -Path ./lib/Industrial-IoT/services/src/Microsoft.Azure.IIoT.Services.OpcUa.Publisher/src
+        $definition = & ./deployment/build-opcuapublisher-dockerfile.ps1 -Path ./lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Services.OpcUa.Publisher/src
         $dockerfile = $definition.dockerfile
         $contentPath = (Join-Path $definition.buildContext /.)
         echo "DOCKERFILE=$dockerfile" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
