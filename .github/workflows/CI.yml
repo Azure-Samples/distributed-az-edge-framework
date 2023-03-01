@@ -50,7 +50,7 @@ jobs:
       id: dataGatewayMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/datagatewaymodule
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/datagatewaymodule
         tags: |
           type=raw,value={{branch}}-{{sha}}
             
@@ -60,14 +60,14 @@ jobs:
         context: iotedge/Distributed.IoT.Edge/.
         file: iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.DataGatewayModule/Dockerfile
         push: true
-        tags: ${{ steps.dataGatewayMeta.outputs.tags }}
+        tags: ${{ steps.dataGatewayMeta.outputs.tags }} ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/datagatewaymodule:latest
         labels: ${{ steps.dataGatewayMeta.outputs.labels }}
-          
+
     - name: Extract metadata (tags, labels) for SimulatedTemperatureSensorModule Docker
       id: tempSensorMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/simulatedtemperaturesensormodule
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/simulatedtemperaturesensormodule
         tags: |
           type=raw,value={{branch}}-{{sha}}
 
@@ -77,14 +77,14 @@ jobs:
         context: iotedge/Distributed.IoT.Edge/.
         file: iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile
         push: true
-        tags: ${{ steps.tempSensorMeta.outputs.tags }}
+        tags: ${{ steps.tempSensorMeta.outputs.tags }} ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/simulatedtemperaturesensormodule:latest
         labels: ${{ steps.tempSensorMeta.outputs.labels }}
     
     - name: Extract metadata (tags, labels) for OpcUa.Publisher Docker
       id: opcUaPublisher
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/opcuapublisher
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/opcuapublisher
         tags: |
           type=raw,value={{branch}}-{{sha}}
 
@@ -94,6 +94,6 @@ jobs:
         context: ${{ env.CONTENTPATH }}
         file: ${{ env.DOCKERFILE }}
         push: true
-        tags: ${{ steps.opcUaPublisher.outputs.tags }}
+        tags: ${{ steps.opcUaPublisher.outputs.tags }} ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/opcuapublisher:latest
         labels: ${{ steps.opcUaPublisher.outputs.labels }}
     
