@@ -52,8 +52,8 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/datagatewaymodule
         tags: |
-          type=raw,value={{branch}}-{{sha}},priority=200
           type=raw,value=latest,priority=1000
+          type=raw,value={{branch}}-{{sha}},priority=200
 
     - name: Build and push DataGatewayModule Docker image
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
