@@ -8,7 +8,7 @@ Azure IoT Edge provides an easy on-ramp experience for light weight edge compute
 
 This repo provides an accelerator and guidance to enable those customer who wants to build edge solutions on K8s in a scalable and resilient manner. The solution makes use of native K8s constructs to deploy and run edge workloads. Additionally, the solution provides a uniform remote management/deployment plane for workloads which is provided via Azure Arc.
 
-## Design
+## Overall Design
 
 Following diagram shows the abstracted view of the overall solution approach:
 
@@ -25,6 +25,17 @@ Apart from the above arrangement, the following system modules/pods are part of 
 2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios.
 3. **OPC UA Plc Module**, OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
 4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
+
+## Nested Topology
+
+This section describes the nested topology design implemented by this solution.
+
+![alt text](architecture/nested-topology-hld.png "Nested Toplogy")
+
+At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance).
+These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed/controlled via proxy configuration at each level. We are currently enhancing this functionality by enforcing data plane to traverse via proxy as well, as we only have Arc configured for it for now.
+
+## Technology Stack
 
 The accelerator makes use of the following products and services:
 
@@ -81,7 +92,7 @@ Optionally, for deploying a developer environment with local application buildin
 
 ## Further Enhancements
 
-This solution can be further enhanced with the features defined in the project [here](https://github.com/azure-samples/distributed-az-edge-framework/projects/1)
+This solution is further enhanced with the features/issues defined here [here](https://github.com/Azure-Samples/distributed-az-edge-framework/issues)
 
 ## Disclaimer
 
