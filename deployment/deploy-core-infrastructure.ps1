@@ -24,7 +24,11 @@ Param(
 
     [Parameter(Mandatory = $false)]
     [bool]
-    $SetupArc = $true
+    $SetupArc = $true,
+
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $SetupProxy = $true
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1

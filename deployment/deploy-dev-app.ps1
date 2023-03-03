@@ -29,7 +29,7 @@ Param(
 
 $appKubernetesNamespace = "edge-app1"
 $staticBranchName = "dapr-support"
-$deploymentId = Get-Random
+$deploymentId = Get-Random 
 
 Write-Title("Start Deploying Application")
 $startTime = Get-Date
@@ -82,9 +82,7 @@ az aks get-credentials `
     --resource-group $AksClusterResourceGroupName `
     --overwrite-existing
 
-# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
-kubectl create namespace $appKubernetesNamespace
-kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f - 
+# kubectl create namespace $appKubernetesNamespace
 
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")

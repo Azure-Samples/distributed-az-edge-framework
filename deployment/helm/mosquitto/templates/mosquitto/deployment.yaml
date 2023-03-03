@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "mosquitto.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "mosquitto.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "mosquitto.name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - name: default
+            containerPort: {{ .Values.defaultport }}
+            protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.defaultport }}
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.defaultport }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        volumeMounts:
+          - name: mosquitto-config
+            mountPath: /mosquitto/config/mosquitto.conf
+            subPath: mosquitto.conf
+          - name: mosquitto-data
+            mountPath: /mosquitto/data
+            subPath: mosquitto/data
+      volumes:
+        - name: mosquitto-config
+          configMap:
+            name: mosquitto-config
+        - name: mosquitto-data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: mosquitto-pvc
+        {{- else }}
+          emptyDir: {}
+        {{- end -}}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

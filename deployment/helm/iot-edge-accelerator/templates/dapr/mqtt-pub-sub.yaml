@@ -2,19 +2,21 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: local-pub-sub  
+  name: local-pub-sub
 spec:
-  type: pubsub.redis
+  type: pubsub.mqtt3
   version: v1
   metadata:
-  - name: redisHost
-    value: {{ .Values.localPubSubModule.redisUri }}
-    #value: localhost:6379
-  - name: redisPassword
-    # value: ""
-    secretKeyRef:
-      name: redis
-      key: redis-password
+  - name: url
+    value: {{ .Values.localPubSubModule.mqttUri }}
+  - name: retain
+    value: "false"
+  - name: cleanSession
+    value: "false"
+  - name: qos
+    value: "1"
+  - name: consumerID
+    value: "{podName}"
   # Lock down type of access for each service.
   - name: publishingScopes
     value: "simulated-temperature-sensor-module=telemetry;data-gateway-module=;opc-publisher-module=telemetry"
@@ -24,9 +26,6 @@ spec:
   - name: allowedTopics
     value: "telemetry"
 
- # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
-  # - name: enableTLS
-  #   value: true 
 scopes:
 - data-gateway-module
 - simulated-temperature-sensor-module

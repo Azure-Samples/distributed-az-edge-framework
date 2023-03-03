@@ -11,6 +11,8 @@ This environment is used to setup a fast developer environment which means that 
 - .NET Core 3.1
 - Azure CLI 2.37+
 - Docker
+- kubectl
+- helm
 
 ## How to execute it
 

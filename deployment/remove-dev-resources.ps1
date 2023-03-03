@@ -17,26 +17,29 @@ $startTime = Get-Date
 #=======================
 # This script deletes the resource groups and service principal in the default developer environment setup (one AKS deployment and one app)
 
-$appResourceGroup = "$ApplicationName-App"
-$infraResourceGroup = $ApplicationName + "L2"
+# $appResourceGroup = "$ApplicationName-App"
+# $infraResourceGroup = $ApplicationName + "L2"
 
 # Remove App resource group
 
-# If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
-Write-Title("Removing $appResourceGroup without waiting for confirmation")
-az group delete --name $appResourceGroup -y --no-wait
+# # If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
+# Write-Title("Removing $appResourceGroup without waiting for confirmation")
+# az group delete --name $appResourceGroup -y --no-wait
 
-# Remove AKS / infra resource group
-Write-Title("Removing $infraResourceGroup no-wait")
-az group delete --name $infraResourceGroup -y --no-wait
+# # Remove AKS / infra resource group
+# Write-Title("Removing $infraResourceGroup no-wait")
+# az group delete --name $infraResourceGroup -y --no-wait
 
-# Remove Service Principal
+# # Remove Service Principal
 
-Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
+# Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
 
-$aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFrom-Json | Select-Object -First 1
+# $aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFrom-Json | Select-Object -First 1
 
-az ad sp delete --id $aksServicePrincipal.appId
+# az ad sp delete --id $aksServicePrincipal.appId
+
+# # also delete the corresponding app, see https://learn.microsoft.com/en-us/cli/azure/microsoft-graph-migration#az-ad-sp-delete
+# az ad app delete --id $aksServicePrincipal.appId
 
 # Service principal registration will be suspended for 30 days, but not permanently deleted.
 # This means that your Azure AD quota is not released automatically. 
@@ -48,36 +51,39 @@ az ad sp delete --id $aksServicePrincipal.appId
 #=======================
 # Below section can be uncommented if you want to remove a 3 layer deployment
 
-# $appResourceGroup = "$ApplicationName-App"
-# $l4ResourceGroup = $ApplicationName + "L4"
-# $l3ResourceGroup = $ApplicationName + "L3"
-# $l2ResourceGroup = $ApplicationName + "L2"
+$appResourceGroup = "$ApplicationName-App"
+$l4ResourceGroup = $ApplicationName + "L4"
+$l3ResourceGroup = $ApplicationName + "L3"
+$l2ResourceGroup = $ApplicationName + "L2"
 
-# # Remove App resource group
+# Remove App resource group
 
-# # If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
-# Write-Title("Removing $appResourceGroup without waiting for confirmation")
-# az group delete --name $appResourceGroup -y --no-wait
+# If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
+Write-Title("Removing $appResourceGroup without waiting for confirmation")
+az group delete --name $appResourceGroup -y --no-wait
 
-# # Remove AKS 3 layers resource groups
-# Write-Title("Removing $l2ResourceGroup no-wait")
-# az group delete --name $l2ResourceGroup -y --no-wait
-# Write-Title("Removing $l3ResourceGroup no-wait")
-# az group delete --name $l3ResourceGroup -y --no-wait
-# Write-Title("Removing $l4ResourceGroup no-wait")
-# az group delete --name $l4ResourceGroup -y --no-wait
+# Remove AKS 3 layers resource groups
+Write-Title("Removing $l2ResourceGroup no-wait")
+az group delete --name $l2ResourceGroup -y --no-wait
+Write-Title("Removing $l3ResourceGroup no-wait")
+az group delete --name $l3ResourceGroup -y --no-wait
+Write-Title("Removing $l4ResourceGroup no-wait")
+az group delete --name $l4ResourceGroup -y --no-wait
 
-# # Remove Service Principals
+# Remove Service Principals
 
-# Write-Title("Delete AKS Service Principals, app registration will be suspended for 30 days")
+Write-Title("Delete AKS Service Principals, app registration will be suspended for 30 days")
 
-# $aksServicePrincipal2 = az ad sp list --display-name ($ApplicationName + "L2") | ConvertFrom-Json | Select-Object -First 1
-# $aksServicePrincipal3 = az ad sp list --display-name ($ApplicationName + "L3") | ConvertFrom-Json | Select-Object -First 1
-# $aksServicePrincipal4 = az ad sp list --display-name ($ApplicationName + "L4") | ConvertFrom-Json | Select-Object -First 1
+$aksServicePrincipal2 = az ad sp list --display-name ($ApplicationName + "L2") | ConvertFrom-Json | Select-Object -First 1
+$aksServicePrincipal3 = az ad sp list --display-name ($ApplicationName + "L3") | ConvertFrom-Json | Select-Object -First 1
+$aksServicePrincipal4 = az ad sp list --display-name ($ApplicationName + "L4") | ConvertFrom-Json | Select-Object -First 1
 
-# az ad sp delete --id $aksServicePrincipal2.appId
-# az ad sp delete --id $aksServicePrincipal3.appId
-# az ad sp delete --id $aksServicePrincipal4.appId
+az ad sp delete --id $aksServicePrincipal2.appId
+az ad app delete --id $aksServicePrincipal2.appId
+az ad sp delete --id $aksServicePrincipal3.appId
+az ad app delete --id $aksServicePrincipal3.appId
+az ad sp delete --id $aksServicePrincipal4.appId
+az ad app delete --id $aksServicePrincipal4.appId
 
 #=======================
 

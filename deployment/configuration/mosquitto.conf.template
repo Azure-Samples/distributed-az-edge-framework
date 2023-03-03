@@ -1,0 +1,28 @@
+persistence true
+persistence_location /mosquitto/data/
+log_dest stdout
+allow_anonymous true
+listener 1883
+protocol mqtt
+
+connection replace_with_connection_name
+address replace_with_parent_address:1883
+topic telemetry/# out
+
+bridge_insecure true
+
+cleansession false
+
+notifications false
+
+remote_clientid L3
+
+#remote_password 123
+#remote_username admin
+
+#start_type automatic
+#try_private true
+
+#bridge_cafile /ca.crt
+#bridge_certfile /server.crt
+#bridge_keyfile /server.key
