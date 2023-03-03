@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
@@ -24,7 +26,16 @@ jobs:
       run: dotnet build iotedge/Distributed.IoT.Edge --no-restore
     - name: Test
       run: dotnet test iotedge/Distributed.IoT.Edge --no-build --verbosity normal
-    
+    - name: Build Dockerfile for OpcUa.Publisher module
+      id: dockerfileOpcUaPublisher
+      shell: pwsh
+      run: |
+        $definition = & ./deployment/build-opcuapublisher-dockerfile.ps1 -Path ./lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src
+        $dockerfile = $definition.dockerfile
+        $contentPath = (Join-Path $definition.buildContext /.)
+        echo "DOCKERFILE=$dockerfile" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+        echo "CONTENTPATH=$contentPath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
     - name: Log in to the Container registry
       uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
       with:
@@ -38,8 +49,9 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/datagatewaymodule
         tags: |
-          type=raw,value={{branch}}-{{sha}}
-            
+          type=raw,value=latest,priority=1000
+          type=raw,value={{branch}}-{{sha}},priority=200
+
     - name: Build and push DataGatewayModule Docker image
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
       with:
@@ -48,14 +60,15 @@ jobs:
         push: true
         tags: ${{ steps.dataGatewayMeta.outputs.tags }}
         labels: ${{ steps.dataGatewayMeta.outputs.labels }}
-          
+
     - name: Extract metadata (tags, labels) for SimulatedTemperatureSensorModule Docker
       id: tempSensorMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
         images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/simulatedtemperaturesensormodule
         tags: |
-          type=raw,value={{branch}}-{{sha}}
+          type=raw,value={{branch}}-{{sha}},priority=200
+          type=raw,value=latest,priority=1000
 
     - name: Build and push SimulatedTemperatureSensorModule Docker image
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
@@ -65,4 +78,22 @@ jobs:
         push: true
         tags: ${{ steps.tempSensorMeta.outputs.tags }}
         labels: ${{ steps.tempSensorMeta.outputs.labels }}
+    
+    - name: Extract metadata (tags, labels) for OpcUa.Publisher Docker
+      id: opcUaPublisher
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/opcuapublisher
+        tags: |
+          type=raw,value={{branch}}-{{sha}},priority=200
+          type=raw,value=latest,priority=1000
+
+    - name: Build and push OpcUa.Publisher Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: ${{ env.CONTENTPATH }}
+        file: ${{ env.DOCKERFILE }}
+        push: true
+        tags: ${{ steps.opcUaPublisher.outputs.tags }}
+        labels: ${{ steps.opcUaPublisher.outputs.labels }}
     
