@@ -11,6 +11,8 @@ This flow is used to setup a developer environment in Azure without Azure Arc an
 - .NET Core 3.1
 - Azure CLI 2.40+
 - Docker
+- helm
+- kubectl
 
 ## How to execute it
 
