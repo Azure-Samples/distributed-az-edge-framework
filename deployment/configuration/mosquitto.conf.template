@@ -3,26 +3,33 @@ persistence_location /mosquitto/data/
 log_dest stdout
 allow_anonymous true
 listener 1883
+
+listener 8883
+tls_version tlsv1.2
 protocol mqtt
+cafile /mosquitto/config/certs/ca.crt
+certfile /mosquitto/config/certs/server.crt
+keyfile /mosquitto/config/certs/server.key
+require_certificate true
+use_subject_as_username true
 
 connection replace_with_connection_name
-address replace_with_parent_address:1883
+address replace_with_parent_address:8883
+bridge_cafile /mosquitto/config/bridge/bridgeca.crt
+bridge_certfile /mosquitto/config/bridge/bridgeclient.crt
+bridge_keyfile /mosquitto/config/bridge/bridgeclient.key
 topic telemetry/# out
-
+# allow for self-signed certs, skip cert chain & hostname validation
 bridge_insecure true
 
-cleansession false
-
+cleansession true
 notifications false
 
-remote_clientid L3
+remote_clientid replace_with_connection_name
 
 #remote_password 123
 #remote_username admin
 
-#start_type automatic
-#try_private true
+start_type automatic
+try_private true
 
-#bridge_cafile /ca.crt
-#bridge_certfile /server.crt
-#bridge_keyfile /server.key

@@ -13,6 +13,7 @@ This flow is used to setup a developer environment in Azure without Azure Arc an
 - Docker
 - helm
 - kubectl
+- openssl
 
 ## How to execute it
 

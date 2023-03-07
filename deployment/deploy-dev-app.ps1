@@ -29,7 +29,7 @@ Param(
 
 $appKubernetesNamespace = "edge-app1"
 $staticBranchName = "dapr-support"
-$deploymentId = Get-Random 
+$deploymentId = "1174113291" # Get-Random 
 
 Write-Title("Start Deploying Application")
 $startTime = Get-Date
@@ -83,6 +83,12 @@ az aks get-credentials `
     --overwrite-existing
 
 # kubectl create namespace $appKubernetesNamespace
+
+# Mosquitto client secret (key)
+# kubectl create secret generic mosquittocert --namespace=$appKubernetesNamespace `
+#     --from-file=client.key=./temp/$AksClusterName/client.key `
+#     --from-file=client.crt=./temp/$AksClusterName/client.crt `
+#     --from-file=ca.crt=./temp/$AksClusterName/ca.crt
 
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")

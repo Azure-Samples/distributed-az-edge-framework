@@ -50,7 +50,7 @@ var allowMqttInboundSecurityRule = {
     priority: 1020
     access: 'Allow'
     direction: 'Inbound'
-    destinationPortRange: '1883'
+    destinationPortRange: '8883'
     protocol: 'Tcp'
     sourcePortRange: '*'
     sourceAddressPrefix: 'VirtualNetwork'

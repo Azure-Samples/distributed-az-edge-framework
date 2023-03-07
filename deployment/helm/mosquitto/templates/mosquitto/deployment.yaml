@@ -18,16 +18,19 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
           - name: default
-            containerPort: {{ .Values.defaultport }}
+            containerPort: {{ .Values.defaultPort }}
+            protocol: TCP
+          - name: tls
+            containerPort: {{ .Values.tlsPort }}
             protocol: TCP
         livenessProbe:
           tcpSocket:
-            port: {{ .Values.defaultport }}
+            port: {{ .Values.defaultPort }}
           initialDelaySeconds: 5
           periodSeconds: 15
         readinessProbe:
           tcpSocket:
-            port: {{ .Values.defaultport }}
+            port: {{ .Values.defaultPort }}
           initialDelaySeconds: 5
           periodSeconds: 10
         resources:
@@ -39,6 +42,30 @@ spec:
           - name: mosquitto-data
             mountPath: /mosquitto/data
             subPath: mosquitto/data
+          - name: mosquitto-ca-cert
+            mountPath: /mosquitto/config/certs/ca.crt
+            subPath: ca.crt
+            readOnly: true
+          - name: mosquitto-server-cert
+            mountPath: /mosquitto/config/certs/server.crt
+            subPath: server.crt
+            readOnly: true
+          - name: mosquitto-server-key
+            mountPath: /mosquitto/config/certs/server.key
+            subPath: server.key
+            readOnly: true
+          - name: mosquitto-bridgeclient-key
+            mountPath: /mosquitto/config/bridge/bridgeclient.key
+            subPath: bridgeclient.key
+            readOnly: true
+          - name: mosquitto-bridgeca-cert
+            mountPath: /mosquitto/config/bridge/bridgeca.crt
+            subPath: bridgeca.crt
+            readOnly: true
+          - name: mosquitto-bridgeclient-cert
+            mountPath: /mosquitto/config/bridge/bridgeclient.crt
+            subPath: bridgeclient.crt
+            readOnly: true
       volumes:
         - name: mosquitto-config
           configMap:
@@ -49,7 +76,43 @@ spec:
             claimName: mosquitto-pvc
         {{- else }}
           emptyDir: {}
-        {{- end -}}
+        {{- end }}
+        - name: mosquitto-ca-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: ca.crt
+                path: ca.crt
+        - name: mosquitto-server-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: server.crt
+                path: server.crt
+        - name: mosquitto-server-key
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: server.key
+                path: server.key
+        - name: mosquitto-bridgeca-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: bridgeca.crt
+                path: bridgeca.crt
+        - name: mosquitto-bridgeclient-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: bridgeclient.crt
+                path: bridgeclient.crt
+        - name: mosquitto-bridgeclient-key
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: bridgeclient.key
+                path: bridgeclient.key
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
