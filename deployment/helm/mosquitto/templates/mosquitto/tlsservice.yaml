@@ -8,7 +8,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.tlsPort }}
-      targetPort: tls
+      targetPort: {{ .Values.tlsPort }}
       name: tls
       protocol: TCP
   selector:

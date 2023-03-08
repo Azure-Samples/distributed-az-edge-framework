@@ -42,10 +42,12 @@ if($DeployDapr){
         --wait
 }
 
-# Mosquitto =============================================
+# ----- Mosquitto
+
 function GenerateCerts ([string] $AksClusterName){
         
     $SUBJECT_CA="/C=BE/S=Belgium/L=Brussels/O=DistributedEdge/OU=CA/CN=$AksClusterName"
+    # todo CN should match IP - see first how to assign static private IP
     $SUBJECT_SERVER="/C=BE/S=Belgium/L=Brussels/O=DistributedEdge/OU=Server/CN=$AksClusterName"
     $SUBJECT_CLIENT="/C=BE/S=Belgium/L=Brussels/O=DistributedEdge/OU=Client/CN=$AksClusterName"
     $SUBJECT_BRIDGE_CLIENT="/C=BE/S=Belgium/L=Brussels/O=DistributedEdge/OU=Client/CN=Bridge$AksClusterName"
@@ -55,9 +57,11 @@ function GenerateCerts ([string] $AksClusterName){
         New-Item -ItemType Directory -Path $RootFolder
     }
     # Generate CA
-    openssl req -x509 -nodes -sha256 -newkey rsa:2048 -subj "$SUBJECT_CA"  -days 365 -keyout $RootFolder/ca.key -out $RootFolder/ca.crt
+    openssl req -x509 -nodes -sha256 -newkey rsa:2048 -subj "$SUBJECT_CA"  -days 600 -keyout $RootFolder/ca.key -out $RootFolder/ca.crt
     # Generate Server cert and key
     openssl req -nodes -sha256 -new -subj "$SUBJECT_SERVER" -keyout $RootFolder/server.key -out $RootFolder/server.csr
+    # check docs 
+    # openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 360 -extfile filename
     openssl x509 -req -sha256 -in $RootFolder/server.csr -CA $RootFolder/ca.crt -CAkey $RootFolder/ca.key -CAcreateserial -out $RootFolder/server.crt -days 365
     
     openssl req -new -nodes -sha256 -subj "$SUBJECT_CLIENT" -out $RootFolder/client.csr -keyout $RootFolder/client.key 
@@ -67,6 +71,12 @@ function GenerateCerts ([string] $AksClusterName){
 }
 
 GenerateCerts($AksClusterName)
+
+# $MosquittoParentConfig = [PSCustomObject]@{
+#     ParentAksClusterName = "aks-mosq9L4"
+#     MosquittoIp = "172.16.0.8"
+#     Port = "8883"
+#   }
 
 if ($null -eq $MosquittoParentConfig){
 
@@ -83,16 +93,14 @@ if ($null -eq $MosquittoParentConfig){
 else {
 
     Write-Title("Install Mosquitto with bridge to parent")
-    # If setting bridge from child to parent: create mosquitto.conf file with bridge config:
-    $mosquittoConf = (Get-Content -Path ./configuration/mosquitto.conf.template -Raw)
-    $mosquittoConf = $mosquittoConf.Replace('replace_with_connection_name', "$AksClusterName-parent").Replace('replace_with_parent_address', $MosquittoParentConfig.MosquittoIp)
-    Set-Content -Path "./temp/$AksClusterName-mosquitto.conf" -Value $mosquittoConf
 
-    $parentCluster = $MosquittoParentConfig.ParentAksClusterName;
+    $parentCluster = $MosquittoParentConfig.ParentAksClusterName
+    $mosquittoParentIp = $MosquittoParentConfig.MosquittoIp
 
     helm install mosquitto ./helm/mosquitto `
     --namespace edge-core `
-    --set-file mosquittoConfig="./temp/$AksClusterName-mosquitto.conf" `
+    --set-string bridge.connectionName="$AksClusterName-parent" `
+    --set-string bridge.address="$mosquittoParentIp" `
     --set-file certs.ca.crt="./temp/$AksClusterName/ca.crt" `
     --set-file certs.server.crt="./temp/$AksClusterName/server.crt" `
     --set-file certs.server.key="./temp/$AksClusterName/server.key" `

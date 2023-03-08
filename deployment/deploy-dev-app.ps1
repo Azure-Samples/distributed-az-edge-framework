@@ -84,12 +84,6 @@ az aks get-credentials `
 
 # kubectl create namespace $appKubernetesNamespace
 
-# Mosquitto client secret (key)
-# kubectl create secret generic mosquittocert --namespace=$appKubernetesNamespace `
-#     --from-file=client.key=./temp/$AksClusterName/client.key `
-#     --from-file=client.crt=./temp/$AksClusterName/client.crt `
-#     --from-file=ca.crt=./temp/$AksClusterName/ca.crt
-
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId

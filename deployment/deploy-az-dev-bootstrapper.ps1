@@ -24,7 +24,7 @@ $ApplicationName = $ApplicationName.ToLower()
 
 # Comment out below line if you are choosing the above 3 layer deployment instead.
 
-$l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18"-SetupArc $false -SetupProxy $true
+$l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -SetupProxy $true
 $l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $false -SetupProxy $true
 # $lowestLevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false -SetupProxy $true
 
@@ -34,6 +34,7 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
 # $l2CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -MosquittoParentConfig $l3CorePlatform.MosquittoParentConfig
 
 # # 3. Deploy app resources, build images and deploy helm.
+./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $l3LevelCoreInfra.AksClusterResourceGroupName -AksClusterName $l3LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L3")
 # ./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L2")
 
 $runningTime = New-TimeSpan -Start $startTime

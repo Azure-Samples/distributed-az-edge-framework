@@ -44,8 +44,8 @@ var allowProxyInboundSecurityRule = {
 }
 
 // TODO: potentially remove this if going through proxy, for now setup for testing MQTT bridging
-var allowMqttInboundSecurityRule = {
-  name: 'AllowMqtt'
+var allowMqttSslInboundSecurityRule = {
+  name: 'AllowMqttSsl'
   properties: {
     priority: 1020
     access: 'Allow'
@@ -58,12 +58,27 @@ var allowMqttInboundSecurityRule = {
   }
 }
 
+// TODO: potentially remove this if going through proxy, for now setup for testing MQTT bridging
+var allowMqttInboundSecurityRule = {
+  name: 'AllowMqtt'
+  properties: {
+    priority: 1030
+    access: 'Allow'
+    direction: 'Inbound'
+    destinationPortRange: '1883'
+    protocol: 'Tcp'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'VirtualNetwork'
+  }
+}
+
 resource nsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   name: subnetNsgName
   location: vnetLocation
   properties: {
     securityRules: [
-      allowProxyInboundSecurityRule, allowMqttInboundSecurityRule
+      allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule, allowMqttInboundSecurityRule
     ]
   }
 }

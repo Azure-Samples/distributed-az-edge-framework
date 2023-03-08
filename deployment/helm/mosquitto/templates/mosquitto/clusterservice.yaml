@@ -6,7 +6,7 @@ spec:
   type: ClusterIP
   ports:
     - port: {{ .Values.defaultPort }}
-      targetPort: default
+      targetPort: {{ .Values.defaultPort }}
       name: default
       protocol: TCP
   selector:
