@@ -29,7 +29,7 @@ Param(
 
 $appKubernetesNamespace = "edge-app1"
 $staticBranchName = "dapr-support"
-$deploymentId = "1174113291" # Get-Random 
+$deploymentId = "1174113291" # Get-Random #TODO
 
 Write-Title("Start Deploying Application")
 $startTime = Get-Date

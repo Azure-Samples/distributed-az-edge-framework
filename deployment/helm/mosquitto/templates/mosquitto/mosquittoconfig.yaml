@@ -8,37 +8,44 @@ data:
     persistence_location /mosquitto/data/
     log_dest stdout
     log_type all
+    per_listener_settings true
     
-    listener 1883
+    listener {{ .Values.defaultPort }}
     allow_anonymous true
     protocol mqtt
 
-    listener 8883
+    listener {{ .Values.tlsPort }}
+    allow_anonymous true
     tls_version tlsv1.2
     protocol mqtt
-    allow_anonymous true
     cafile /mosquitto/config/certs/ca.crt
     certfile /mosquitto/config/certs/server.crt
     keyfile /mosquitto/config/certs/server.key
     require_certificate false
-    use_subject_as_username true
+    # use_subject_as_username true
 
-    {{- if .Values.bridge }}
+    {{- if .Values.bridge.enabled }}
     
+    # Bridging ---------------------------------------
     connection {{ .Values.bridge.connectionName }}
-    address {{ .Values.bridge.address }}:8883
+    # Bridge connection
+    address {{ .Values.bridge.address }}:{{ .Values.bridge.tlsPort }}
+    cleansession false
+    # allow for self-signed certs, skip cert chain & hostname validation
+    bridge_tls_version tlsv1.2
+    # bridge_require_ocsp true
     bridge_cafile /mosquitto/config/bridge/bridgeca.crt
+    bridge_insecure true
     # bridge_certfile /mosquitto/config/bridge/bridgeclient.crt
     # bridge_keyfile /mosquitto/config/bridge/bridgeclient.key
-    topic telemetry/# out
-    # allow for self-signed certs, skip cert chain & hostname validation
-    bridge_insecure true
-
-    cleansession false
-    notifications false
-
-    remote_clientid {{ .Values.bridge.connectionName }}
-
+    
+    # Client input
+    clientid lowerbroker
     start_type automatic
-    # try_private true
+    notifications false
+    try_private false
+
+    # Topic subscriptions 
+    topic telemetry/# out
+
     {{- end }}

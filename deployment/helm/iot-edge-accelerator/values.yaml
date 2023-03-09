@@ -9,7 +9,7 @@ dataGatewayModule:
 
 # Local Pub Sub module settings
 localPubSubModule:
-  mqttUri: "tcp://mosquitto.edge-core.svc.cluster.local:1883"
+  mqttUri: "tcp://mosquittocluster.edge-core.svc.cluster.local:1883"
 
 # OPC Publisher module settings
 opcPublisherModule:

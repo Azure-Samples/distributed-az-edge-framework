@@ -47,9 +47,11 @@ persistence:
   annotations: {}
   storageClass: managed-csi
 
-# bridge:
-#   connectionName: pass in helm for bridging to parent
-#   address: pass in helm for bridging to parent
+bridge:
+  enabled: false
+  connectionName: change_at_deploy
+  address: change_at_deploy
+  tlsPort: 8883
 
 
 # contents of mosquitto.conf file

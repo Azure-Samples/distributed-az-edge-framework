@@ -34,7 +34,7 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
 # $l2CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -MosquittoParentConfig $l3CorePlatform.MosquittoParentConfig
 
 # # 3. Deploy app resources, build images and deploy helm.
-./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $l3LevelCoreInfra.AksClusterResourceGroupName -AksClusterName $l3LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L3")
+# ./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $l3LevelCoreInfra.AksClusterResourceGroupName -AksClusterName $l3LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L3")
 # ./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L2")
 
 $runningTime = New-TimeSpan -Start $startTime
