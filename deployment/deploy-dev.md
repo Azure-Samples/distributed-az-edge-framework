@@ -2,38 +2,32 @@
 
 ## Introduction
 
-This environment is used to setup a fast developer environment which means that Arc and Flux is not included in the environment and only a single level (single cluster) is deployed.
+This flow is used to setup a developer environment in Azure without Azure Arc and Flux. Additionally, only one single level (single AKS cluster) is deployed. Everything is executed from the local developer machine.
 
 ## Prerequisites on developer machine
 
 - PowerShell on Windows, or PowerShell Core on Linux/MacOS
 - .NET 6.0
 - .NET Core 3.1
-- Azure CLI 2.37+
+- Azure CLI 2.40+
 - Docker
+- helm
+- kubectl
 
 ## How to execute it
 
-### Windows
-
-Go to the `deployment` folder and run `.\deploy-az-dev-bootstrapper.ps1 -ApplicationName <short-name>`
-
-> Disclaimer: currently there is an issue we found on Windows with Azure CLI version 2.40, which has to do with character parsing in a script used with the Industrial IoT stack (this is used to build the OPC Publisher image). A bug to the Azure CLI team has been filed, in the meantime either use Azure CLI <= 2.37, or run in bash on WSL2.
-
-### Bash
-
-Go to the `deployment` folder and run `pwsh ./deploy-az-dev-bootstrapper.ps1 -ApplicationName <short-name>`
+In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-bootstrapper.ps1 -ApplicationName <short-name>`
 
 ## The main functions in the script
 
 1. Deploy infrastructure with Bicep, the script deploys AKS cluster.
     * AKS
     * VNET
-    * Deploy Squid proxy in each layer
+    * Squid proxy in cluster
 
 3. Download AKS credentials.
 
-4. Install Dapr with Helm in AKS.
+4. Install DAPR with Helm in AKS.
 
 5. Install Redis with Helm in AKS.
 
@@ -47,27 +41,19 @@ Go to the `deployment` folder and run `pwsh ./deploy-az-dev-bootstrapper.ps1 -Ap
 
 Subsequent deployments can be run as follows.
 
-> `<resource-group-with-acr>` normally refers to the Resource Group with the `<short-name>` appended with `-App`.
+> `<resource-group-with-acr>` refers to the Resource Group with the `<short-name>` appended with `-App`.
 
-### Windows
+### PowerShell
 
-`.\build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>` 
-
-### Bash
-
-`pwsh ./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>` 
+`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>` 
 
 ## Delete all developer environment Azure resources 
 
 To remore all Azure resources setup by the default script (AKS clusters, app resources and service principals), run the following from the `deployment` folder:
 
-### Windows
+### PowerShell
 
-`.\remove-dev-resources.ps1 -ApplicationName <short-name>`
-
-### Bash
-
-`pwsh ./remove-dev-resources.ps1 -ApplicationName <short-name>`
+`./remove-dev-resources.ps1 -ApplicationName <short-name>`
 
 ## Optional three network layered deployment
 
