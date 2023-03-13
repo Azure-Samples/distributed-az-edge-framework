@@ -50,8 +50,9 @@ function GenerateCerts ([string] $AksClusterName){
         
     $SUBJECT_CA="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeCA/OU=CA/CN=camosquitto"
     $SUBJECT_SERVER="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=$AksClusterName"
+    # $SUBJECT_SERVER="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=172.16.0.8"
     $SUBJECT_CLIENT="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeClient/OU=Client/CN=client$AksClusterName"
-    $SUBJECT_BRIDGE_CLIENT="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeBridge/OU=Client/CN=Bridge$AksClusterName"
+    $SUBJECT_BRIDGE_CLIENT="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeBridge/OU=Client/CN=bridge$AksClusterName"
     $RootFolder = "./temp/$AksClusterName"
     $RootFolder = $tempCertsFolder
 
@@ -61,10 +62,10 @@ function GenerateCerts ([string] $AksClusterName){
     }
 
     # Generate CA only if not yet found
-    If(!(Test-Path "$RootFolder/ca.key" -PathType leaf))
-    {
+    # If(!(Test-Path "$RootFolder/ca.key" -PathType leaf))
+    # {
         openssl req -x509 -nodes -sha256 -newkey rsa:2048 -subj "$SUBJECT_CA"  -days 600 -keyout $RootFolder/ca.key -out $RootFolder/ca.crt
-    }
+    # }
    
     # Generate Server cert and key
     openssl req -nodes -sha256 -new -subj "$SUBJECT_SERVER" -keyout $RootFolder/$AksClusterName.key -out $RootFolder/$AksClusterName.csr
@@ -96,6 +97,16 @@ if ($null -eq $MosquittoParentConfig){
     --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
     --create-namespace `
     --wait
+
+    # Write-Title("Install Mosquitto without bridge to parent")
+    # #  use default mosquitto deployment
+    # helm install mosquitto ./helm/mosquitto `
+    # --namespace edge-core `
+    # --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
+    # --set-file certs.server.crt="$tempCertsFolder/server.crt" `
+    # --set-file certs.server.key="$tempCertsFolder/server.key" `
+    # --create-namespace `
+    # --wait
 }
 else {
 
