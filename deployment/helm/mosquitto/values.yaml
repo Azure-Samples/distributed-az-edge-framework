@@ -49,8 +49,10 @@ persistence:
 
 bridge:
   enabled: false
+  remotename: change_at_deploy
   connectionName: change_at_deploy
-  address: change_at_deploy
+  ipaddress: change_at_deploy
+  hostname: remotename.edge-core.svc.cluster.local
   tlsPort: 8883
 
 

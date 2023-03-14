@@ -47,7 +47,6 @@ $startTime = Get-Date
 
 # Get-AzureADUser -ObjectId <your-email> |Get-AzureADUserCreatedObject -All:1| ? deletionTimestamp |% { Remove-AzureADMSDeletedDirectoryObject -Id $_.ObjectId }
 
-
 #=======================
 # Below section can be uncommented if you want to remove a 3 layer deployment
 

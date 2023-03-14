@@ -1,11 +1,14 @@
-name: Main Branch Release
+name: Helm charts for IoT Edge Accelerator - Main Branch Release
 on: 
   push:
     branches: 
       - main
     paths:
       # Only run this when chart file is updated.
-      - 'deployment/helm/iot-edge-accelerator/Chart.yaml'
+      - 'deployment/helm/iot-edge-enterprise/Chart.yaml'
+      - 'deployment/helm/mosquitto/Chart.yaml'
+      - 'deployment/helm/iot-edge-scada/Chart.yaml'
+
 jobs:
   Release-Artifacts:      
     runs-on: ubuntu-latest

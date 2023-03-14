@@ -7,7 +7,8 @@ data:
     persistence true
     persistence_location /mosquitto/data/
     log_dest stdout
-    log_type all
+    # Possible types are: debug, error, warning, notice, information, subscribe, unsubscribe, websockets, none, all.
+    log_type information
     per_listener_settings true
     
     listener {{ .Values.defaultPort }}
@@ -29,13 +30,12 @@ data:
     # Bridging ---------------------------------------
     connection {{ .Values.bridge.connectionName }}
     # Bridge connection
-    address {{ .Values.bridge.address }}:{{ .Values.bridge.tlsPort }}
+    address {{ .Values.bridge.hostname }}:{{ .Values.bridge.tlsPort }}
     cleansession false
     # allow for self-signed certs, skip cert chain & hostname validation
     bridge_tls_version tlsv1.2
-    # bridge_require_ocsp true
     bridge_cafile /mosquitto/config/bridge/bridgeca.crt
-    bridge_insecure true
+    bridge_insecure false
     # bridge_certfile /mosquitto/config/bridge/bridgeclient.crt
     # bridge_keyfile /mosquitto/config/bridge/bridgeclient.key
     
@@ -45,7 +45,7 @@ data:
     notifications false
     try_private false
 
-    # Topic subscriptions 
+    # Topic subscriptions TODO make a dynamic value
     topic telemetry/# out
 
     {{- end }}

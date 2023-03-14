@@ -1,9 +1,10 @@
 apiVersion: v2
-name: azprivatedns
-description: A Helm chart for deploying ExternalDNS with Az private DNS
+name: iot-edge-scada
+description: A Helm chart for deploying IoT edge accelerator on K8s, pre-release version.
 keywords:
-    - dns
     - azure
+    - iot
+    - edge
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
@@ -18,4 +19,6 @@ type: application
 # to the chart and its templates, including the app version.
 version: 0.1.0
 
-# appVersion: 2.0.5
+# This is the version number of the application being deployed. This version number should be
+# incremented each time you make changes to the application.
+appVersion: 0.4.0

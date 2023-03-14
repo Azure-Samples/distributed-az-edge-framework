@@ -28,6 +28,15 @@ Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 $tempCertsFolder = "./temp/mosquittocerts"
 
+function CleanHostname([string] $Hostname){
+    
+    $pattern = '[^a-zA-Z0-9]'
+    $result = $Hostname -replace $pattern, '' 
+    $result = $result.ToLower()
+
+    return $result
+}
+
 # ----- Get AKS Cluster Credentials
 az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing
 
@@ -47,25 +56,25 @@ if($DeployDapr){
 
 # TODO optimize this by leveraging Key Vault for storing certs and keys
 function GenerateCerts ([string] $AksClusterName){
-        
+    
+    $aksClusterNameCleaned = CleanHostname($AksClusterName)
+    $RootFolder = $tempCertsFolder
+    $currentServiceCN = "${aksClusterNameCleaned}.edge-core.svc.cluster.local"
     $SUBJECT_CA="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeCA/OU=CA/CN=camosquitto"
-    $SUBJECT_SERVER="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=$AksClusterName"
-    # $SUBJECT_SERVER="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=172.16.0.8"
+    $SUBJECT_SERVER="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=$currentServiceCN"
     $SUBJECT_CLIENT="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeClient/OU=Client/CN=client$AksClusterName"
     $SUBJECT_BRIDGE_CLIENT="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeBridge/OU=Client/CN=bridge$AksClusterName"
-    $RootFolder = "./temp/$AksClusterName"
-    $RootFolder = $tempCertsFolder
-
+    
     If(!(Test-Path -PathType container -Path $RootFolder))
     {
         New-Item -ItemType Directory -Path $RootFolder
     }
 
-    # Generate CA only if not yet found
-    # If(!(Test-Path "$RootFolder/ca.key" -PathType leaf))
-    # {
+    # Generate CA only if not yet found 
+    If(!(Test-Path "$RootFolder/ca.key" -PathType leaf))
+    {
         openssl req -x509 -nodes -sha256 -newkey rsa:2048 -subj "$SUBJECT_CA"  -days 600 -keyout $RootFolder/ca.key -out $RootFolder/ca.crt
-    # }
+    }
    
     # Generate Server cert and key
     openssl req -nodes -sha256 -new -subj "$SUBJECT_SERVER" -keyout $RootFolder/$AksClusterName.key -out $RootFolder/$AksClusterName.csr
@@ -78,13 +87,8 @@ function GenerateCerts ([string] $AksClusterName){
     openssl x509 -req -sha256 -in $RootFolder/bridge$AksClusterName.csr -CA $RootFolder/ca.crt -CAkey $RootFolder/ca.key -CAcreateserial -out $RootFolder/bridge$AksClusterName.crt -days 365
 }
 
+# --- Generate certs and save to disk
 GenerateCerts($AksClusterName)
-
-# $MosquittoParentConfig = [PSCustomObject]@{
-#     ParentAksClusterName = "aks-mosq39L4"
-#     MosquittoIp = "172.16.0.8"
-#     Port = "8883"
-#   }
 
 if ($null -eq $MosquittoParentConfig){
 
@@ -98,39 +102,22 @@ if ($null -eq $MosquittoParentConfig){
     --create-namespace `
     --wait
 
-    # Write-Title("Install Mosquitto without bridge to parent")
-    # #  use default mosquitto deployment
-    # helm install mosquitto ./helm/mosquitto `
-    # --namespace edge-core `
-    # --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
-    # --set-file certs.server.crt="$tempCertsFolder/server.crt" `
-    # --set-file certs.server.key="$tempCertsFolder/server.key" `
-    # --create-namespace `
-    # --wait
 }
 else {
 
-    # Temporary deploy to namespace l4
-    # Write-Title("Install Mosquitto l4 with bridge to parent")
-    # helm install mosquittol4 ./helm/mosquitto `
-    # --namespace l4 `
-    
-    # --set-file certs.ca.crt="./temp/$AksClusterName/ca.crt" `
-    # --set-file certs.server.crt="./temp/$AksClusterName/serverl4.crt" `
-    # --set-file certs.server.key="./temp/$AksClusterName/serverl4.key" `
-    # --create-namespace `
-    # --wait
-
     Write-Title("Install Mosquitto with bridge to parent")
 
-    # $parentCluster = $MosquittoParentConfig.ParentAksClusterName # todo review if still needed
+    $parentCluster = CleanHostname($MosquittoParentConfig.ParentAksClusterName) 
     $mosquittoParentIp = $MosquittoParentConfig.MosquittoIp
+    $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
 
     helm install mosquitto ./helm/mosquitto `
     --namespace edge-core `
     --set-string bridge.enabled="true" `
     --set-string bridge.connectionName="$AksClusterName-parent" `
-    --set-string bridge.address="$mosquittoParentIp" `
+    --set-string bridge.remotename="$parentCluster" `
+    --set-string bridge.ipaddress="$mosquittoParentIp" `
+    --set-string bridge.hostname="$parentHostname" `
     --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
     --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
     --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
