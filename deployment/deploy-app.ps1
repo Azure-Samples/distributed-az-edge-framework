@@ -55,6 +55,7 @@ Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
 
 kubectl create namespace $appKubernetesNamespace
+
 # Copy Redis secret from edge-core namesapce to edge-app namespace where application is deployed.
 kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f -
 

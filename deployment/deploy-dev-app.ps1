@@ -68,6 +68,7 @@ Set-Location -Path $deploymentDir
 
 # ----- Build and Push Containers (OPC Publisher)
 Write-Title("Build and Push Containers (OPC Publisher)")
+
 # ----- Set Branch Name to Static
 $Env:BUILD_SOURCEBRANCH = "refs/heads/$staticBranchName"
 $Env:Version_Prefix = $deploymentId
