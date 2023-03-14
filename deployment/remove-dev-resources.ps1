@@ -20,9 +20,9 @@ $startTime = Get-Date
 $appResourceGroup = "$ApplicationName-App"
 $infraResourceGroup = $ApplicationName + "L2"
 
-# Remove App resource group
+# Remove app resource group
 
-# If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
+# If you would like to wait for deletion of each Resource group to be completed before continuing, simply remove the --no-wait parameter
 Write-Title("Removing $appResourceGroup without waiting for confirmation")
 az group delete --name $appResourceGroup -y --no-wait
 
@@ -31,7 +31,6 @@ Write-Title("Removing $infraResourceGroup no-wait")
 az group delete --name $infraResourceGroup -y --no-wait
 
 # Remove Service Principal
-
 Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
 
 $aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFrom-Json | Select-Object -First 1
@@ -40,7 +39,7 @@ az ad sp delete --id $aksServicePrincipal.appId
 
 # Service principal registration will be suspended for 30 days, but not permanently deleted.
 # This means that your Azure AD quota is not released automatically. 
-# If you'd like to enforce permanent deletion of suspended app registrations you can use the PowerShell script below
+# If you'd like to enforce permanent deletion of suspended app registrations you can use the following PowerShell script:
 
 # Get-AzureADUser -ObjectId <your-email> |Get-AzureADUserCreatedObject -All:1| ? deletionTimestamp |% { Remove-AzureADMSDeletedDirectoryObject -Id $_.ObjectId }
 
@@ -53,9 +52,9 @@ az ad sp delete --id $aksServicePrincipal.appId
 # $l3ResourceGroup = $ApplicationName + "L3"
 # $l2ResourceGroup = $ApplicationName + "L2"
 
-# # Remove App resource group
+# # Remove app resource group
 
-# # If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
+# # If you would like to wait for deletion of each Resource group to be completed before continuing, simply remove the --no-wait parameter
 # Write-Title("Removing $appResourceGroup without waiting for confirmation")
 # az group delete --name $appResourceGroup -y --no-wait
 
@@ -85,6 +84,3 @@ Write-Title("Deletion commands have been triggered, it might take some time befo
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time resources removal:" + $runningTime.ToString())
-
-
-

@@ -21,43 +21,42 @@ In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-
 ## The main functions in the script
 
 1. Deploy infrastructure with Bicep, the script deploys AKS cluster.
-    * AKS
-    * VNET
-    * Squid proxy in cluster
+    - AKS
+    - VNET
+    - Squid proxy in cluster
 
-3. Download AKS credentials.
+2. Download AKS credentials.
 
-4. Install DAPR with Helm in AKS.
+3. Install DAPR with Helm in AKS.
 
-5. Install Redis with Helm in AKS.
+4. Install Redis with Helm in AKS.
 
-6. Provision Azure appplication resources (ACR, Event Hubs, Storage).
+5. Provision Azure application resources (ACR, Event Hubs, Storage).
 
-7. Use `az acr build` to build and push images to the ACR.
+6. Use `az acr build` to build and push images to the ACR.
 
-8. Install our components with Helm in AKS.
+7. Install components for AKS with Helm.
 
 ## Deploy application updates
 
-Subsequent deployments can be run as follows.
+Subsequent deployments can be run as follows:
 
 > `<resource-group-with-acr>` refers to the Resource Group with the `<short-name>` appended with `-App`.
 
-### PowerShell
+### Update PowerShell
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>` 
+`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>`
 
-## Delete all developer environment Azure resources 
+## Delete all developer environment Azure resources
 
-To remore all Azure resources setup by the default script (AKS clusters, app resources and service principals), run the following from the `deployment` folder:
+To remove all Azure resources setup by the default script (AKS clusters, app resources and service principals), run the following from the `deployment` folder:
 
-### PowerShell
+### Delete PowerShell
 
 `./remove-dev-resources.ps1 -ApplicationName <short-name>`
 
 ## Optional three network layered deployment
 
-The deployment script also has an option to deploy 3 layers of AKS and networking infrastructure. To use that version, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`, details can be found in the comments of the script.
-The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the three layer resources instead.
+The deployment script also has an option to deploy three (3) nested layers of AKS and networking infrastructure. To use the nested deployment version, uncomment the first section in the `deploy-az-dev-bootstrapper.ps1`. Instructions can be found in the comments of the script.
 
-
+Follow a similar approach for removing resources in nested deployments. `remove-dev-resources.ps1` also has commented sections to delete the three layer resources.
