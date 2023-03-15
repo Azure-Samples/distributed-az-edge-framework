@@ -15,26 +15,27 @@ Param(
     $Location = 'westeurope'    
 )
 
-# mkdir -p modules
-# # Copy scripts from source location
+mkdir -p modules
+# Copy scripts from source location
+$baseLocation = "https://raw.githubusercontent.com/katriendg/distributed-az-edge-framework/$ScriptsBranch"
 # $baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
-# # Import text utilities module.
-# Import-Module -Name .\modules\text-utils.psm1
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
+# Import text utilities module.
+Import-Module -Name .\modules\text-utils.psm1
 
-# Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app.ps1" -OutFile "deploy-app.ps1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app.ps1" -OutFile "deploy-app.ps1"
 
-# mkdir -p bicep/modules
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infrastructure.bicep" -OutFile "./bicep/core-infrastructure.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnet.bicep" -OutFile "./bicep/modules/vnet.bicep"
-# Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnetpeering.bicep" -OutFile "./bicep/modules/vnetpeering.bicep"
+mkdir -p bicep/modules
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infrastructure.bicep" -OutFile "./bicep/core-infrastructure.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnet.bicep" -OutFile "./bicep/modules/vnet.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnetpeering.bicep" -OutFile "./bicep/modules/vnetpeering.bicep"
 
 # Deploy 3 core infrastructure layers i.e. L4, L3, L2, replicating 3 levels of Purdue network topology.
 # Tip: You can split the below pipes into indivudual cmds and assign them to vars, to deploy core-platform and/or apps to those clusters.
@@ -48,8 +49,8 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
 $l2CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $l3CorePlatform
 
 # Deploy app layer on the lowest infrastructure level, L2.
-./deploy-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName `
-    -AksClusterName $lowestLevelCoreInfra.AksClusterName `
+./deploy-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
+    -AksClusterName $l4LevelCoreInfra.AksClusterName `
     -AksClusterNameLower $lowestLevelCoreInfra.AksClusterName `
     -AksClusterResourceGroupNameLower $lowestLevelCoreInfra.AksClusterResourceGroupName `
     -ScriptsBranch $ScriptsBranch

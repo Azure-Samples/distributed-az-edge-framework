@@ -60,6 +60,12 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 5. Well known and understood configuration and secret management.
 6. End to end observability at both application and platform level, using OpenTelemetry.
 
+### MQTT Broker for Publish/Subscribe
+
+Workloads exchange messages locally on the same network layer and cluster by using a cluster-wide deployed MQTT broker. As described above, DAPR is leveraged to interact with the broker without specific application-aware code to interact with the chosen PubSub mechanism.
+
+For more information about MQTT broker choice and comparison, please see [MQTT Broker for data communication between workloads, and between network layers](/docs/mqttbroker.md).
+
 ## Solution Deployment
 
 ![alt text](architecture/deployment-hld.png "Deployment Strategy")

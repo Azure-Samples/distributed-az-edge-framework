@@ -1,6 +1,6 @@
 # MQTT Broker for data communication between workloads, and between network layers
 
-A commonly used solution to exchange messages in a publish/subscribe mechanism is to leverage an MQTT Broker. There are several broker solutions available, most of them with some level of an open-source license. For this project we are looking to utilize MQTT broker for communication between workloads on the Kubernetes cluster. Additionally, because of ISA 95 network separation, we need a mechanism to securely and reliably exchange MQTT messages up to the network layer above in the network topology. Communication between layers is only allowed in outbound fashion: from child layer out to parent layer.
+A commonly used solution to exchange messages in a publish/subscribe mechanism is to leverage an MQTT Broker. There are several broker solutions available, most of them with some level of an open-source license. For this project we are looking to utilize MQTT broker for communication between workloads on the Kubernetes cluster. Additionally, because of Purdue network separation, we need a mechanism to securely and reliably exchange MQTT messages up to the network layer above in the network topology. Communication between layers is only allowed in outbound fashion: from child layer out to parent layer.
 
 MQTT is a popular standard, and DAPR, which is already used as a distributed application framework in this sample, also supports MQTT out of the box through the [PubSub MQTT component](https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-mqtt/).
 
