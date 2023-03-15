@@ -82,8 +82,10 @@ kubectl create secret generic data-gateway-module-secrets-seed --from-literal=da
 # Deploy Flux v2 configuration to install app on kubernetes edge.
 az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower `
   -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
-  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
+  -u https://github.com/katriendg/distributed-az-edge-framework --branch $ScriptsBranch `
   --kustomization name=flux-kustomization prune=true path=/deployment/flux/upper
+
+  #-u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
 
 # ----- Get AKS Cluster Credentials for L2 (Lower layer)
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName `--overwrite-existing
@@ -91,7 +93,7 @@ az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClust
 # Deploy Flux v2 configuration to install app on kubernetes edge for lower layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower -t connectedClusters `
   -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
-  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
+  -u https://github.com/katriendg/distributed-az-edge-framework --branch $ScriptsBranch `
   --kustomization name=flux-kustomization prune=true path=/deployment/flux/lower
 
   # todo move to public repo before merge to main

@@ -94,6 +94,7 @@ if ($null -eq $MosquittoParentConfig){
 
     Write-Title("Install Mosquitto without bridge to parent")
     #  use default mosquitto deployment
+    # todo move to usage of published heml chart
     helm install mosquitto ./helm/mosquitto `
     --namespace edge-core `
     --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
@@ -111,6 +112,7 @@ else {
     $mosquittoParentIp = $MosquittoParentConfig.MosquittoIp
     $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
 
+    # todo move to usage of published heml chart
     helm install mosquitto ./helm/mosquitto `
     --namespace edge-core `
     --set-string bridge.enabled="true" `
@@ -127,7 +129,7 @@ else {
     
 }
 
-# Get Mosquitto IP and Ports from deployment
+# Get Mosquitto IP and Ports from deployment to send to next layer (child)
 $mosquittoSvc = kubectl get service mosquitto -n edge-core -o json | ConvertFrom-Json
 $mosquittoIp = $mosquittoSvc.status.loadBalancer.ingress.ip
 $mosquittoPort = $mosquittoSvc.spec.ports.port
