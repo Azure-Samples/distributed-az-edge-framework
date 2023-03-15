@@ -54,7 +54,7 @@ if($DeployDapr){
 
 # ----- Mosquitto
 
-helm repo add azedgefx https://katriendg.github.io/distributed-az-edge-framework
+helm repo add azedgefx https://azure-samples.github.io/distributed-az-edge-framework
 helm repo update
 
 # TODO optimize this by leveraging Key Vault for storing certs and keys
@@ -114,7 +114,6 @@ else {
     $mosquittoParentIp = $MosquittoParentConfig.MosquittoIp
     $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
 
-    # todo move to usage of published heml chart
     helm install mosquitto azedgefx/mosquitto `
     --namespace edge-core `
     --set-string bridge.enabled="true" `
@@ -137,7 +136,7 @@ $mosquittoIp = $mosquittoSvc.status.loadBalancer.ingress.ip
 $mosquittoPort = $mosquittoSvc.spec.ports.port
 
 $mosquittoConfig = [PSCustomObject]@{
-    ParentAksClusterName = $AksClusterName # todo review if still needed
+    ParentAksClusterName = $AksClusterName
     MosquittoIp = $mosquittoIp
     Port = $mosquittoPort
   }

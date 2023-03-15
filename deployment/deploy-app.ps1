@@ -82,10 +82,8 @@ kubectl create secret generic data-gateway-module-secrets-seed --from-literal=da
 # Deploy Flux v2 configuration to install app on kubernetes edge.
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `
   -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
-  -u https://github.com/katriendg/distributed-az-edge-framework --branch $ScriptsBranch `
+  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
   --kustomization name=flux-kustomization prune=true path=/deployment/flux/upper
-
-  #-u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
 
 # ----- Lower level deployment
 Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - Lower level")
@@ -93,11 +91,8 @@ Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - Lo
 # Deploy Flux v2 configuration to install app on kubernetes edge for lower layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower -t connectedClusters `
   -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
-  -u https://github.com/katriendg/distributed-az-edge-framework --branch $ScriptsBranch `
+  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
   --kustomization name=flux-kustomization prune=true path=/deployment/flux/lower
-
-  # todo move to public repo before merge to main
-  # https://github.com/azure-samples/distributed-az-edge-framework 
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time app deployment:" + $runningTime.ToString())

@@ -45,7 +45,7 @@ data:
     notifications false
     try_private false
 
-    # Topic subscriptions TODO make a dynamic value
+    # Topic subscriptions: TODO evaluate if useful make a dynamic set of values
     topic telemetry/# out
 
     {{- end }}
