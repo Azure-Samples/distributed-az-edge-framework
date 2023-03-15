@@ -20,13 +20,13 @@ $startTime = Get-Date
 $appResourceGroup = "$ApplicationName-App"
 $infraResourceGroup = $ApplicationName + "L2"
 
-# Remove app resource group
+# Remove app Resource Group
 
-# If you would like to wait for deletion of each Resource group to be completed before continuing, simply remove the --no-wait parameter
+# If you would like to wait for deletion of each Resource Group to be completed before continuing, simply remove the --no-wait parameter
 Write-Title("Removing $appResourceGroup without waiting for confirmation")
 az group delete --name $appResourceGroup -y --no-wait
 
-# Remove AKS / infra resource group
+# Remove AKS / infra Resource Group
 Write-Title("Removing $infraResourceGroup no-wait")
 az group delete --name $infraResourceGroup -y --no-wait
 
@@ -37,7 +37,7 @@ $aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFr
 
 az ad sp delete --id $aksServicePrincipal.appId
 
-# Service principal registration will be suspended for 30 days, but not permanently deleted.
+# Service Principal registration will be suspended for 30 days, but not permanently deleted.
 # This means that your Azure AD quota is not released automatically. 
 # If you'd like to enforce permanent deletion of suspended app registrations you can use the following PowerShell script:
 
@@ -52,7 +52,7 @@ az ad sp delete --id $aksServicePrincipal.appId
 # $l3ResourceGroup = $ApplicationName + "L3"
 # $l2ResourceGroup = $ApplicationName + "L2"
 
-# # Remove app resource group
+# # Remove app Resource Group
 
 # # If you would like to wait for deletion of each Resource group to be completed before continuing, simply remove the --no-wait parameter
 # Write-Title("Removing $appResourceGroup without waiting for confirmation")
