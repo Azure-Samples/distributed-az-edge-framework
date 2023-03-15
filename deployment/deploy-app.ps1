@@ -17,7 +17,18 @@ Param(
     $AksClusterResourceGroupName,
 
     [string]
-    $Location = 'westeurope'
+    [Parameter(mandatory=$true)]
+    $AksClusterNameLower,
+
+    [string]
+    [Parameter(mandatory=$true)]
+    $AksClusterResourceGroupNameLower,
+
+    [string]
+    $Location = 'westeurope',
+
+    [string]
+    $ScriptsBranch = "main"
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
@@ -51,12 +62,10 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
 
-# ----- Get AKS Cluster Credentials
+# ----- Get AKS Cluster Credentials for L4 (Upper layer)
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
 
 kubectl create namespace $appKubernetesNamespace
-# Copy Redis secret from edge-core namesapce to edge-app namespace where application is deployed.
-kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f -
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
 $dataGatewaySecretsSeed=@"
@@ -71,7 +80,22 @@ dataGatewayModule:
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
 # Deploy Flux v2 configuration to install app on kubernetes edge.
-az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/azure-samples/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
+az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower `
+  -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
+  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
+  --kustomization name=flux-kustomization prune=true path=/deployment/flux/upper
+
+# ----- Get AKS Cluster Credentials for L2 (Lower layer)
+az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName `--overwrite-existing
+
+# Deploy Flux v2 configuration to install app on kubernetes edge for lower layer.
+az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower -t connectedClusters `
+  -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
+  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
+  --kustomization name=flux-kustomization prune=true path=/deployment/flux/lower
+
+  # todo move to public repo before merge to main
+  # https://github.com/azure-samples/distributed-az-edge-framework 
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time app deployment:" + $runningTime.ToString())

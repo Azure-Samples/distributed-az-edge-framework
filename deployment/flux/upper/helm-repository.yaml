@@ -1,0 +1,10 @@
+# https://fluxcd.io/docs/guides/helmreleases/
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: iot-edge-accelerator-repo
+  namespace: edge-app1
+spec:
+  interval: 1m
+  # url: https://azure-samples.github.io/distributed-az-edge-framework #TODO
+  url: https://katriendg.github.io/distributed-az-edge-framework/

@@ -1,0 +1,19 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: iot-edge-enterprise-release
+  namespace: edge-app1
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: iot-edge-enterprise
+      sourceRef:
+        kind: HelmRepository        
+        name: iot-edge-accelerator-repo
+        namespace: edge-app1
+      interval: 1m  
+  valuesFrom:
+  - kind: Secret
+    name: data-gateway-module-secrets-seed
+    valuesKey: dataGatewaySecrets

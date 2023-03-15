@@ -28,7 +28,7 @@ $lowestLevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelC
 # # 2. Deploy core platform.
 $l4CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $null
 $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l3LevelCoreInfra.AksClusterResourceGroupName -MosquittoParentConfig $l4CorePlatform
-$l2 = ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $l3CorePlatform
+$l2CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $l3CorePlatform
 
 # # 3. Deploy app resources in Azure, build images and deploy helm on level 4 and 2 (upper and lower).
 ./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupNameUpper $l4LevelCoreInfra.AksClusterResourceGroupName `
