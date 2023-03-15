@@ -54,6 +54,9 @@ if($DeployDapr){
 
 # ----- Mosquitto
 
+helm repo add azedgefx https://katriendg.github.io/distributed-az-edge-framework
+helm repo update
+
 # TODO optimize this by leveraging Key Vault for storing certs and keys
 function GenerateCerts ([string] $AksClusterName){
     
@@ -94,8 +97,7 @@ if ($null -eq $MosquittoParentConfig){
 
     Write-Title("Install Mosquitto without bridge to parent")
     #  use default mosquitto deployment
-    # todo move to usage of published heml chart
-    helm install mosquitto ./helm/mosquitto `
+    helm install mosquitto azedgefx/mosquitto `
     --namespace edge-core `
     --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
     --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
@@ -113,7 +115,7 @@ else {
     $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
 
     # todo move to usage of published heml chart
-    helm install mosquitto ./helm/mosquitto `
+    helm install mosquitto azedgefx/mosquitto `
     --namespace edge-core `
     --set-string bridge.enabled="true" `
     --set-string bridge.connectionName="$AksClusterName-parent" `

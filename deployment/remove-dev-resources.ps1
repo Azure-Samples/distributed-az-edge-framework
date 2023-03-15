@@ -15,12 +15,12 @@ Write-Title("Start removal of Azure Resources")
 $startTime = Get-Date
 
 #=======================
-# This script deletes the resource groups and service principal in the default developer environment setup (one AKS deployment and one app)
+# This script deletes the resource groups and service principal when choosing the single layer developer deployment
 
 # $appResourceGroup = "$ApplicationName-App"
-# $infraResourceGroup = $ApplicationName + "L2"
+# $infraResourceGroup = $ApplicationName + "L4"
 
-# Remove App resource group
+# # Remove App resource group
 
 # # If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
 # Write-Title("Removing $appResourceGroup without waiting for confirmation")
@@ -48,7 +48,6 @@ $startTime = Get-Date
 # Get-AzureADUser -ObjectId <your-email> |Get-AzureADUserCreatedObject -All:1| ? deletionTimestamp |% { Remove-AzureADMSDeletedDirectoryObject -Id $_.ObjectId }
 
 #=======================
-# Below section can be uncommented if you want to remove a 3 layer deployment
 
 $appResourceGroup = "$ApplicationName-App"
 $l4ResourceGroup = $ApplicationName + "L4"
