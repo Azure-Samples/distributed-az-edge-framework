@@ -1,6 +1,6 @@
 apiVersion: v2
 name: mosquitto
-description: A Helm chart for deploying Mosquitto broker 
+description: A Helm chart for deploying Mosquitto broker with bridging functionality.
 keywords:
     - mqtt
 # A chart can be either an 'application' or a 'library' chart.
@@ -18,4 +18,4 @@ type: application
 version: 0.2.0
 
 # Eclipse mosquitto
-appVersion: 2.0.5
+appVersion: 2.0.15

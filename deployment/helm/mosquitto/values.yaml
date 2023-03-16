@@ -4,7 +4,7 @@ fullnameOverride: ""
 # mosquitto image repo, tag and pull policy
 image: 
   repository: eclipse-mosquitto
-  tag: latest
+  tag: 2.0.15
   pullPolicy: IfNotPresent
 
 # mosquitto default MQTT port
