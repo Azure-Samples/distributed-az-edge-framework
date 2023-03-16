@@ -7,9 +7,9 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.defaultport }}
-      targetPort: default
-      name: default
+    - port: {{ .Values.tlsPort }}
+      targetPort: {{ .Values.tlsPort }}
+      name: tls
       protocol: TCP
   selector:
     app: {{ include "mosquitto.name" . }}

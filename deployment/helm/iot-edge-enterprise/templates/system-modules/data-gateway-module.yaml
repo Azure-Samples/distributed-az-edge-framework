@@ -24,4 +24,5 @@ spec:
       - name: data-gateway-module
         image: {{ .Values.images.datagatewaymodule }}
         imagePullPolicy: Always
+        args: ["--receiverPubSubName", "{{ .Values.gatewayPubSubModule.name }}"]
       restartPolicy: Always

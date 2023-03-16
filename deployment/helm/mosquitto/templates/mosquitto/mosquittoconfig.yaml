@@ -4,4 +4,48 @@ metadata:
     name: mosquitto-config
 data:
   mosquitto.conf: |-
-    {{- .Values.mosquittoConfig | nindent 4 }}
+    persistence true
+    persistence_location /mosquitto/data/
+    log_dest stdout
+    # Possible types are: debug, error, warning, notice, information, subscribe, unsubscribe, websockets, none, all.
+    # log_type all
+    per_listener_settings true
+    
+    listener {{ .Values.defaultPort }}
+    allow_anonymous true
+    protocol mqtt
+
+    listener {{ .Values.tlsPort }}
+    allow_anonymous true
+    tls_version tlsv1.2
+    protocol mqtt
+    cafile /mosquitto/config/certs/ca.crt
+    certfile /mosquitto/config/certs/server.crt
+    keyfile /mosquitto/config/certs/server.key
+    require_certificate false
+    # use_subject_as_username true
+
+    {{- if .Values.bridge.enabled }}
+    
+    # Bridging ---------------------------------------
+    connection {{ .Values.bridge.connectionName }}
+    # Bridge connection
+    address {{ .Values.bridge.hostname }}:{{ .Values.bridge.tlsPort }}
+    cleansession false
+    # allow for self-signed certs, skip cert chain & hostname validation
+    bridge_tls_version tlsv1.2
+    bridge_cafile /mosquitto/config/bridge/bridgeca.crt
+    bridge_insecure false
+    # bridge_certfile /mosquitto/config/bridge/bridgeclient.crt
+    # bridge_keyfile /mosquitto/config/bridge/bridgeclient.key
+    
+    # Client input
+    clientid lowerbroker
+    start_type automatic
+    notifications false
+    try_private false
+
+    # Topic subscriptions: TODO evaluate if useful make a dynamic set of values
+    topic telemetry/# out
+
+    {{- end }}

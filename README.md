@@ -21,8 +21,8 @@ Each pod contains two containers:
 
 Apart from the above arrangement, the following system modules/pods are part of the solution:
 
-1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud.
-2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios.
+1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud. This module is deployed on the top layer of the network (enterprise layer).
+2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios. 
 3. **OPC UA Plc Module**, OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
 4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
 
@@ -32,8 +32,10 @@ This section describes the nested topology design implemented by this solution.
 
 ![alt text](architecture/nested-topology-hld.png "Nested Toplogy")
 
-At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance).
-These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed/controlled via proxy configuration at each level. We are currently enhancing this functionality by enforcing data plane to traverse via proxy as well, as we only have Arc configured for it for now.
+At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2, 3 ,4 in this instance).
+These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed/controlled via proxy configuration at each level. 
+
+For the data plane (MQTT PubSub), each layer can only talk to the layer above and never directly to the cloud except for the top (enterprise) layer which has outgoing Internet connectivity.
 
 ## Technology Stack
 
@@ -59,6 +61,12 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 4. Secure service to service communication, using mTLS or [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/).
 5. Well known and understood configuration and secret management.
 6. End to end observability at both application and platform level, using OpenTelemetry.
+
+### MQTT Broker for Publish/Subscribe
+
+Workloads exchange messages locally on the same network layer and cluster by using a cluster-wide deployed MQTT broker. As described above, DAPR is leveraged to interact with the broker without specific application-aware code to interact with the chosen PubSub mechanism.
+
+For more information about MQTT broker choice and comparison, please see [MQTT Broker for data communication between workloads, and between network layers](/docs/mqttbroker.md).
 
 ## Solution Deployment
 

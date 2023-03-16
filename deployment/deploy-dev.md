@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This flow is used to setup a developer environment in Azure without Azure Arc and Flux. Additionally, only one single level (single AKS cluster) is deployed. Everything is executed from the local developer machine.
+This flow is used to setup a developer environment in Azure without Azure Arc and Flux. By default the three clusters and networking layers are deployed, but the script can be edited to deploy only one layer with all functionality. Everything is executed from the local developer machine.
 
 ## Prerequisites on developer machine
 
@@ -13,6 +13,7 @@ This flow is used to setup a developer environment in Azure without Azure Arc an
 - Docker
 - helm
 - kubectl
+- openssl
 
 ## How to execute it
 
@@ -29,7 +30,7 @@ In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-
 
 4. Install DAPR with Helm in AKS.
 
-5. Install Redis with Helm in AKS.
+5. Install Mosquitto with Helm in AKS.
 
 6. Provision Azure appplication resources (ACR, Event Hubs, Storage).
 

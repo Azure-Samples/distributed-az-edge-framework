@@ -10,15 +10,28 @@ Param(
 
     [string]
     [Parameter(mandatory=$true)]
-    $AksClusterName,
+    $AksClusterNameUpper,
 
     [string]
     [Parameter(mandatory=$true)]
-    $AksClusterResourceGroupName,
+    $AksClusterResourceGroupNameUpper,
 
     [string]
     [Parameter(Mandatory=$true)]
-    $AksServicePrincipalName,
+    $AksServicePrincipalNameUpper,
+
+    # Note - if you want to deploy everything to same layer, use the above values also below
+    [string]
+    [Parameter(mandatory=$true)]
+    $AksClusterNameLower,
+
+    [string]
+    [Parameter(mandatory=$true)]
+    $AksClusterResourceGroupNameLower,
+
+    [string]
+    [Parameter(Mandatory=$true)]
+    $AksServicePrincipalNameLower,
 
     [string]
     $Location = 'westeurope'
@@ -29,13 +42,13 @@ Param(
 
 $appKubernetesNamespace = "edge-app1"
 $staticBranchName = "dapr-support"
-$deploymentId = Get-Random 
+$deploymentId = Get-Random
 
 Write-Title("Start Deploying Application")
 $startTime = Get-Date
 
 # Get AKS SP object ID
-$aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalName | ConvertFrom-Json | Select-Object -First 1
+$aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalNameUpper | ConvertFrom-Json | Select-Object -First 1
 $aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).id
 
 # ----- Deploy Bicep
@@ -74,30 +87,59 @@ $Env:Version_Prefix = $deploymentId
 ../lib/Industrial-IoT/tools/scripts/acr-build.ps1 -Path ../lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
 Set-Location -Path $deploymentDir
 
-# ----- Get Cluster Credentials
-Write-Title("Get AKS Credentials")
+# ----- Get Cluster Credentials for enterprise (upper) layer
+Write-Title("Get AKS Credentials Upper Layer")
 az aks get-credentials `
     --admin `
-    --name $AksClusterName `
-    --resource-group $AksClusterResourceGroupName `
+    --name $AksClusterNameUpper `
+    --resource-group $AksClusterResourceGroupNameUpper `
     --overwrite-existing
-
-# kubectl create namespace $appKubernetesNamespace
 
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
-$simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
-$opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
-$opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
-helm install iot-edge-accelerator ./helm/iot-edge-accelerator `
+helm install iot-edge-enterprise ./helm/iot-edge-enterprise `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
-    --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
-    --set-string images.opcplcmodule="$opcplcimage" `
-    --set-string images.opcpublishermodule="$opcpublisherimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
+    --namespace $appKubernetesNamespace `
+    --create-namespace `
+    --wait
+
+# ----- Get Cluster Credentials for Scada (lower) layer
+Write-Title("Get AKS Credentials Lower Layer")
+az aks get-credentials `
+    --admin `
+    --name $AksClusterNameLower `
+    --resource-group $AksClusterResourceGroupNameLower `
+    --overwrite-existing
+
+# ----- Add role assignment for AKS service pricipal lower layer
+Write-Title("Lower layer - add AKS SP role assignment to ACR")
+
+# Get AKS SP object ID
+$aksServicePrincipalLower = az ad sp list --display-name $AksServicePrincipalNameLower | ConvertFrom-Json | Select-Object -First 1
+$aksSpObjectIdLower = (az ad sp show --id $aksServicePrincipalLower.appId | ConvertFrom-Json).id
+
+$acrResourceId = $(az acr show -g $resourceGroupApp -n $acrName --query id | ConvertFrom-Json)
+
+# manual role assignment - this might change to bicep when we rework some of the flow
+az role assignment create --assignee $aksSpObjectIdLower `
+    --role "AcrPull" `
+    --scope $acrResourceId
+
+# ----- Run Helm
+Write-Title("Install Pod/Containers with Helm in Cluster lower")
+
+$simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
+$opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
+$opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
+
+helm install iot-edge-scada ./helm/iot-edge-scada `
+    --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
+    --set-string images.opcplcmodule="$opcplcimage" `
+    --set-string images.opcpublishermodule="$opcpublisherimage" `
     --namespace $appKubernetesNamespace `
     --create-namespace `
     --wait

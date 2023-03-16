@@ -8,7 +8,8 @@ image:
   pullPolicy: IfNotPresent
 
 # mosquitto default MQTT port
-defaultport: 1883
+defaultPort: 1883
+tlsPort: 8883
 
 # deployment replica count
 replicaCount: 1
@@ -46,11 +47,62 @@ persistence:
   annotations: {}
   storageClass: managed-csi
 
+bridge:
+  enabled: false
+  remotename: change_at_deploy
+  connectionName: change_at_deploy
+  ipaddress: change_at_deploy
+  hostname: remotename.edge-core.svc.cluster.local
+  tlsPort: 8883
+
+
 # contents of mosquitto.conf file
-mosquittoConfig: |-
-  persistence true
-  persistence_location /mosquitto/data/
-  log_dest stdout
-  allow_anonymous true
-  listener 1883
-  protocol mqtt
+# mosquittoConfig: |-
+#   persistence true
+#   persistence_location /mosquitto/data/
+#   log_dest stdout
+#   allow_anonymous true
+
+#   #listener 1883 is non TLS and only exposed as ClusterIP on local cluster
+#   listener 1883
+#   protocol mqtt
+
+#   #listener TLS on port 8883 for secure bridging
+#   listener 8883
+#   tls_version tlsv1.2
+#   protocol mqtt
+#   cafile /mosquitto/config/certs/ca.crt
+#   certfile /mosquitto/config/certs/server.crt
+#   keyfile /mosquitto/config/certs/server.key
+#   require_certificate true
+#   use_subject_as_username true
+  
+certs:
+  ca:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      CA_CERT
+      -----END CERTIFICATE-----
+  server:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      SERVER_CERT
+      -----END CERTIFICATE-----
+    key: |-
+      -----BEGIN PRIVATE KEY-----
+      SERVER_KEY
+      -----END PRIVATE KEY-----
+  bridgeca:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      BRIDGECA_CERT
+      -----END CERTIFICATE-----
+  bridgeclient:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      BRIDGECLIENT_CERT
+      -----END CERTIFICATE-----
+    key: |-
+      -----BEGIN PRIVATE KEY-----
+      BRIDGECLIENT_KEY
+      -----END PRIVATE KEY-----
