@@ -1,0 +1,28 @@
+# System Data Gateway module/pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-gateway-module-deployment
+  labels:
+    app: data-gateway-module
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-gateway-module
+  template:
+    metadata:
+      labels:
+        app: data-gateway-module
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "data-gateway-module"
+        dapr.io/app-port: "80"
+        dapr.io/app-protocol: "grpc"
+    spec:
+      containers:
+      - name: data-gateway-module
+        image: {{ .Values.images.datagatewaymodule }}
+        imagePullPolicy: Always
+        args: ["--receiverPubSubName", "{{ .Values.gatewayPubSubModule.name }}"]
+      restartPolicy: Always

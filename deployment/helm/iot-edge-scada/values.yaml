@@ -1,0 +1,18 @@
+# Simulated Temperature Sensor module settings
+simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
+
+# Local Pub Sub module settings
+localPubSubModule:
+  mqttUri: "tcp://mosquittocluster.edge-core.svc.cluster.local:1883"
+
+# OPC Publisher module settings
+opcPublisherModule:
+  mm: PubSub
+  pubsub: local-pub-sub
+  topic: telemetry
+
+# Docker images
+images:
+  simulatedtemperaturesensormodule: ghcr.io/azure-samples/distributed-az-iot-edge/simulatedtemperaturesensormodule:main-78b133d
+  opcplcmodule: mcr.microsoft.com/iotedge/opc-plc:2.2.0
+  opcpublishermodule: ghcr.io/azure-samples/distributed-az-iot-edge/opcuapublisher:main-78b133d

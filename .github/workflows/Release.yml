@@ -4,8 +4,12 @@ on:
     branches: 
       - main
     paths:
-      # Only run this when chart file is updated.
+      # Only run this when chart files are updated.
       - 'deployment/helm/iot-edge-accelerator/Chart.yaml'
+      - 'deployment/helm/iot-edge-enterprise/Chart.yaml'
+      - 'deployment/helm/iot-edge-scada/Chart.yaml'
+      - 'deployment/helm/mosquitto/Chart.yaml'
+      - 'deployment/helm/squid-proxy/Chart.yaml'
 jobs:
   Release-Artifacts:      
     runs-on: ubuntu-latest

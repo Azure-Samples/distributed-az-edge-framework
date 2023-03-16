@@ -1,0 +1,30 @@
+{{ if ne .Values.dataGatewayModule.eventHubConnectionString "replace_with_real_key_at_deploy_time" }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: remote-pub-sub  
+spec:
+  type: pubsub.azure.eventhubs
+  version: v1
+  metadata:
+  - name: connectionString
+    value: {{ .Values.dataGatewayModule.eventHubConnectionString }}
+  - name: storageAccountName
+    value: {{ .Values.dataGatewayModule.storageAccountName }}
+  - name: storageAccountKey
+    value: {{ .Values.dataGatewayModule.storageAccountKey }}
+  - name: storageContainerName
+    value: "edgeevents"
+  # - name: partitionID
+  #   value: 0
+  # Lock down type of access for each service.
+  - name: publishingScopes
+    value: "data-gateway-module=telemetry"
+  - name: subscriptionScopes
+    value: "data-gateway-module="
+  # Lock down the topics on this pubsub component.
+  - name: allowedTopics
+    value: "telemetry"
+scopes:
+- data-gateway-module
+{{ end }}

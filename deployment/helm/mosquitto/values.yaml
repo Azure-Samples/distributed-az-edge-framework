@@ -1,0 +1,108 @@
+nameOverride: "mosquitto"
+fullnameOverride: ""
+
+# mosquitto image repo, tag and pull policy
+image: 
+  repository: eclipse-mosquitto
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# mosquitto default MQTT port
+defaultPort: 1883
+tlsPort: 8883
+
+# deployment replica count
+replicaCount: 1
+
+# mosquitto pod resources collection
+resources:
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  requests:
+    cpu: "50m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+# mosquitto deployment nodeSelectors{
+nodeSelector: {}
+
+# mosquitto pod tolerations
+tolerations: []
+
+# mosquitto pod affinity
+affinity: {}
+
+# mosquitto service type
+service:
+  type: LoadBalancer
+
+# mosquitto persistence options for deployment
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+  storageClass: managed-csi
+
+bridge:
+  enabled: false
+  remotename: change_at_deploy
+  connectionName: change_at_deploy
+  ipaddress: change_at_deploy
+  hostname: remotename.edge-core.svc.cluster.local
+  tlsPort: 8883
+
+
+# contents of mosquitto.conf file
+# mosquittoConfig: |-
+#   persistence true
+#   persistence_location /mosquitto/data/
+#   log_dest stdout
+#   allow_anonymous true
+
+#   #listener 1883 is non TLS and only exposed as ClusterIP on local cluster
+#   listener 1883
+#   protocol mqtt
+
+#   #listener TLS on port 8883 for secure bridging
+#   listener 8883
+#   tls_version tlsv1.2
+#   protocol mqtt
+#   cafile /mosquitto/config/certs/ca.crt
+#   certfile /mosquitto/config/certs/server.crt
+#   keyfile /mosquitto/config/certs/server.key
+#   require_certificate true
+#   use_subject_as_username true
+  
+certs:
+  ca:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      CA_CERT
+      -----END CERTIFICATE-----
+  server:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      SERVER_CERT
+      -----END CERTIFICATE-----
+    key: |-
+      -----BEGIN PRIVATE KEY-----
+      SERVER_KEY
+      -----END PRIVATE KEY-----
+  bridgeca:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      BRIDGECA_CERT
+      -----END CERTIFICATE-----
+  bridgeclient:
+    crt: |-
+      -----BEGIN CERTIFICATE-----
+      BRIDGECLIENT_CERT
+      -----END CERTIFICATE-----
+    key: |-
+      -----BEGIN PRIVATE KEY-----
+      BRIDGECLIENT_KEY
+      -----END PRIVATE KEY-----
