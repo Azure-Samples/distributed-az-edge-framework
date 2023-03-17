@@ -34,7 +34,6 @@ This section describes the nested topology design implemented by this solution.
 
 At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance).
 These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed/controlled via proxy configuration at each level.
-We are currently implementing functionality that will force the data plane to traverse via the proxy as well, but only Arc is currently configured.
 
 ## Technology Stack
 
