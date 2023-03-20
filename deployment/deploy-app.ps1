@@ -60,7 +60,7 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
                 --account-name $storageName --query [0].value -o tsv)
 
 # ----- Run Helm
-Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - Upper level")
+Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - L4 Upper level")
 
 # ----- Get AKS Cluster Credentials for L4 (Upper layer)
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
@@ -83,16 +83,16 @@ kubectl create secret generic data-gateway-module-secrets-seed --from-literal=da
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `
   -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
   -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
-  --kustomization name=flux-kustomization prune=true path=/deployment/flux/upper
+  --kustomization name=flux-kustomization prune=true path=/deployment/flux/l4
 
 # ----- Lower level deployment
-Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - Lower level")
+Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - L2 Lower level")
 
 # Deploy Flux v2 configuration to install app on kubernetes edge for lower layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower -t connectedClusters `
   -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
   -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
-  --kustomization name=flux-kustomization prune=true path=/deployment/flux/lower
+  --kustomization name=flux-kustomization prune=true path=/deployment/flux/l2
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time app deployment:" + $runningTime.ToString())

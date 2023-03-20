@@ -17,30 +17,30 @@ $startTime = Get-Date
 #=======================
 # This script deletes the resource groups and service principal when choosing the single layer developer deployment
 
-# $appResourceGroup = "$ApplicationName-App"
-# $infraResourceGroup = $ApplicationName + "L4"
+$appResourceGroup = "$ApplicationName-App"
+$infraResourceGroup = $ApplicationName + "L4"
 
-# # Remove App resource group
+# Remove App resource group
 
-# # If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
-# Write-Title("Removing $appResourceGroup without waiting for confirmation")
-# az group delete --name $appResourceGroup -y --no-wait
+# If you would like to wait for completion of deletion of each Resource group before continuing, simply remove the --no-wait parameter
+Write-Title("Removing $appResourceGroup without waiting for confirmation")
+az group delete --name $appResourceGroup -y --no-wait
 
-# # Remove AKS / infra resource group
-# Write-Title("Removing $infraResourceGroup no-wait")
-# az group delete --name $infraResourceGroup -y --no-wait
+# Remove AKS / infra resource group
+Write-Title("Removing $infraResourceGroup no-wait")
+az group delete --name $infraResourceGroup -y --no-wait
 
-# # Remove Service Principal
+# Remove Service Principal
 
-# Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
+Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
 
-# $aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFrom-Json | Select-Object -First 1
+$aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFrom-Json | Select-Object -First 1
 
-# az ad sp delete --id $aksServicePrincipal.appId
+az ad sp delete --id $aksServicePrincipal.appId
 
-# # also delete the corresponding app, see https://learn.microsoft.com/en-us/cli/azure/microsoft-graph-migration#az-ad-sp-delete
-# az ad app delete --id $aksServicePrincipal.appId
-
+# also delete the corresponding app, see https://learn.microsoft.com/en-us/cli/azure/microsoft-graph-migration#az-ad-sp-delete
+az ad app delete --id $aksServicePrincipal.appId
+exit
 # Service principal registration will be suspended for 30 days, but not permanently deleted.
 # This means that your Azure AD quota is not released automatically. 
 # If you'd like to enforce permanent deletion of suspended app registrations you can use the PowerShell script below

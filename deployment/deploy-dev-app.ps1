@@ -88,7 +88,7 @@ $Env:Version_Prefix = $deploymentId
 Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials for enterprise (upper) layer
-Write-Title("Get AKS Credentials Upper Layer")
+Write-Title("Get AKS Credentials L4 Upper Layer")
 az aks get-credentials `
     --admin `
     --name $AksClusterNameUpper `
@@ -98,7 +98,7 @@ az aks get-credentials `
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
-helm install iot-edge-enterprise ./helm/iot-edge-enterprise `
+helm install iot-edge-l4 ./helm/iot-edge-l4 `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
@@ -107,8 +107,8 @@ helm install iot-edge-enterprise ./helm/iot-edge-enterprise `
     --create-namespace `
     --wait
 
-# ----- Get Cluster Credentials for Scada (lower) layer
-Write-Title("Get AKS Credentials Lower Layer")
+# ----- Get Cluster Credentials for L2 (lower) layer
+Write-Title("Get AKS Credentials L2 Lower Layer")
 az aks get-credentials `
     --admin `
     --name $AksClusterNameLower `
@@ -130,13 +130,13 @@ az role assignment create --assignee $aksSpObjectIdLower `
     --scope $acrResourceId
 
 # ----- Run Helm
-Write-Title("Install Pod/Containers with Helm in Cluster lower")
+Write-Title("Install Pod/Containers with Helm in Cluster L2 lower")
 
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
 $opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
 
-helm install iot-edge-scada ./helm/iot-edge-scada `
+helm install iot-edge-l2 ./helm/iot-edge-l2 `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
