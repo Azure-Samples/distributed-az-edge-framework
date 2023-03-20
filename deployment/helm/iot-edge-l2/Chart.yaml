@@ -1,6 +1,6 @@
 apiVersion: v2
-name: iot-edge-scada
-description: A Helm chart for deploying IoT edge accelerator on K8s, pre-release version.
+name: iot-edge-l2
+description: A Helm chart for deploying IoT Edge Accelerator L2 (layer 2) on K8s, pre-release version.
 keywords:
     - azure
     - iot

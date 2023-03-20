@@ -1,0 +1,47 @@
+<<<<<<< HEAD:.github/workflows/Release.yml
+name: Helm charts for IoT Edge Accelerator - Main Branch Release
+=======
+name: Main - Release Helm Chart Squid Proxy
+>>>>>>> main:.github/workflows/Release-squid-proxy.yml
+on: 
+  push:
+    branches: 
+      - main
+    paths:
+      # Only run this when chart file is updated.
+<<<<<<< HEAD:.github/workflows/Release.yml
+      - 'deployment/helm/iot-edge-enterprise/Chart.yaml'
+      - 'deployment/helm/mosquitto/Chart.yaml'
+      - 'deployment/helm/iot-edge-scada/Chart.yaml'
+
+=======
+      - 'deployment/helm/squid-proxy/Chart.yaml'
+      
+>>>>>>> main:.github/workflows/Release-squid-proxy.yml
+jobs:
+  Release-Artifacts:      
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Configure Git
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Get the version
+      id: vars
+      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
+      
+    - name: Echo Docker images tag
+      run: echo ${{steps.vars.outputs.tag}}
+
+    - name: Run chart-releaser
+      uses: helm/chart-releaser-action@v1.1.0
+      env:
+        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      with:
+        charts_dir: deployment/helm

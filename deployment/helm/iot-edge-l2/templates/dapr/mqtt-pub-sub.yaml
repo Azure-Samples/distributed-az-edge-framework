@@ -1,14 +1,13 @@
-# TODO: Add overarching component configuration.
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: gateway-pub-sub
+  name: {{ .Values.opcPublisherModule.pubsub }}
 spec:
   type: pubsub.mqtt3
   version: v1
   metadata:
   - name: url
-    value: {{ .Values.gatewayPubSubModule.mqttUri }}
+    value: {{ .Values.localPubSubModule.mqttUri }}
   - name: retain
     value: "false"
   - name: cleanSession
@@ -19,12 +18,13 @@ spec:
     value: "{podName}"
   # Lock down type of access for each service.
   - name: publishingScopes
-    value: "data-gateway-module="
+    value: "simulated-temperature-sensor-module=telemetry;opc-publisher-module=telemetry"
   - name: subscriptionScopes
-    value: "data-gateway-module=telemetry;"
+    value: "simulated-temperature-sensor-module=;opc-publisher-module="
   # Lock down the topics on this pubsub component.
   - name: allowedTopics
     value: "telemetry"
 
 scopes:
-- data-gateway-module
+- simulated-temperature-sensor-module
+- opc-publisher-module

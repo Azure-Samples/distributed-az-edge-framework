@@ -5,7 +5,7 @@ metadata:
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.tlsService.type }}
   ports:
     - port: {{ .Values.tlsPort }}
       targetPort: {{ .Values.tlsPort }}
