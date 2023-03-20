@@ -1,0 +1,20 @@
+{{- if .Values.bridge.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.bridge.remotename }}
+spec:
+ ports:
+ - protocol: TCP
+   port: {{ .Values.bridge.tlsPort }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: {{ .Values.bridge.remotename }}
+subsets: 
+- addresses:
+  - ip: {{ .Values.bridge.ipaddress }}
+  ports:
+  - port: {{ .Values.bridge.tlsPort }}
+{{- end }}

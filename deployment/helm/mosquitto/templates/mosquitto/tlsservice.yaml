@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: {{ .Values.tlsService.type }}
+  ports:
+    - port: {{ .Values.tlsPort }}
+      targetPort: {{ .Values.tlsPort }}
+      name: tls
+      protocol: TCP
+  selector:
+    app: {{ include "mosquitto.name" . }}
