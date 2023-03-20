@@ -43,6 +43,49 @@ entries:
     urls:
     - https://github.com/Azure-Samples/distributed-az-edge-framework/releases/download/iot-edge-accelerator-0.24.0/iot-edge-accelerator-0.24.0.tgz
     version: 0.24.0
+  iot-edge-l2:
+  - apiVersion: v2
+    appVersion: 0.4.0
+    created: "2023-03-20T07:22:47.775174577Z"
+    description: A Helm chart for deploying IoT Edge Accelerator L2 (layer 2) on K8s, pre-release version.
+    digest: 92b22ef4702dff3ce89f9d5d1ac46a4dc0afecab87b0e2885203a3b9f32a2b71
+    keywords:
+    - azure
+    - iot
+    - edge
+    name: iot-edge-l2
+    type: application
+    urls:
+    - https://github.com/Azure-Samples/distributed-az-edge-framework/releases/download/iot-edge-l2-0.1.0/iot-edge-l2-0.1.0.tgz
+    version: 0.1.0
+  iot-edge-l4:
+  - apiVersion: v2
+    appVersion: 0.4.0
+    created: "2023-03-20T07:22:47.926255731Z"
+    description: A Helm chart for deploying IoT Edge Accelerator L4 (layer 4) on K8s, pre-release version.
+    digest: fb1ef627b3a7d9365f6b7951d2e906702ebbe7ff92c24653b349a97768c271f6
+    keywords:
+    - azure
+    - iot
+    - edge
+    name: iot-edge-l4
+    type: application
+    urls:
+    - https://github.com/Azure-Samples/distributed-az-edge-framework/releases/download/iot-edge-l4-0.1.0/iot-edge-l4-0.1.0.tgz
+    version: 0.1.0
+  mosquitto:
+  - apiVersion: v2
+    appVersion: 2.0.15
+    created: "2023-03-20T07:22:48.061634283Z"
+    description: A Helm chart for deploying Mosquitto broker with bridging functionality.
+    digest: 36bf1ca1a551be054eadd108b3c40c08cbff9089fd0755ba350f245662f84bb9
+    keywords:
+    - mqtt
+    name: mosquitto
+    type: application
+    urls:
+    - https://github.com/Azure-Samples/distributed-az-edge-framework/releases/download/mosquitto-0.2.0/mosquitto-0.2.0.tgz
+    version: 0.2.0
   squid-proxy:
   - apiVersion: v2
     appVersion: 0.4.0
