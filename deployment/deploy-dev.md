@@ -56,9 +56,9 @@ To remore all Azure resources setup by the default script (AKS clusters, app res
 
 `./remove-dev-resources.ps1 -ApplicationName <short-name>`
 
-## Optional three network layered deployment
+## Optional single network layered deployment
 
-The deployment script also has an option to deploy 3 layers of AKS and networking infrastructure. To use that version, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`, details can be found in the comments of the script.
-The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the three layer resources instead.
+The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use that version, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`, details can be found in the comments of the script.
+The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the single layer resources instead.
 
 

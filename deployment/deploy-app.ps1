@@ -79,7 +79,7 @@ dataGatewayModule:
 
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
-# Deploy Flux v2 configuration to install app on kubernetes edge.
+# Deploy Flux v2 configuration to install app on kubernetes edge L4 upper layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `
   -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
   -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
@@ -88,7 +88,7 @@ az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterN
 # ----- Lower level deployment
 Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - L2 Lower level")
 
-# Deploy Flux v2 configuration to install app on kubernetes edge for lower layer.
+# Deploy Flux v2 configuration to install app on kubernetes edge for L2 lower layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower -t connectedClusters `
   -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
   -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `

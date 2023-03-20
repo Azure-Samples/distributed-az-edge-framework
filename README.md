@@ -21,7 +21,7 @@ Each pod contains two containers:
 
 Apart from the above arrangement, the following system modules/pods are part of the solution:
 
-1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud. This module is deployed on the top layer of the network (enterprise layer).
+1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud. This module is deployed on the top layer of the network (L4 layer).
 2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios. 
 3. **OPC UA Plc Module**, OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
 4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
@@ -35,7 +35,7 @@ This section describes the nested topology design implemented by this solution.
 At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2, 3 ,4 in this instance).
 These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed/controlled via proxy configuration at each level. 
 
-For the data plane (MQTT PubSub), each layer can only talk to the layer above and never directly to the cloud except for the top (enterprise) layer which has outgoing Internet connectivity.
+For the data plane (MQTT PubSub), each layer can only talk to the layer above and never directly to the cloud except for the top (L4) layer which has outgoing Internet connectivity.
 
 ## Technology Stack
 

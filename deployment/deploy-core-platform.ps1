@@ -54,7 +54,7 @@ if($DeployDapr){
 
 # ----- Mosquitto
 
-helm repo add azedgefx https://azure-samples.github.io/distributed-az-edge-framework
+helm repo add azedgefx https://azure-samples.github.io/distributed-az-edge-framework --force-update
 helm repo update
 
 # TODO optimize this by leveraging Key Vault for storing certs and keys

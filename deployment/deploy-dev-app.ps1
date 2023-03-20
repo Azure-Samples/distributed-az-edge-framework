@@ -107,8 +107,8 @@ helm install iot-edge-l4 ./helm/iot-edge-l4 `
     --create-namespace `
     --wait
 
-# ----- Get Cluster Credentials for L2 (lower) layer
-Write-Title("Get AKS Credentials L2 Lower Layer")
+# ----- Get Cluster Credentials for L2 (lower) layer - or L4 if all deployed in single cluster
+Write-Title("Get AKS Credentials Lower Layer")
 az aks get-credentials `
     --admin `
     --name $AksClusterNameLower `
@@ -130,7 +130,7 @@ az role assignment create --assignee $aksSpObjectIdLower `
     --scope $acrResourceId
 
 # ----- Run Helm
-Write-Title("Install Pod/Containers with Helm in Cluster L2 lower")
+Write-Title("Install Pod/Containers with Helm in Cluster lower")
 
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
