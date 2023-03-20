@@ -28,7 +28,6 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "opc-publisher-module"
         dapr.io/app-protocol: "grpc"
-        dapr.io/log-level: "debug"
     spec:
       volumes:
         - name: opc-publisher-volume

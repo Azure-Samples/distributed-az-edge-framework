@@ -36,7 +36,7 @@ tolerations: []
 affinity: {}
 
 # mosquitto service type
-service:
+tlsService:
   type: LoadBalancer
 
 # mosquitto persistence options for deployment
