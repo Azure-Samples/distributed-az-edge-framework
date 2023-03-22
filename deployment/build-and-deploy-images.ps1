@@ -44,6 +44,7 @@ $Env:Version_Prefix = $deploymentId
 Set-Location -Path $deploymentDir
 
 # ----- Run Helm
+# TODO this does not work anymore!
 Write-Title("Upgrade/Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId

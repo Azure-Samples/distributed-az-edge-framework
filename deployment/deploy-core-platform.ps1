@@ -14,7 +14,7 @@ Param(
 
     [Parameter(mandatory=$false)]
     [bool]
-    $DeployDapr = $true,
+    $DeployDapr = $false,
 
     [Parameter(mandatory=$false)]
     [PSCustomObject]
@@ -22,7 +22,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name .\modules\text-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
 
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date

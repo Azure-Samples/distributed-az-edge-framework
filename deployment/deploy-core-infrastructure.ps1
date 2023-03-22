@@ -28,7 +28,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name .\modules\text-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
 
 class Aks {
     [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc){

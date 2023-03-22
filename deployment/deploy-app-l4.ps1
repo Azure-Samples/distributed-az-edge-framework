@@ -17,14 +17,6 @@ Param(
     $AksClusterResourceGroupName,
 
     [string]
-    [Parameter(mandatory=$true)]
-    $AksClusterNameLower,
-
-    [string]
-    [Parameter(mandatory=$true)]
-    $AksClusterResourceGroupNameLower,
-
-    [string]
     $Location = 'westeurope',
 
     [string]
@@ -32,12 +24,12 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name .\modules\text-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
 
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying Application")
+Write-Title("Start Deploying Application for L4")
 $startTime = Get-Date
 
 # ----- Deploy Bicep
@@ -60,9 +52,9 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
                 --account-name $storageName --query [0].value -o tsv)
 
 # ----- Run Helm
-Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - L4 Upper level")
+Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
-# ----- Get AKS Cluster Credentials for L4 (Upper layer)
+# ----- Get AKS Cluster Credentials for L4 layer
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
 
 kubectl create namespace $appKubernetesNamespace
@@ -79,20 +71,11 @@ dataGatewayModule:
 
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
-# Deploy Flux v2 configuration to install app on kubernetes edge L4 upper layer.
+# Deploy Flux v2 configuration to install app on kubernetes edge L4 layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `
   -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
   -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
   --kustomization name=flux-kustomization prune=true path=/deployment/flux/l4
 
-# ----- Lower level deployment
-Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc - L2 Lower level")
-
-# Deploy Flux v2 configuration to install app on kubernetes edge for L2 lower layer.
-az k8s-configuration flux create -g $AksClusterResourceGroupNameLower -c $AksClusterNameLower -t connectedClusters `
-  -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
-  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
-  --kustomization name=flux-kustomization prune=true path=/deployment/flux/l2
-
 $runningTime = New-TimeSpan -Start $startTime
-Write-Title("Running time app deployment:" + $runningTime.ToString())
+Write-Title("Running time L4 app deployment:" + $runningTime.ToString())
