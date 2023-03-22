@@ -34,12 +34,14 @@ Param(
 $appKubernetesNamespace = "edge-app1"
 $staticBranchName = "dapr-support"
 $deploymentId = Get-Random
+$acrName = $L4AppConfig.AcrName
+$appResourceGroupName = $L4AppConfig.AppResourceGroupName
 
-Write-Title("Start Deploying Application")
+Write-Title("Start Deploying Application L2")
 $startTime = Get-Date
 
 # Get AKS SP object ID
-$aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalNameUpper | ConvertFrom-Json | Select-Object -First 1
+$aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalName | ConvertFrom-Json | Select-Object -First 1
 $aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).id
 
 # ----- Build and Push Containers
@@ -57,22 +59,18 @@ $Env:Version_Prefix = $deploymentId
 ../lib/Industrial-IoT/tools/scripts/acr-build.ps1 -Path ../lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
 Set-Location -Path $deploymentDir
 
-# ----- Get Cluster Credentials for L2 (lower) layer - or L4 if all deployed in single cluster
-Write-Title("Get AKS Credentials Lower Layer")
+# ----- Get Cluster Credentials for L2 alyer
+Write-Title("Get AKS Credentials L2 Layer")
 az aks get-credentials `
     --admin `
     --name $AksClusterName `
     --resource-group $AksClusterResourceGroupName `
     --overwrite-existing
 
-# ----- Add role assignment for AKS service pricipal lower layer
+# ----- Add role assignment for AKS service pricipal L2 layer
 Write-Title("L2 layer - add AKS SP role assignment to ACR")
 
-# Get AKS SP object ID
-$aksServicePrincipal = az ad sp list --display-name $AksServicePrincipalName | ConvertFrom-Json | Select-Object -First 1
-$aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json).id
-
-$acrResourceId = $(az acr show -g $L4AppConfig.AppResourceGroupName -n $L4AppConfig.AcrName --query id | ConvertFrom-Json)
+$acrResourceId = $(az acr show -g $appResourceGroupName -n $acrName --query id | ConvertFrom-Json)
 
 # manual role assignment - this might change to bicep when we rework some of the flow or use Azure Connected Registry
 az role assignment create --assignee $aksSpObjectId `
@@ -80,7 +78,7 @@ az role assignment create --assignee $aksSpObjectId `
     --scope $acrResourceId
 
 # ----- Run Helm
-Write-Title("Install Pod/Containers with Helm in Cluster lower")
+Write-Title("Install Pod/Containers with Helm in Cluster L2")
 
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"

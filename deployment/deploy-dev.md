@@ -40,13 +40,21 @@ In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-
 
 ## Deploy application updates
 
-Subsequent deployments can be run as follows.
+Subsequent deployments with new container images and Helm chart upgrades can be ran as follows:
 
 > `<resource-group-with-acr>` refers to the Resource Group with the `<short-name>` appended with `-App`.
 
 ### PowerShell
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>` 
+In case you deployed the default developer environment with 3 layers (default):
+
+`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster> -L2ResourceGroupName <resource-group-L2-cluster>`
+
+### PowerShell
+
+In case you deployed a developer environment with 1 single layer and cluster (you edited the `deploy-az-dev-bootstrapper.ps1` script):
+
+`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster>`
 
 ## Delete all developer environment Azure resources 
 

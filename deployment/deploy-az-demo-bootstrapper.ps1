@@ -38,7 +38,6 @@ Import-Module -Name ./modules/text-utils.psm1
 # Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnetpeering.bicep" -OutFile "./bicep/modules/vnetpeering.bicep"
 
 # Deploy 3 core infrastructure layers i.e. L4, L3, L2, replicating 3 levels of Purdue network topology.
-# Tip: You can split the below pipes into indivudual cmds and assign them to vars, to deploy core-platform and/or apps to those clusters.
 $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $true -Location $Location
 $l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $true -Location $Location
 $l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $true -Location $Location

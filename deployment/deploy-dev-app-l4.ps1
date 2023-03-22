@@ -30,7 +30,7 @@ Param(
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying Application")
+Write-Title("Start Deploying Application L4")
 $startTime = Get-Date
 
 # Get AKS SP object ID
