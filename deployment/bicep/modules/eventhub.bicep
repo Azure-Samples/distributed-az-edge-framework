@@ -25,7 +25,7 @@ resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-01-01-preview' = 
   }
 }
 
-var eventHubName = '${eventHubNameSpaceName}hub'
+var eventHubName = 'telemetry'
 resource eventHubNamespaceName_eventHubName 'Microsoft.EventHub/namespaces/eventhubs@2021-01-01-preview' = {
   parent: eventHubNamespace
   name: eventHubName

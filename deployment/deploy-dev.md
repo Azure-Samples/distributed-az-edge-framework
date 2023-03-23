@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This flow is used to setup a developer environment in Azure without Azure Arc and Flux. Additionally, only one single level (single AKS cluster) is deployed. Everything is executed from the local developer machine.
+This flow is used to setup a developer environment in Azure without Azure Arc and Flux. By default the three Azure Kubernetes clusters and networking layers are deployed, but the script can be edited to deploy only one layer with all functionality. Everything is executed from the local developer machine.
 
 ## Prerequisites on developer machine
 
@@ -13,6 +13,7 @@ This flow is used to setup a developer environment in Azure without Azure Arc an
 - Docker
 - helm
 - kubectl
+- openssl
 
 ## How to execute it
 
@@ -20,32 +21,40 @@ In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-
 
 ## The main functions in the script
 
-1. Deploy infrastructure with Bicep, the script deploys AKS cluster.
+1. Deploy infrastructure with Bicep, the script deploys three AKS clusters.
     * AKS
     * VNET
     * Squid proxy in cluster
 
 3. Download AKS credentials.
 
-4. Install DAPR with Helm in AKS.
+4. Install DAPR with Helm in AKS on two of the clusters (level 4 and level 2 of the network topology).
 
-5. Install Redis with Helm in AKS.
+5. Install Mosquitto with Helm in each AKS cluster, including bridging from each lower broker to the level above.
 
 6. Provision Azure appplication resources (ACR, Event Hubs, Storage).
 
 7. Use `az acr build` to build and push images to the ACR.
 
-8. Install our components with Helm in AKS.
+8. Install our components with Helm in AKS, splitting some of the application workloads to run on Level 2, and the cloud connected workload on Level 4.
 
 ## Deploy application updates
 
-Subsequent deployments can be run as follows.
+Subsequent deployments with new container images and Helm chart upgrades can be ran as follows:
 
 > `<resource-group-with-acr>` refers to the Resource Group with the `<short-name>` appended with `-App`.
 
 ### PowerShell
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr>` 
+In case you deployed the default developer environment with 3 layers (default):
+
+`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster> -L2ResourceGroupName <resource-group-L2-cluster>`
+
+### PowerShell
+
+In case you deployed a developer environment with 1 single layer and cluster (you edited the `deploy-az-dev-bootstrapper.ps1` script):
+
+`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster>`
 
 ## Delete all developer environment Azure resources 
 
@@ -55,9 +64,10 @@ To remore all Azure resources setup by the default script (AKS clusters, app res
 
 `./remove-dev-resources.ps1 -ApplicationName <short-name>`
 
-## Optional three network layered deployment
+## Optional single network layered deployment
 
-The deployment script also has an option to deploy 3 layers of AKS and networking infrastructure. To use that version, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`, details can be found in the comments of the script.
-The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the three layer resources instead.
+The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use that version, which is more cost effective but does not show MQTT broker bridging at work, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`. Details can be found in the comments of the script file.
+
+The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the single layer resources instead.
 
 
