@@ -38,7 +38,7 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
     -AksClusterName $l4LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L4") `
     -Location $Location
 
-# Note currently for developer flow we need ACR from cloud which is deployed by L4 (via L4AppConfig). 
+# Note currently for developer flow we need Azure Ccontianer Registry deployed by L4 (via L4AppConfig). 
 ./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
     -AksClusterName $l2LevelCoreInfra.AksClusterName `
     -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName `
