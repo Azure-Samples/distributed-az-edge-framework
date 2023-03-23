@@ -91,6 +91,7 @@ class Aks {
 
 Write-Title("Start Deploying Core Infrastructure")
 $startTime = Get-Date
+$deploymentId = Get-Random
 
 # ----- Retrieve Object Id of current user who is deploying solution.
 $currentAzUsernameId = $(az ad signed-in-user show --query id | ConvertFrom-Json)
@@ -126,6 +127,8 @@ $r = (az deployment sub create --location $Location `
            aksObjectId=$aksObjectId `
            aksClientId=$aksClientId `
            aksClientSecret=$aksClientSecret `
+           location=$Location `
+           --name "core-$deploymentId" `
     )| ConvertFrom-Json
 
 $aksClusterName = $r.properties.outputs.aksName.value

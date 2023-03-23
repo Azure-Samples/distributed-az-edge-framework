@@ -40,7 +40,7 @@ $aksSpObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Js
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
-           --template-file ./bicep/iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId=$aksSpObjectId acrCreate=true `
+           --template-file ./bicep/iiot-app.bicep --parameters applicationName=$ApplicationName aksObjectId=$aksSpObjectId acrCreate=true location=$Location `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
  
 $acrName = $r.properties.outputs.acrName.value

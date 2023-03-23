@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This flow is used to setup a developer environment in Azure without Azure Arc and Flux. By default the three clusters and networking layers are deployed, but the script can be edited to deploy only one layer with all functionality. Everything is executed from the local developer machine.
+This flow is used to setup a developer environment in Azure without Azure Arc and Flux. By default the three Azure Kubernetes clusters and networking layers are deployed, but the script can be edited to deploy only one layer with all functionality. Everything is executed from the local developer machine.
 
 ## Prerequisites on developer machine
 
@@ -21,22 +21,22 @@ In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-
 
 ## The main functions in the script
 
-1. Deploy infrastructure with Bicep, the script deploys AKS cluster.
+1. Deploy infrastructure with Bicep, the script deploys three AKS clusters.
     * AKS
     * VNET
     * Squid proxy in cluster
 
 3. Download AKS credentials.
 
-4. Install DAPR with Helm in AKS.
+4. Install DAPR with Helm in AKS on two of the clusters (level 4 and level 2 of the network topology).
 
-5. Install Mosquitto with Helm in AKS.
+5. Install Mosquitto with Helm in each AKS cluster, including bridging from each lower broker to the level above.
 
 6. Provision Azure appplication resources (ACR, Event Hubs, Storage).
 
 7. Use `az acr build` to build and push images to the ACR.
 
-8. Install our components with Helm in AKS.
+8. Install our components with Helm in AKS, splitting some of the application workloads to run on Level 2, and the cloud connected workload on Level 4.
 
 ## Deploy application updates
 
@@ -66,7 +66,8 @@ To remore all Azure resources setup by the default script (AKS clusters, app res
 
 ## Optional single network layered deployment
 
-The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use that version, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`, details can be found in the comments of the script.
+The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use that version, which is more cost effective but does not show MQTT broker bridging at work, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`. Details can be found in the comments of the script file.
+
 The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the single layer resources instead.
 
 
