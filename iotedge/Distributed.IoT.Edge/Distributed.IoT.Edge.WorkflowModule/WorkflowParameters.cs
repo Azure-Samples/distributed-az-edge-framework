@@ -1,8 +1,8 @@
-﻿namespace Distributed.IoT.Edge.DataGatewayModule
-{
-    using CommandLine;
+﻿using CommandLine;
 
-    internal class DataGatewayParameters
+namespace Distributed.IoT.Edge.WorkflowModule
+{
+    public class WorkflowParameters
     {
         [Option(
             "receiverPubSubName",
@@ -19,24 +19,17 @@
         public string? ReceiverPubSubTopicName { get; set; }
 
         [Option(
-            "receiverWorkflowPubSubTopicName",
-            Default = "enriched-telemetry",
-            Required = false,
-            HelpText = "Dapr workflow pubsub messaging topic name for receiving messages.")]
-        public string? ReceiverWorkflowPubSubTopicName { get; set; }
-
-        [Option(
             "senderPubSubName",
-            Default = "remote-pub-sub",
+            Default = "local-pub-sub",
             Required = false,
             HelpText = "Dapr pubsub messaging component name for sending messages.")]
         public string? SenderPubSubName { get; set; }
 
         [Option(
             "senderPubSubTopicName",
-            Default = "telemetry",
+            Default = "enriched-telemetry",
             Required = false,
-            HelpText = "Dapr pubsub messaging topic name for sending messages.")]
+            HelpText = "Dapr workflow pubsub messaging topic name for sending messages.")]
         public string? SenderPubSubTopicName { get; set; }
     }
 }

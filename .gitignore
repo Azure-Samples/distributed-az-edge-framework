@@ -389,3 +389,4 @@ FodyWeavers.xsd
 # VS
 launchSettings.json
 appsettings.*.json
+.vscode/*

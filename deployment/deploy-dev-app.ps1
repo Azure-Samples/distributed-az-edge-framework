@@ -82,7 +82,7 @@ az aks get-credentials `
     --resource-group $AksClusterResourceGroupName `
     --overwrite-existing
 
-# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
+# Copy Redis secret from edge-core namespace to edge-app1 namespace where application is deployed.
 kubectl create namespace $appKubernetesNamespace
 kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f - 
 

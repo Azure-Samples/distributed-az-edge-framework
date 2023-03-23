@@ -16,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configuration", "Configurat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Distributed.IoT.Edge.DataGatewayModule", "Distributed.IoT.Edge.DataGatewayModule\Distributed.IoT.Edge.DataGatewayModule.csproj", "{746C3EBF-D9C0-4C7C-BBC5-F2E377F186D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Distributed.IoT.Edge.WorkflowModule", "Distributed.IoT.Edge.WorkflowModule\Distributed.IoT.Edge.WorkflowModule.csproj", "{4933F79B-19EF-4F55-AB0F-F2D46297F2C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkflowConsoleApp", "..\..\..\quickstarts\workflows\csharp\sdk\order-processor\WorkflowConsoleApp.csproj", "{D83C1E9E-C18E-47A5-AFE8-CE38E59D451D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +38,14 @@ Global
 		{746C3EBF-D9C0-4C7C-BBC5-F2E377F186D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{746C3EBF-D9C0-4C7C-BBC5-F2E377F186D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{746C3EBF-D9C0-4C7C-BBC5-F2E377F186D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4933F79B-19EF-4F55-AB0F-F2D46297F2C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4933F79B-19EF-4F55-AB0F-F2D46297F2C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4933F79B-19EF-4F55-AB0F-F2D46297F2C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4933F79B-19EF-4F55-AB0F-F2D46297F2C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D83C1E9E-C18E-47A5-AFE8-CE38E59D451D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D83C1E9E-C18E-47A5-AFE8-CE38E59D451D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D83C1E9E-C18E-47A5-AFE8-CE38E59D451D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D83C1E9E-C18E-47A5-AFE8-CE38E59D451D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
