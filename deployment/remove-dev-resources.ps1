@@ -29,7 +29,6 @@ $startTime = Get-Date
 
 # # Remove Service Principal
 # Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
-# Write-Title("Delete AKS Service Principal, app registration will be suspended for 30 days")
 
 # $aksServicePrincipal = az ad sp list --display-name $ApplicationName | ConvertFrom-Json | Select-Object -First 1
 

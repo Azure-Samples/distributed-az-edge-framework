@@ -48,13 +48,13 @@ Subsequent deployments with new container images and Helm chart upgrades can be 
 
 In case you deployed the default developer environment with 3 layers (default):
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster> -L2ResourceGroupName <resource-group-L2-cluster>`
+`./build-and-deploy-images.ps1 -AppResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster> -L2ResourceGroupName <resource-group-L2-cluster>`
 
 ### Update PowerShell
 
 In case you deployed a developer environment with one single layer and cluster (you edited the `deploy-az-dev-bootstrapper.ps1` script):
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster>`
+`./build-and-deploy-images.ps1 -AppResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster>`
 
 ## Delete all Developer Environment Azure Resources
 
