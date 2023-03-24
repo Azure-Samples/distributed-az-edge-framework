@@ -54,7 +54,7 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
-# ----- Get AKS Cluster Credentials for L4 layer
+# ----- Get AKS Cluster Credentials for L4 layer #TODO make it arc cluster connect
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
 
 kubectl create namespace $appKubernetesNamespace

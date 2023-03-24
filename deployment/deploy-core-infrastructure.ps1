@@ -28,7 +28,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
 
 class Aks {
     [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc){
@@ -72,8 +72,34 @@ class Aks {
 
     if($enableArc)
     {
-      # ----- Enroll AKS with Arc
       Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
+      # ----- Before enrolling with Arc: create Service Account, get token and store in temp folder for Arc Cluster Connect in other scripts
+      kubectl create serviceaccount arc-user
+      kubectl create clusterrolebinding demo-user-binding --clusterrole cluster-admin --serviceaccount default:arc-user
+
+      # create secret with service account token
+$serviceAccountToken=@"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: arc-user-secret
+  annotations:
+    kubernetes.io/service-account.name: arc-user
+type: kubernetes.io/service-account-token
+"@
+      
+      $serviceAccountToken | kubectl apply -f -
+
+      $tokenB64 = (kubectl get secret arc-user-secret -o jsonpath='{$.data.token}')
+      # Store secret in base64 in ./temp/tokens folder - #TODO this should go into Key Vault instead
+      $tempFolder = "./temp/tokens"
+      If(!(Test-Path -PathType container -Path $tempFolder))
+      {
+          New-Item -ItemType Directory -Path $tempFolder
+      }
+      Set-Content -Path "$tempFolder/$aksName.txt" -Value "$tokenB64"
+
+      # ----- Enroll AKS with Arc
       az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-https $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
       az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
     }

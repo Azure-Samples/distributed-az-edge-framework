@@ -18,7 +18,11 @@ Param(
 
     [Parameter(mandatory=$false)]
     [PSCustomObject]
-    $MosquittoParentConfig = $null
+    $MosquittoParentConfig = $null,
+
+    [Parameter(mandatory=$false)]
+    [bool]
+    $ArcEnabled = $true
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
@@ -37,8 +41,19 @@ function CleanHostname([string] $Hostname){
     return $result
 }
 
-# ----- Get AKS Cluster Credentials
-az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing
+# ----- Get AKS Cluster Credentials into kube context
+if($ArcEnabled){
+    # through Arc cluster connect option
+    Write-Title("with token")
+    $tokenB64 = Get-Content -Path "./temp/tokens/$AksClusterName.txt"
+    $token = ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($tokenB64))))
+    az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --token $token
+}
+else {
+    # in developer environment, no Arc
+    az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing
+}
+
 
 # ----- Dapr
 if($DeployDapr){
