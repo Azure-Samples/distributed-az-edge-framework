@@ -389,3 +389,6 @@ FodyWeavers.xsd
 # VS
 launchSettings.json
 appsettings.*.json
+
+# Temporary deployment files
+temp/

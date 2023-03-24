@@ -1,0 +1,29 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: gateway-pub-sub
+spec:
+  type: pubsub.mqtt3
+  version: v1
+  metadata:
+  - name: url
+    value: {{ .Values.gatewayPubSubModule.mqttUri }}
+  - name: retain
+    value: "false"
+  - name: cleanSession
+    value: "false"
+  - name: qos
+    value: "1"
+  - name: consumerID
+    value: "{podName}"
+  # Lock down type of access for each service.
+  - name: publishingScopes
+    value: "data-gateway-module="
+  - name: subscriptionScopes
+    value: "data-gateway-module=telemetry;"
+  # Lock down the topics on this pubsub component.
+  - name: allowedTopics
+    value: "telemetry"
+
+scopes:
+- data-gateway-module

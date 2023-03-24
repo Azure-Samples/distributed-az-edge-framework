@@ -1,0 +1,14 @@
+# Data Gateway module settings
+dataGatewayModule:
+  eventHubConnectionString: "replace_with_real_key_at_deploy_time"
+  storageAccountName: "replace_with_storage_account_name_at_deploy_time"
+  storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
+
+# Local Pub Sub module settings
+gatewayPubSubModule:
+  mqttUri: "tcp://mosquittocluster.edge-core.svc.cluster.local:1883"
+  name: gateway-pub-sub
+
+# Docker images
+images:
+  datagatewaymodule: ghcr.io/azure-samples/distributed-az-iot-edge/datagatewaymodule:main-78b133d

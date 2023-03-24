@@ -21,9 +21,9 @@ Each pod contains two containers:
 
 Apart from the above arrangement, the following system modules/pods are part of the solution:
 
-1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud
-2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs for industrial IoT scenarios
-3. **OPC UA Plc Module**, OPC UA PLC module to simulate OPC UA telemetry from downstream devices to the OPC UA Publisher module for industrial IoT scenarios
+1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud. This module is deployed on the top layer of the network (L4 layer)
+2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA PLC module which simulates downstream devices/hubs for industrial IoT scenarios
+3. **OPC UA PLC Module**, OPC UA PLC module to simulate OPC UA telemetry from downstream devices to the OPC UA Publisher module for industrial IoT scenarios
 4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non-OPC UA protocol
 
 ## Nested Topology
@@ -59,6 +59,12 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 4. Secure service-to-service communication using mTLS or [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/)
 5. Well known and understood configuration and secret management approaches
 6. End-to-end observability at both application and platform levels using [OpenTelemetry](https://opentelemetry.io/)
+
+### MQTT Broker for Publish/Subscribe and Data Plane Bridging
+
+Workloads exchange messages locally on the same network layer and Kubernetes cluster by using a cluster deployed MQTT broker. As described above, Dapr is leveraged to interact with the broker without specific application-aware code to interact with the chosen PubSub mechanism.
+
+For more information about MQTT broker choice and comparison, please see [MQTT Broker for Data Communication Between Workloads and Between Network Layers](/docs/mqttbroker.md).
 
 ## Solution Deployment
 
