@@ -28,7 +28,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-Import-Module -Name ./modules/text-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
 
 class Aks {
     [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc){
@@ -78,14 +78,14 @@ class Aks {
       kubectl create clusterrolebinding demo-user-binding --clusterrole cluster-admin --serviceaccount default:arc-user
 
       # create secret with service account token
-$serviceAccountToken=@"
-apiVersion: v1
-kind: Secret
-metadata:
-  name: arc-user-secret
-  annotations:
-    kubernetes.io/service-account.name: arc-user
-type: kubernetes.io/service-account-token
+      $serviceAccountToken=@"
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: arc-user-secret
+        annotations:
+          kubernetes.io/service-account.name: arc-user
+      type: kubernetes.io/service-account-token
 "@
       
       $serviceAccountToken | kubectl apply -f -

@@ -26,8 +26,12 @@ Param(
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name ./modules/text-utils.psm1
 
+# Import module for interacting with ps processes
+Import-Module -Name ./modules/process-utils.psm1
+
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
+$kubeConfigFile = "./temp/$AksClusterName"
 
 Write-Title("Start Deploying Application for L4")
 $startTime = Get-Date
@@ -54,8 +58,14 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
-# ----- Get AKS Cluster Credentials for L4 layer #TODO make it arc cluster connect
-az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
+# ----- Create cluster connect connection 
+$tokenB64 = Get-Content -Path "./temp/tokens/$AksClusterName.txt"
+$token = ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($tokenB64))))
+# Start Arc cluster connect in separate terminal process
+Write-Host "Starting terminal Arc proxy"
+Start-ProcessInNewTerminalPW -ProcessArgs "az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --file $kubeConfigFile --token $token" -WindowTitle "ArcProxy$AksClusterName"
+Write-Host "Sleep for a few seconds to initialize Arc proxy connection..."
+Start-Sleep -s 10
 
 kubectl create namespace $appKubernetesNamespace
 
@@ -70,6 +80,9 @@ dataGatewayModule:
 "@ -f $eventHubConnectionString, $storageName, $storageKey
 
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
+
+# --- Close Arc proxy
+Stop-ProcessInNewTerminal -WindowTitle "ArcProxy$AksClusterName"
 
 # Deploy Flux v2 configuration to install app on kubernetes edge L4 layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `

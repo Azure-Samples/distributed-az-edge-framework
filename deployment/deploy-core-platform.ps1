@@ -28,9 +28,13 @@ Param(
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name ./modules/text-utils.psm1
 
+# Import module for interacting with ps processes
+Import-Module -Name ./modules/process-utils.psm1
+
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 $tempCertsFolder = "./temp/mosquittocerts"
+$kubeConfigFile = "./temp/$AksClusterName"
 
 function CleanHostname([string] $Hostname){
     
@@ -43,15 +47,20 @@ function CleanHostname([string] $Hostname){
 
 # ----- Get AKS Cluster Credentials into kube context
 if($ArcEnabled){
-    # through Arc cluster connect option
-    Write-Title("with token")
+    # Through Arc cluster connect option
     $tokenB64 = Get-Content -Path "./temp/tokens/$AksClusterName.txt"
     $token = ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($tokenB64))))
-    az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --token $token
+    # Start Arc cluster connect in separate terminal process
+    Write-Host "Starting terminal Arc proxy"
+    Start-ProcessInNewTerminalPW -ProcessArgs "az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --file $kubeConfigFile --token $token" -WindowTitle "ArcProxy$AksClusterName"
+    
+    Write-Host "Sleep for a few seconds to initialize proxy..."
+    Start-Sleep -s 10
+
 }
 else {
     # in developer environment, no Arc
-    az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing
+    az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing --file $kubeConfigFile
 }
 
 
@@ -64,7 +73,8 @@ if($DeployDapr){
         --version=1.10 `
         --namespace edge-core `
         --create-namespace `
-        --wait
+        --wait `
+        --kubeconfig $kubeConfigFile
 }
 
 # ----- Mosquitto
@@ -118,6 +128,7 @@ if ($null -eq $MosquittoParentConfig){
     --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
     --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
     --create-namespace `
+    --kubeconfig $kubeConfigFile `
     --wait
 
 }
@@ -141,12 +152,13 @@ else {
     --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
     --set-file certs.bridgeca.crt="$tempCertsFolder/ca.crt" `
     --create-namespace `
+    --kubeconfig $kubeConfigFile `
     --wait
     
 }
 
 # Get Mosquitto IP and Ports from deployment to send to next layer (child)
-$mosquittoSvc = kubectl get service mosquitto -n edge-core -o json | ConvertFrom-Json
+$mosquittoSvc = kubectl get service mosquitto -n edge-core -o json --kubeconfig $kubeConfigFile | ConvertFrom-Json
 $mosquittoIp = $mosquittoSvc.status.loadBalancer.ingress.ip
 $mosquittoPort = $mosquittoSvc.spec.ports.port
 
@@ -155,6 +167,12 @@ $mosquittoConfig = [PSCustomObject]@{
     MosquittoIp = $mosquittoIp
     Port = $mosquittoPort
   }
+
+# If Arc connected, close the second process terminal before continuing
+if($ArcEnabled){
+    Write-Host "Closing terminal Arc proxy"
+    Stop-ProcessInNewTerminal -WindowTitle "ArcProxy$AksClusterName"
+}
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time core platform: $runningTime")
