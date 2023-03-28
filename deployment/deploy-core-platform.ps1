@@ -72,7 +72,6 @@ else {
     az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing --file $kubeConfigFile
 }
 
-
 # ----- Dapr
 if($DeployDapr){
     Write-Title("Install Dapr")
@@ -87,7 +86,6 @@ if($DeployDapr){
 }
 
 # ----- Mosquitto
-
 helm repo add azedgefx https://azure-samples.github.io/distributed-az-edge-framework --force-update
 helm repo update
 

@@ -51,15 +51,14 @@ Function Stop-ProcessInNewTerminal {
 
     if ($IsLinux) {
         # Linux-specific code
-        $command = "pkill -f '$WindowTitle'"
         if($env:AZUREPS_HOST_ENVIRONMENT){
             $command = "pkill bash"
             Invoke-Expression $command
         }
         else
         {
-            $pid = pgrep -f "$WindowTitle"
-            kill $pid
+            $processId = pgrep -f "$WindowTitle"
+            Stop-Process $processId
         }
         # sleep to ensure proxy is closed and then return
         Start-Sleep -Seconds 5
