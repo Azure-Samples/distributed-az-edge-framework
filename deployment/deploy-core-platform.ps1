@@ -26,7 +26,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-Import-Module -Name ./modules/text-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
 
 # Import module for interacting with ps processes
 Import-Module -Name ./modules/process-utils.psm1

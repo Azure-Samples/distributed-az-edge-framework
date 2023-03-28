@@ -97,6 +97,7 @@ class Aks {
       {
           New-Item -ItemType Directory -Path $tempFolder
       }
+      Write-Title("Writing Service Account token for $aksName to ./temp/tokens folder, required for Arc cluster connect")
       Set-Content -Path "$tempFolder/$aksName.txt" -Value "$tokenB64"
 
       # ----- Enroll AKS with Arc

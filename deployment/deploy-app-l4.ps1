@@ -17,9 +17,11 @@ Param(
     $AksClusterResourceGroupName,
 
     [string]
+    [Parameter(mandatory=$false)]
     $Location = 'westeurope',
 
     [string]
+    [Parameter(mandatory=$false)]
     $ScriptsBranch = "main"
 )
 
@@ -55,8 +57,8 @@ $eventHubConnectionString = (az eventhubs eventhub authorization-rule keys list 
 $storageKey = (az storage account keys list  --resource-group $resourceGroupApp `
                 --account-name $storageName --query [0].value -o tsv)
 
-# ----- Run Helm
-Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
+# ----- Prepare for Helm, out of band secret creation first
+Write-Title("Connect via Arc to cluster, setup out of band config/secrets")
 
 # ----- Create Arc cluster connect connection 
 # Arc proxying is now tested on Azure Cloud Shell PW terminal. If running Linux and not in cloudshell: exit
@@ -92,7 +94,10 @@ kubectl create secret generic data-gateway-module-secrets-seed `
   --kubeconfig $kubeConfigFile
 
 # --- Close Arc proxy
+Write-Title("Closing Azure Arc proxy")
 Stop-ProcessInNewTerminal -WindowTitle "ArcProxy$AksClusterName"
+
+Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
 # Deploy Flux v2 configuration to install app on kubernetes edge L4 layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `
