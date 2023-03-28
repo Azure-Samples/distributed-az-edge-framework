@@ -58,16 +58,24 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
 # ----- Run Helm
 Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
-# ----- Create cluster connect connection 
-$tokenB64 = Get-Content -Path "./temp/tokens/$AksClusterName.txt"
-$token = ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($tokenB64))))
+# ----- Create Arc cluster connect connection 
+# Arc proxying is now tested on Azure Cloud Shell PW terminal. If running Linux and not in cloudshell: exit
+if($IsLinux -and !$env:AZUREPS_HOST_ENVIRONMENT)
+{
+    Write-Warning "When enabling Arc please note the scripts are not tested on Linux/Unix other than Azure Cloud Shell"
+    Write-Title("Exiting - use the developer setup or run this in Azure Cloud Shell PowerShell")
+    Exit
+}
+$token = Get-DecodedToken("./temp/tokens/$AksClusterName.txt")
 # Start Arc cluster connect in separate terminal process
-Write-Host "Starting terminal Arc proxy"
+
+Write-Title("Starting terminal Arc proxy")
 Start-ProcessInNewTerminalPW -ProcessArgs "az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --file $kubeConfigFile --token $token" -WindowTitle "ArcProxy$AksClusterName"
-Write-Host "Sleep for a few seconds to initialize Arc proxy connection..."
+
+Write-Title("Sleep for a few seconds to initialize proxy...")
 Start-Sleep -s 10
 
-kubectl create namespace $appKubernetesNamespace
+kubectl create namespace $appKubernetesNamespace --kubeconfig $kubeConfigFile
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
 $dataGatewaySecretsSeed=@"
@@ -79,7 +87,9 @@ dataGatewayModule:
   storageAccountKey: {2}
 "@ -f $eventHubConnectionString, $storageName, $storageKey
 
-kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
+kubectl create secret generic data-gateway-module-secrets-seed `
+  --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace `
+  --kubeconfig $kubeConfigFile
 
 # --- Close Arc proxy
 Stop-ProcessInNewTerminal -WindowTitle "ArcProxy$AksClusterName"

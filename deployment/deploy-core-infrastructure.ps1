@@ -72,10 +72,10 @@ class Aks {
 
     if($enableArc)
     {
-      Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
       # ----- Before enrolling with Arc: create Service Account, get token and store in temp folder for Arc Cluster Connect in other scripts
+      Write-Title("Before enrolling AKS $aksName with Arc: create ServiceAccount and store token on disk for now")
       kubectl create serviceaccount arc-user
-      kubectl create clusterrolebinding demo-user-binding --clusterrole cluster-admin --serviceaccount default:arc-user
+      kubectl create clusterrolebinding arc-user-binding --clusterrole cluster-admin --serviceaccount default:arc-user
 
       # create secret with service account token
       $serviceAccountToken=@"
@@ -100,6 +100,7 @@ class Aks {
       Set-Content -Path "$tempFolder/$aksName.txt" -Value "$tokenB64"
 
       # ----- Enroll AKS with Arc
+      Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
       az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-https $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
       az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
     }

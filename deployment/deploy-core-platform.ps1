@@ -26,7 +26,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
 
 # Import module for interacting with ps processes
 Import-Module -Name ./modules/process-utils.psm1
@@ -47,14 +47,23 @@ function CleanHostname([string] $Hostname){
 
 # ----- Get AKS Cluster Credentials into kube context
 if($ArcEnabled){
+    
+    # Arc proxying is now tested on Azure Cloud Shell PW terminal. If running Linux and not in cloudshell: exit
+    if($IsLinux -and !$env:AZUREPS_HOST_ENVIRONMENT)
+    {
+        Write-Warning "When enabling Arc please note the scripts are not tested on Linux/Unix other than Azure Cloud Shell"
+        Write-Title("Exiting - use the developer setup or run this in Azure Cloud Shell PowerShell")
+        Exit
+    }
+    
     # Through Arc cluster connect option
-    $tokenB64 = Get-Content -Path "./temp/tokens/$AksClusterName.txt"
-    $token = ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($tokenB64))))
+    $token = Get-DecodedToken("./temp/tokens/$AksClusterName.txt")
     # Start Arc cluster connect in separate terminal process
-    Write-Host "Starting terminal Arc proxy"
+    
+    Write-Title("Starting terminal Arc proxy")
     Start-ProcessInNewTerminalPW -ProcessArgs "az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --file $kubeConfigFile --token $token" -WindowTitle "ArcProxy$AksClusterName"
     
-    Write-Host "Sleep for a few seconds to initialize proxy..."
+    Write-Title("Sleep for a few seconds to initialize proxy...")
     Start-Sleep -s 10
 
 }

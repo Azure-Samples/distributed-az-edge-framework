@@ -60,4 +60,4 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
     -ScriptsBranch $ScriptsBranch
 
 Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Group with suffix -App, please use the Event Hub instance in tha Resource Group to view the OPC UA and Simulated Sensor telemetry.")
-Write-Title("Your kubectl current context is now set to the AKS cluster '$(kubectl config current-context)'.")
+Write-Title("To connect to the clusters through Azure Arc, use 'az connectedk8s proxy -n {} -g {} --token {}'.")

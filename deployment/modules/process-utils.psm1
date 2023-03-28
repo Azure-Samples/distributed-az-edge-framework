@@ -13,8 +13,12 @@ Function Start-ProcessInNewTerminalPW {
 
     if ($IsLinux) {
         # Linux-specific code
-        $screenTitle = "--title '$WindowTitle'"
-        $command = "screen -d -m $screenTitle bash -c '$ProcessArgs; exec bash'"
+        $screenTitle = "-t '$WindowTitle'"
+        $command = "gnome-terminal $screenTitle -- bash -c '$ProcessArgs; exec bash'"
+        if($env:AZUREPS_HOST_ENVIRONMENT)
+        {
+            $command = "screen -d -m $screenTitle bash -c '$ProcessArgs; exec bash'"
+        }
         Invoke-Expression $command
     }
     else {
@@ -48,14 +52,19 @@ Function Stop-ProcessInNewTerminal {
     if ($IsLinux) {
         # Linux-specific code
         $command = "pkill -f '$WindowTitle'"
+        if($env:AZUREPS_HOST_ENVIRONMENT){
+            $command = "pkill bash"
+        }
         Invoke-Expression $command
+        # sleep to ensure proxy is closed and then return
+        Start-Sleep -Seconds 5
     }
     else {
         # Windows-specific code
         
         Get-Process | Where-Object { $_.MainWindowTitle -eq "$WindowTitle" } | ForEach-Object { $_.CloseMainWindow() }
         # sleep to ensure proxy is closed and then return
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 8
     }
 }
 
