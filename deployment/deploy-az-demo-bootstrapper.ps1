@@ -16,9 +16,11 @@ Param(
 )
 
 mkdir -p modules
+
 # Copy scripts from source location
 $baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
+
 # Import text utilities module.
 Import-Module -Name ./modules/text-utils.psm1
 
@@ -57,5 +59,5 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
     -AksClusterName $l2LevelCoreInfra.AksClusterName  `
     -ScriptsBranch $ScriptsBranch
 
-Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Group with suffix -App, please use the Event Hub instance in tha Resource Group to view the OPC UA and Simulated Sensor telemetry.")
+Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Group with suffix -App, please use the Event Hub instance in tha Resource Group to view the OPC UA and Simulated Temperature Sensor telemetry.")
 Write-Title("Your kubectl current context is now set to the AKS cluster '$(kubectl config current-context)'.")

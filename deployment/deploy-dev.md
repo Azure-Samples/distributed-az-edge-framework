@@ -4,7 +4,7 @@
 
 This flow is used to setup a developer environment in Azure without Azure Arc and Flux. By default the three Azure Kubernetes clusters and networking layers are deployed, but the script can be edited to deploy only one layer with all functionality. Everything is executed from the local developer machine.
 
-## Prerequisites on developer machine
+## Prerequisites on Developer Machine
 
 - PowerShell on Windows, or PowerShell Core on Linux/MacOS
 - .NET 6.0
@@ -15,59 +15,57 @@ This flow is used to setup a developer environment in Azure without Azure Arc an
 - kubectl
 - openssl
 
-## How to execute it
+## How to Execute the Script
 
 In a PowerShell environment, go to `deployment` folder and run `./deploy-az-dev-bootstrapper.ps1 -ApplicationName <short-name>`
 
-## The main functions in the script
+## The Main Functions in the Script
 
 1. Deploy infrastructure with Bicep, the script deploys three AKS clusters.
-    * AKS
-    * VNET
-    * Squid proxy in cluster
+    - AKS
+    - VNET
+    - Squid proxy in cluster
 
-3. Download AKS credentials.
+2. Download AKS credentials.
 
-4. Install DAPR with Helm in AKS on two of the clusters (level 4 and level 2 of the network topology).
+3. Install DAPR with Helm in AKS on two of the clusters (level 4 and level 2 of the network topology).
 
-5. Install Mosquitto with Helm in each AKS cluster, including bridging from each lower broker to the level above.
+4. Install Mosquitto with Helm in each AKS cluster, including bridging from each lower broker to the level above.
 
-6. Provision Azure appplication resources (ACR, Event Hubs, Storage).
+5. Provision Azure application resources (ACR, Event Hubs, Storage).
 
-7. Use `az acr build` to build and push images to the ACR.
+6. Use `az acr build` to build and push images to the ACR.
 
-8. Install our components with Helm in AKS, splitting some of the application workloads to run on Level 2, and the cloud connected workload on Level 4.
+7. Install our components with Helm in AKS, splitting some of the application workloads to run on Level 2, and the cloud connected workload on Level 4.
 
-## Deploy application updates
+## Deploy Application Updates
 
 Subsequent deployments with new container images and Helm chart upgrades can be ran as follows:
 
 > `<resource-group-with-acr>` refers to the Resource Group with the `<short-name>` appended with `-App`.
 
-### PowerShell
+### Update PowerShell
 
 In case you deployed the default developer environment with 3 layers (default):
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster> -L2ResourceGroupName <resource-group-L2-cluster>`
+`./build-and-deploy-images.ps1 -AppResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster> -L2ResourceGroupName <resource-group-L2-cluster>`
 
-### PowerShell
+### Update PowerShell
 
-In case you deployed a developer environment with 1 single layer and cluster (you edited the `deploy-az-dev-bootstrapper.ps1` script):
+In case you deployed a developer environment with one single layer and cluster (you edited the `deploy-az-dev-bootstrapper.ps1` script):
 
-`./build-and-deploy-images.ps1 -ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster>`
+`./build-and-deploy-images.ps1 -AppResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-with-acr> -L4ResourceGroupName <resource-group-L4-cluster>`
 
-## Delete all developer environment Azure resources 
+## Delete all Developer Environment Azure Resources
 
-To remore all Azure resources setup by the default script (AKS clusters, app resources and service principals), run the following from the `deployment` folder:
+To remove all Azure resources setup by the default script (AKS clusters, app resources and service principals), run the following from the `deployment` folder:
 
-### PowerShell
+### Delete PowerShell
 
 `./remove-dev-resources.ps1 -ApplicationName <short-name>`
 
-## Optional single network layered deployment
+## Optional Single Network Layer Deployment
 
-The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use that version, which is more cost effective but does not show MQTT broker bridging at work, uncomment the section in the `deploy-az-dev-bootstrapper.ps1`. Details can be found in the comments of the script file.
+The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use the single deployment version, uncomment the second section in the `deploy-az-dev-bootstrapper.ps1`. Instructions can be found in the comments of the script.
 
-The same applies to removing resources, `remove-dev-resources.ps1` also has commented sections to delete the single layer resources instead.
-
-
+Follow a similar approach for removing resources in nested deployments. `remove-dev-resources.ps1` also has commented sections to delete the single layer resources.
