@@ -2,29 +2,29 @@
 
 [![GitHub CI](https://github.com/azure-samples/distributed-az-edge-framework/actions/workflows/CI.yml/badge.svg)](https://github.com/azure-samples/distributed-az-edge-framework/actions/workflows/CI.yml)
 
-Edge computing comes in various forms, the spectrum of compute scale can vary hugely between use cases and industries. At the lower end of scale we have constrained devices like MCU (Micro Controller Units) and on the higher end we have heavy compute infrastructure which is processing images and high throughput data streams for anomalies. The latter is more frequent in manufacturing industry, these customers often provision high-density hosting platforms on the edge to deploy both cloud connected and locally managed workloads.
+Edge computing comes in many forms and the spectrum of compute scale vary between use cases and industries. At the lower end of scale are constrained devices like MCU (Micro Controller Units) and on the higher end is heavy compute infrastructure. Heavy edge infrastructure is appropriate for high throughput data processing or intensive ML/AI workloads. Across the manufacturing industry the provisioning of high-density hosting platforms on the edge is quite common as it facilitates more unified development and deployment of cloud and edge based workloads.
 
-Azure IoT Edge provides an easy on-ramp experience for light weight edge compute scenarios, if you do not need to scale-out or have a constraint to use Kubernetes(K8s), please consider using [Azure IoT Edge](https://azure.microsoft.com/en-gb/services/iot-edge/) product instead. In fact, the path could be progressive i.e. customers may start small with single machine/industrial PC using Azure IoT Edge and progress to more scalable platform like Kubernetes later when the use-cases/adoption grows in/organically or the gravity towards it increases due to other collective reasons. If portability is the primary reason for running edge workloads on K8s, please consider using [KubeVirt approach](https://github.com/azure-samples/IoT-Edge-K8s-KubeVirt-Deployment) to deploy IoT Edge in a supported manner.
+Azure IoT Edge provides an easy on-ramp experience for light weight edge compute scenarios, if you do not need to scale-out or have a constraint to use Kubernetes, please consider using [Azure IoT Edge](https://azure.microsoft.com/en-gb/services/iot-edge/). Do keep in mind however, the path to a Kubernetes-based edge environment can be progressive; i.e. organizations may start small with single machine/industrial PC using Azure IoT Edge and progress to more scalable platform later when the use-cases or deployment footprint grows. If portability is the primary reason for running edge workloads on Kubernetes, please consider using our [KubeVirt solution](https://github.com/azure-samples/IoT-Edge-K8s-KubeVirt-Deployment) to deploy IoT Edge into a Kubernetes environment (this is also an attractive way to migrate from IoT Edge on bare metal to a larger scale, cluster-based solution).
 
-This repo provides an accelerator and guidance to enable those customer who wants to build edge solutions on K8s in a scalable and resilient manner. The solution makes use of native K8s constructs to deploy and run edge workloads. Additionally, the solution provides a uniform remote management/deployment plane for workloads which is provided via Azure Arc.
+This repo provides an accelerator and guidance to enable organizations to build edge solutions on K8s in a scalable and resilient manner. The solution makes use of native Kubernetes constructs to deploy and run edge computing workloads. Additionally, the solution provides a uniform remote management and deployment plane for workloads, provided via Azure Arc.
 
 ## Overall Design
 
 Following diagram shows the abstracted view of the overall solution approach:
 
-![alt text](architecture/hld.png "Edge on K8s")
+![architectural image of solution](architecture/hld.png "Edge on K8s")
 
 Each pod contains two containers:
 
-1. A custom code container running code/logic as defined by the developers.
-2. A Dapr sidecar container which works as proxy to Dapr services and ecosystem.
+1. A custom code container running business logic, as defined by the developers
+2. A Dapr sidecar container which works as proxy to the Dapr services and ecosystem
 
 Apart from the above arrangement, the following system modules/pods are part of the solution:
 
-1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud. This module is deployed on the top layer of the network (L4 layer).
-2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA Plc module which simulates downstream devices/hubs in industrial IoT scenarios. 
-3. **OPC UA Plc Module**, OPC UA Plc module to simulate OPC UA telemetry from downstream devices to OPC UA Publisher module in industrial IoT scenarios.
-4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non OPC UA protocol.
+1. **Data Gateway Module**, purpose of this module/pod is to route messages from pub-sub layer to the configured data store(s) in the cloud. This module is deployed on the top layer of the network (L4 layer)
+2. **OPC UA Publisher Module**, OPC UA Publisher module to connect to OPC UA PLC module which simulates downstream devices/hubs for industrial IoT scenarios
+3. **OPC UA PLC Module**, OPC UA PLC module to simulate OPC UA telemetry from downstream devices to the OPC UA Publisher module for industrial IoT scenarios
+4. **Simulated Temperature Sensor Module**, emits random temperature and pressure telemetry for testing purposes in a non-OPC UA protocol
 
 ## Nested Topology
 
@@ -32,10 +32,8 @@ This section describes the nested topology design implemented by this solution.
 
 ![alt text](architecture/nested-topology-hld.png "Nested Toplogy")
 
-At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2, 3 ,4 in this instance).
-These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed/controlled via proxy configuration at each level. 
-
-For the data plane (MQTT PubSub), each layer can only talk to the layer above and never directly to the cloud except for the top (L4) layer which has outgoing Internet connectivity.
+At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance).
+These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. We are currently implementing functionality for data planes to transverse layers directly and evaluating an improvement to force this communication to pass through the proxy transparently. Currently only Azure Arc is configured to connect through proxy.
 
 ## Technology Stack
 
@@ -45,26 +43,26 @@ The accelerator makes use of the following products and services:
 
 [Azure Arc](https://docs.microsoft.com/en-us/azure/azure-arc/overview) enables the remote control plane for edge platform and provides the following inherent benefits:
 
-1. Remote management plane for K8s cluster on the edge, including host management.
-2. Desired state management for edge workloads, using Azure Arc's Flux CD extension in conjunction with K8s native constructs.
-3. Standard application deployment model using K8s native constructs i.e. Helm/Kustomize.
-4. Uniform deployment plane for both edge and other workloads on K8s.
-5. Access to K8s cluster in offline mode via industry standard tools like Helm.
+1. Remote management plane for a Kubernetes cluster on the edge, including host management
+2. Desired state management for edge workloads using Azure Arc's Flux CD extension in conjunction with Kubernetes native constructs
+3. Standard application deployment model using Kubernetes native constructs i.e. Helm/Kustomize
+4. Uniform deployment plane for both edge and other workloads on Kubernetes
+5. Access to Kubernetes cluster in offline mode via industry standard tools like Helm
 
 ### Distributed Application Runtime ([Dapr](https://dapr.io/))
 
 Dapr building blocks enable the cross-cutting amd non functional features which we are common in edge scenarios, some of those are mentioned below:
 
-1. Local messaging with pub-sub functionality, optionally using standard [CloudEvents](https://cloudevents.io/).
-2. Resilient communication between services and cloud endpoints, using [Circuit-breaker](https://docs.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) pattern.
-3. Low latency and high throughput based service invocations, using [gRPC](https://grpc.io/) or Http RESTful mechanism.
-4. Secure service to service communication, using mTLS or [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/).
-5. Well known and understood configuration and secret management.
-6. End to end observability at both application and platform level, using OpenTelemetry.
+1. Local messaging with pub-sub functionality, optionally using standard [CloudEvents](https://cloudevents.io/)
+2. Resilient communication between services and cloud endpoints using the [Circuit-breaker](https://docs.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker) pattern
+3. Low latency and high throughput based service invocations using [gRPC](https://grpc.io/) or Http ReST mechanics
+4. Secure service-to-service communication using mTLS or [SPIFFE](https://spiffe.io/docs/latest/spiffe-about/overview/)
+5. Well known and understood configuration and secret management approaches
+6. End-to-end observability at both application and platform levels using [OpenTelemetry](https://opentelemetry.io/)
 
 ### MQTT Broker for Publish/Subscribe and Data Plane Bridging
 
-Workloads exchange messages locally on the same network layer and K8S cluster by using a cluster deployed MQTT broker. As described above, Dapr is leveraged to interact with the broker without specific application-aware code to interact with the chosen PubSub mechanism.
+Workloads exchange messages locally on the same network layer and Kubernetes cluster by using a cluster deployed MQTT broker. As described above, Dapr is leveraged to interact with the broker without specific application-aware code to interact with the chosen PubSub mechanism.
 
 For more information about MQTT broker choice and comparison, please see [MQTT Broker for Data Communication Between Workloads and Between Network Layers](/docs/mqttbroker.md).
 
@@ -75,32 +73,32 @@ For more information about MQTT broker choice and comparison, please see [MQTT B
 Solution components are split into three layers from deployment perspective:
 
 1. **Core Infrastructure Layer** (Kubernetes, Kubectl/Helm clients configuration).
-   This deployment is a responsibility of customer's infrastructure team, customer may already have this infrastructure in place or may need to cater for specific requirements due to external constraints. Pre-Built Packages Available:
-    * Core Infrastructure Package for Demo on Azure cloud.
+   This deployment is a responsibility of an organization's infrastructure team. Organizations may already have this infrastructure in place or may need to cater for specific requirements due to external constraints. Pre-Built Packages Available:
+    * Core Infrastructure Package for Demo on the Azure Cloud.
   
-2. **Core Platform Layer** (Dapr, Arc and Flux extensions on Kubernetes).
-   This deployment is a responsibility of customer's devops team, we will provide a pre-built deployment package/scripts which can be run by customer to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
+2. **Core Platform Layer** (Dapr, Arc, and Flux extensions on Kubernetes).
+   This deployment is a responsibility of an organization's devops team. Pre-built deployment packages/scripts are provided which can be run by an organization to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
     * Core Platform Package for Kubernetes in Cloud/On-prem.
   
 3. **Application Layer** (Cloud and Kubernetes artifacts for the application).
-   This deployment is a responsibility of customer's devops team, customer will use scripts to deploy application components which may span across Azure (App1 RG) and Kubernetes on the edge (App1 Namespace). The edge component will comprise of a Flux configuration manifest which in turn will configure Flux extension on Kubernetes to sync and deploy remote/local Helm package. Pre-Built Packages Available:
+   This deployment is a responsibility of organizations's devops team. The provided scripts will deploy application components which may span across Azure (App1 RG) and Kubernetes on the edge (App1 Namespace). The edge component is comprised of a Flux configuration manifest which in turn will configure the Flux extension on Kubernetes to sync and deploy remote/local Helm packages. Pre-Built Packages Available:
     * Sample Application Package for Accelerator in Cloud/Hybrid mode.
 
-Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, az cmds and other scripts to deploy the solution and its dependencies.
+Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, `az` cmds and other scripts to deploy the solution and its dependencies.
 
 ### Try It on Azure
 
 In Azure, for demo purposes we deploy all the three layers for you.
 
-Run the following cmdline in [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
+Run the following command in the [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
-Optionally, for deploying a developer environment with local application building and deployment please see [Setup a developer environment on Azure with local application deployment](./deployment/deploy-dev.md).
+Optionally, for deploying a developer environment with local application building and deployment please see [Setup a development environment on Azure with local application deployment](./deployment/deploy-dev.md).
 
 ## Further Enhancements
 
-This solution is further enhanced with the features/issues defined here [here](https://github.com/Azure-Samples/distributed-az-edge-framework/issues)
+This solution is further enhanced with the features and issues defined [in our issue list](https://github.com/Azure-Samples/distributed-az-edge-framework/issues).
 
 ## Disclaimer
 
