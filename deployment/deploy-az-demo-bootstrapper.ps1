@@ -13,6 +13,11 @@ Param(
     [string]
     [Parameter(mandatory=$false)]
     $Location = 'westeurope'    
+    $ScriptsBranch = "main",
+
+    [string]
+    [Parameter(mandatory=$false)]
+    $Location = 'westeurope'    
 )
 
 mkdir -p modules
