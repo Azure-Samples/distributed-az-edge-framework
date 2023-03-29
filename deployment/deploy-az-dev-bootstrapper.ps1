@@ -51,7 +51,7 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
 
 # ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName `
 #     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
-#     -DeployDapr $true -MosquittoParentConfig $null
+#     -DeployDapr $true -MosquittoParentConfig $null -ArcEnabled $false
 
 # $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
 #     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `

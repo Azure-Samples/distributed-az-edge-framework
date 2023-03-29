@@ -146,16 +146,6 @@ else {
     $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
 
     helm install mosquitto azedgefx/mosquitto `
-}
-else {
-
-    Write-Title("Install Mosquitto with bridge to parent")
-
-    $parentCluster = CleanHostname($MosquittoParentConfig.ParentAksClusterName) 
-    $mosquittoParentIp = $MosquittoParentConfig.MosquittoIp
-    $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
-
-    helm install mosquitto azedgefx/mosquitto `
     --namespace edge-core `
     --set-string bridge.enabled="true" `
     --set-string bridge.connectionName="$AksClusterName-parent" `
