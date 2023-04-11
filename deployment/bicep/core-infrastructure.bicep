@@ -81,6 +81,7 @@ param aksObjectId string
 @description('The AKS service principal client id')
 param aksClientId string
 
+@secure()
 @description('The AKS service principal client secret')
 param aksClientSecret string
 

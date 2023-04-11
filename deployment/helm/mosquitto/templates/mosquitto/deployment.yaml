@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "mosquitto.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "mosquitto.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "mosquitto.name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ tpl .Values.image.tag . }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - name: default
+            containerPort: {{ .Values.defaultPort }}
+            protocol: TCP
+          - name: tls
+            containerPort: {{ .Values.tlsPort }}
+            protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.defaultPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.defaultPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        volumeMounts:
+          - name: mosquitto-config
+            mountPath: /mosquitto/config/mosquitto.conf
+            subPath: mosquitto.conf
+          - name: mosquitto-data
+            mountPath: /mosquitto/data
+            subPath: mosquitto/data
+          - name: mosquitto-ca-cert
+            mountPath: /mosquitto/config/certs/ca.crt
+            subPath: ca.crt
+            readOnly: true
+          - name: mosquitto-server-cert
+            mountPath: /mosquitto/config/certs/server.crt
+            subPath: server.crt
+            readOnly: true
+          - name: mosquitto-server-key
+            mountPath: /mosquitto/config/certs/server.key
+            subPath: server.key
+            readOnly: true
+          - name: mosquitto-bridgeclient-key
+            mountPath: /mosquitto/config/bridge/bridgeclient.key
+            subPath: bridgeclient.key
+            readOnly: true
+          - name: mosquitto-bridgeca-cert
+            mountPath: /mosquitto/config/bridge/bridgeca.crt
+            subPath: bridgeca.crt
+            readOnly: true
+          - name: mosquitto-bridgeclient-cert
+            mountPath: /mosquitto/config/bridge/bridgeclient.crt
+            subPath: bridgeclient.crt
+            readOnly: true
+      volumes:
+        - name: mosquitto-config
+          configMap:
+            name: mosquitto-config
+        - name: mosquitto-data
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: mosquitto-pvc
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        - name: mosquitto-ca-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: ca.crt
+                path: ca.crt
+        - name: mosquitto-server-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: server.crt
+                path: server.crt
+        - name: mosquitto-server-key
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: server.key
+                path: server.key
+        - name: mosquitto-bridgeca-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: bridgeca.crt
+                path: bridgeca.crt
+        - name: mosquitto-bridgeclient-cert
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: bridgeclient.crt
+                path: bridgeclient.crt
+        - name: mosquitto-bridgeclient-key
+          configMap:
+            name: mosquitto-certs
+            items:
+              - key: bridgeclient.key
+                path: bridgeclient.key
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

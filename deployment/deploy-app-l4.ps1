@@ -17,22 +17,25 @@ Param(
     $AksClusterResourceGroupName,
 
     [string]
-    $Location = 'westeurope'
+    $Location = 'westeurope',
+
+    [string]
+    $ScriptsBranch = "main"
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name .\modules\text-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
 
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
 
-Write-Title("Start Deploying Application")
+Write-Title("Start Deploying Application for L4")
 $startTime = Get-Date
 
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep File")
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName `
+           --template-file .\bicep\iiot-app.bicep --parameters applicationName=$ApplicationName location=$Location `
            --name "dep-$deploymentId" -o json) | ConvertFrom-Json
 
 $storageName = $r.properties.outputs.storageName.value
@@ -49,14 +52,12 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
                 --account-name $storageName --query [0].value -o tsv)
 
 # ----- Run Helm
-Write-Title("Install Latest Release of Helm Chart via Flux v2 and Azure Arc")
+Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
-# ----- Get AKS Cluster Credentials
+# ----- Get AKS Cluster Credentials for L4 layer
 az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
 
 kubectl create namespace $appKubernetesNamespace
-# Copy Redis secret from edge-core namesapce to edge-app namespace where application is deployed.
-kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f -
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
 $dataGatewaySecretsSeed=@"
@@ -70,8 +71,11 @@ dataGatewayModule:
 
 kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
 
-# Deploy Flux v2 configuration to install app on kubernetes edge.
-az k8s-configuration flux create -g $AKSClusterResourceGroupName -c $AKSClusterName -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster -u https://github.com/azure-samples/distributed-az-edge-framework --branch main --kustomization name=flux-kustomization prune=true path=/deployment/flux
+# Deploy Flux v2 configuration to install app on kubernetes edge L4 layer.
+az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `
+  -t connectedClusters -n edge-framework-ci-config --namespace $appKubernetesNamespace --scope cluster `
+  -u https://github.com/azure-samples/distributed-az-edge-framework --branch $ScriptsBranch `
+  --kustomization name=flux-kustomization prune=true path=/deployment/flux/l4
 
 $runningTime = New-TimeSpan -Start $startTime
-Write-Title("Running time app deployment:" + $runningTime.ToString())
+Write-Title("Running time L4 app deployment:" + $runningTime.ToString())

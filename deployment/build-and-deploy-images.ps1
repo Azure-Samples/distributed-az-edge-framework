@@ -5,25 +5,34 @@
 
 Param(
     [string]
-    $ResourceGroupName
+    $AppResourceGroupName,
+
+    [string]
+    [Parameter(mandatory=$true)]
+    $L4ResourceGroupName,
+
+    # leave empty if both workloads are deployed on single cluster L4
+    [string]
+    [Parameter(mandatory=$false)]
+    $L2ResourceGroupName
 )
 
-if(!$env:RESOURCEGROUPNAME -and !$ResourceGroupName)
+if(!$env:RESOURCEGROUPNAME -and !$AppResourceGroupName)
 {
-    Write-Error "Environment variable RESOURCEGROUPNAME is not set and ResourceGroupName parameter is not set"
+    Write-Error "Environment variable RESOURCEGROUPNAME is not set and AppResourceGroupName parameter is not set"
     Exit
 }
-if(!$ResourceGroupName)
+if(!$AppResourceGroupName)
 {
-    $ResourceGroupName = $env:RESOURCEGROUPNAME
+    $AppResourceGroupName = $env:RESOURCEGROUPNAME
 }
 
 # Import text utilities module.
-Import-Module -Name .\modules\text-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
 
 $deploymentId = Get-Random
 $startTime = Get-Date
-$acrName = (az acr list -g $ResourceGroupName --query [].name -o tsv)
+$acrName = (az acr list -g $AppResourceGroupName --query [].name -o tsv)
 $appKubernetesNamespace = "edge-app1"
 $staticBranchName = "dapr-support"
 
@@ -43,22 +52,56 @@ $Env:Version_Prefix = $deploymentId
 ../lib/Industrial-IoT/tools/scripts/acr-build.ps1 -Path ../lib/Industrial-IoT/modules/src/Microsoft.Azure.IIoT.Modules.OpcUa.Publisher/src -Registry $acrName
 Set-Location -Path $deploymentDir
 
-# ----- Run Helm
-Write-Title("Upgrade/Install Pod/Containers with Helm in Cluster")
+# ----- Run Helm for L4
+
+Write-Title("Upgrade/Install Pod/Containers with Helm charts in Cluster L4")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
+
+# ----- Get Cluster Credentials for L4 layer
+Write-Title("Get AKS Credentials L4 Layer")
+$aksClusterL4 = (az aks list --resource-group $L4ResourceGroupName --query [].name -o tsv)
+az aks get-credentials `
+    --admin `
+    --name $aksClusterL4 `
+    --resource-group $L4ResourceGroupName `
+    --overwrite-existing
+
+helm upgrade iot-edge-l4 ./helm/iot-edge-l4 `
+    --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+    --namespace $appKubernetesNamespace `
+    --reuse-values `
+    --install
+
+# ----- Run Helm for L2
+
+# check if L2 resource group supplied: if not, use L4 for second Helm chart deployment, if means single cluster dev deployment
+if($L2ResourceGroupName)
+{
+    Write-Title("Get AKS Credentials L2 Layer")
+    $aksClusterL2 = (az aks list --resource-group $L2ResourceGroupName --query [].name -o tsv)
+    az aks get-credentials `
+        --admin `
+        --name $aksClusterL2 `
+        --resource-group $L2ResourceGroupName `
+    --overwrite-existing
+}
+#else - use above loaded kubeconfig for L4, no need to get credentials
+
+Write-Title("Upgrade/Install Pod/Containers with Helm charts in Cluster L2")
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
 $opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
-helm upgrade iot-edge-accelerator ./helm/iot-edge-accelerator `
-    --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+
+helm upgrade iot-edge-l2 ./helm/iot-edge-l2 `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
     --reuse-values `
     --namespace $appKubernetesNamespace `
     --install
-    
+
 $runningTime = New-TimeSpan -Start $startTime
 
 Write-Title("Tag:  $deploymentId")
+Write-Title("Your kubectl current context is now set to the AKS cluster '$(kubectl config current-context)'.")
 Write-Title("Running time: " + $runningTime.ToString())

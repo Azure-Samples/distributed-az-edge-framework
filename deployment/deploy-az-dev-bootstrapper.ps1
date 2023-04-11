@@ -5,37 +5,72 @@
 Param(
     [string]
     [Parameter(mandatory=$true)]
-    $ApplicationName
+    $ApplicationName,
+
+    [string]
+    [Parameter(mandatory=$false)]
+    $Location = 'westeurope'
 )
 
 # Import text utilities module.
-Import-Module -Name .\modules\text-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
 
 Write-Title("Start Deploying")
 $startTime = Get-Date
 $ApplicationName = $ApplicationName.ToLower()
 
+# --- Deploying 3 layers: comment below block and uncomment bottom block for single layer:
+
 # 1. Deploy core infrastructure (AKS clusters, VNET)
 
-# Uncomment the section below to create 3 layered AKS deployment instead of a single one for development which is the script's default further below
-# Deploy 3 core infrastructure layers i.e. L4, L3, L2, replicating 3 levels of Purdue network topology.
-# Tip: You can split the below pipes into indivudual cmds and assign them to vars, to deploy core-platform and/or apps to those clusters.
-# $lowestLevelCoreInfra = .\deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false | `
-#                         .\deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $false | `
-#                         .\deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false
+$l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -Location $Location
+$l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $false -Location $Location
+$l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false -Location $Location
 
-# Comment out below line if you are choosing the above 3 layer deployment instead.
-$lowestLevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false
+# # 2. Deploy core platform in each layer (Dapr, Mosquitto and bridging).
+$l4CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $null
+$l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l3LevelCoreInfra.AksClusterResourceGroupName -MosquittoParentConfig $l4CorePlatform
+./deploy-core-platform.ps1 -AksClusterName $l2LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $l3CorePlatform
 
-# 2. Deploy core platform.
-./deploy-core-platform.ps1 -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName
+# 3. Deploy app resources in Azure, build images and deploy helm on level L4 and L2.
+$l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
+    -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
+    -AksClusterName $l4LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L4") `
+    -Location $Location
 
-# 3. Deploy app resources, build images and deploy helm.
-./deploy-dev-app.ps1 -ApplicationName $ApplicationName -AksClusterResourceGroupName $lowestLevelCoreInfra.AksClusterResourceGroupName -AksClusterName $lowestLevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L2")
+# Note currently for developer flow we need Azure Ccontianer Registry deployed by L4 (via L4AppConfig). 
+./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
+    -AksClusterName $l2LevelCoreInfra.AksClusterName `
+    -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName `
+    -AksServicePrincipalName ($ApplicationName + "L2") `
+    -L4AppConfig $l4AppConfig
+
+# # --- Deploying just a single layer: comment above block and uncomment below:
+
+# $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -Location $Location
+
+# ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName `
+#     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
+#     -DeployDapr $true -MosquittoParentConfig $null
+
+# $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
+#     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
+#     -AksClusterName $l4LevelCoreInfra.AksClusterName `
+#     -AksServicePrincipalName ($ApplicationName + "L4") `
+#     -Location $Location
+
+# # when deploying L2 workload on single cluster in L4, passing in parameters pointing to L4 is intentional
+# ./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
+#     -AksClusterName $l4LevelCoreInfra.AksClusterName `
+#     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
+#     -AksServicePrincipalName ($ApplicationName + "L4") `
+#     -L4AppConfig $l4AppConfig
+# #----------------
 
 $runningTime = New-TimeSpan -Start $startTime
 
 Write-Title("Running time bootstrapper: " + $runningTime.ToString())
-Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Groups $ApplicationName and $ApplicationName-App.")
+Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Groups $ApplicationName + L2 to L4 and $ApplicationName-App.")
 Write-Title("Please use the Event Hub instance in the Resource Group $ApplicationName-App to view the OPC UA and Simulated Sensor telemetry.")
+Write-Title("Your kubectl current context is now set to the AKS cluster '$(kubectl config current-context)'.")
 
