@@ -1,0 +1,10 @@
+# envoy proxy settings
+envoyReverseProxy:
+  port: 3128
+command:
+  - /usr/local/bin/envoy
+args:
+  - -c
+  - /etc/envoy/envoy.yaml
+  - -l
+  - debug

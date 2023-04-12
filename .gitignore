@@ -392,3 +392,4 @@ appsettings.*.json
 
 # Temporary deployment files
 temp/
+.DS_Store
