@@ -38,34 +38,32 @@ class Aks {
     az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
     
     #----- Install AKS Proxy
-    helm repo add squid https://azure-samples.github.io/distributed-az-edge-framework
-    helm repo update
+    # helm repo add envoy https://azure-samples.github.io/distributed-az-edge-framework
+    # helm repo update
 
-    if($proxyConfig)
-    {
+    if ($proxyConfig) {
       $parentProxyIp = $proxyConfig.ProxyIp
       $parentProxyPort = $proxyConfig.ProxyPort
 
-      Write-Title("Install Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")      
-      helm install squid squid/squid-proxy `
-          --set-string parent.ipAddress="$parentProxyIp" `
-          --set-string parent.port="$parentProxyPort" `
-          --namespace edge-proxy `
-          --create-namespace `
-          --wait          
+      Write-Title("Install Reverse Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
+      helm install envoy ./helm/envoy `
+        --set-string parent.ipAddress="$parentProxyIp" `
+        --set-string parent.port="$parentProxyPort" `
+        --namespace reverse-proxy `
+        --create-namespace `
+        --wait
     }
-    else
-    {
-      Write-Title("Install Proxy without Parent")
-      helm install squid squid/squid-proxy `
-          --namespace edge-proxy `
-          --create-namespace `
-          --wait
+    else {
+      Write-Title("Install envoy Reverse Proxy without Parent")
+      helm install envoy ./helm/envoy `
+        --namespace reverse-proxy `
+        --create-namespace `
+        --wait
     }
 
     # ----- Get AKS Proxy IP Address
     Write-Title("Get AKS $aksName Proxy Ip Address and Port")
-    $proxy = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
+    $proxy = kubectl get service envoy-service -n reverse-proxy -o json | ConvertFrom-Json
     $proxyIp = $proxy.status.loadBalancer.ingress.ip
     $proxyPort = $proxy.spec.ports.port
     $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort    
@@ -74,7 +72,7 @@ class Aks {
     {
       # ----- Enroll AKS with Arc
       Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
-      az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-https $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
+      az connectedk8s connect --name $aksName --resource-group $resourceGroupName --proxy-http $proxyUrl --proxy-skip-range 10.0.0.0/16,kubernetes.default.svc,.svc.cluster.local,.svc
       az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
     }
     else
