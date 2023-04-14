@@ -1,10 +1,16 @@
 # envoy proxy settings
 envoyReverseProxy:
-  port: 3128
+  httpsContainerPort: 50000
+  httpsPort: 443
 command:
   - /usr/local/bin/envoy
 args:
   - -c
   - /etc/envoy/envoy.yaml
   - -l
-  - debug
+  - info
+
+parent:
+  enabled: false
+  proxyIp: to_replace
+  proxyHttpsPort: 443

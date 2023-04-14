@@ -1,49 +1,3 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: envoy-configmap
-data:
-  envoy.yaml: |
-    admin:
-      access_log_path: /tmp/admin_access.log
-      address:
-        socket_address: { address: 0.0.0.0, port_value: 9901 }
-
-    static_resources:
-      listeners:
-      - name: listener_0
-        address:
-          socket_address:
-            address: 0.0.0.0
-            port_value: {{ .Values.envoyReverseProxy.port }}
-        filter_chains:
-        - filters:
-          - name: envoy.filters.network.tcp_proxy
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-              cluster: service-https
-              stat_prefix: https_passthrough
-      clusters:
-      - name: service-https
-        type: STRICT_DNS
-        lb_policy: ROUND_ROBIN
-        connect_timeout: 500s
-        load_assignment:
-          cluster_name: service-https
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    {{- if .Values.parent }}
-                    address: {{ .Values.parent.ipAddress }}
-                    port_value: {{ .Values.parent.port }}
-                    {{- else }}
-                    address: 142.250.200.36
-                    port_value: 443
-                    {{- end }}
-                    # curl --resolve www.google.com:3128:172.20.0.7 https://www.google.com:3128 -k -v info
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,19 +28,11 @@ spec:
           mountPath: /etc/envoy/envoy.yaml
           subPath: envoy.yaml
         ports:
-        - containerPort: {{ .Values.envoyReverseProxy.port }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: envoy-service
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
-spec:
-  type: LoadBalancer
-  selector:
-    app: envoy-module
-  ports:
-    - protocol: TCP
-      port: {{ .Values.envoyReverseProxy.port }}
-      targetPort: {{ .Values.envoyReverseProxy.port }}
+        - containerPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
+          name: https
+      # setting hostNetwork true will prevent injection default Azure based DNS as opposed to Kube-DNS one 
+      # which is what we want for Level 4 going out to internet through pod proxy but resolving locally elsewhere in cluster
+      {{- if .Values.parent }}
+      hostNetwork: true
+      dnsPolicy: Default
+      {{- end }}
