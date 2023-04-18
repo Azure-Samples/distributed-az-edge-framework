@@ -19,6 +19,15 @@ Write-Title("Start Deploying")
 $startTime = Get-Date
 $ApplicationName = $ApplicationName.ToLower()
 
+# --- Ensure Location is set to short name
+$regionName = (az account list-locations --query "[? contains(displayName, '$Location') || contains(name, '$Location')].name" -o json) `
+    | ConvertFrom-Json
+if($regionName.Count -eq 0) {
+    Write-Error "Location $Location not found"
+    exit
+}
+$Location = $regionName[0]
+
 # --- Deploying 3 layers: comment below block and uncomment bottom block for single layer:
 
 # 1. Deploy core infrastructure (AKS clusters, VNET)

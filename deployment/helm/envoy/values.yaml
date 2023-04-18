@@ -31,6 +31,8 @@ domainNames:
   graph_microsoft_com: graph.microsoft.com
   gbl_his_arc_azure_com: gbl.his.arc.azure.com
   connectedclusters_arc_azure_com: connectedclusters.arc.azure.com
+  # *.his.arc.azure.com
+  # *.arc.azure.net
   
 regionalDomains:
   region_dp_kubernetesconfg_azure_com: .dp.kubernetesconfiguration.azure.com
@@ -41,6 +43,7 @@ regionalDomains:
   # *.arc.azure.net
 
 
+# TODO this would provide a way to add custom domain names, evaluate port number if needs to be added
 # Provide additional domains that you want to proxy through
 # customDomains:
-#     comain1: www.domain1.com
+#   comain1: www.domain1.com

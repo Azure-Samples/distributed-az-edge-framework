@@ -22,67 +22,67 @@ data:
             "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
         per_connection_buffer_limit_bytes: 32768  # 32 KiB
         filter_chains:
+        {{- $domainRegion := .Values.domainRegion -}}
+        {{- if .Values.parent.enabled }}
         - filter_chain_match:
             server_names:
-              - management.azure.com
+              {{- range $key, $val := .Values.domainNames }}
+              - {{ $val }}
+              {{- end }}
+              {{- range $key, $val := .Values.regionalDomains }}
+              - {{ $domainRegion -}} {{ $val }}
+              {{- end }}
+              {{- range $key, $val := .Values.customDomains }}
+              - {{ $domainRegion -}} {{ $val }}
+              {{- end }}
           filters:
             - name: envoy.filters.network.tcp_proxy
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                cluster: {{- if .Values.parent.enabled }} parent-passthrough  {{- else }} management-azure-com {{- end }}
-                stat_prefix: mng-azure-com_passthr
+                cluster: parent-passthrough
+                stat_prefix: parent_passthr
+        {{- else }}
+        {{- range $key, $val := .Values.domainNames }}
         - filter_chain_match:
             server_names:
-              - login.windows.net
+              - {{ $val }}
           filters:
             - name: envoy.filters.network.tcp_proxy
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                cluster: {{- if .Values.parent.enabled }} parent-passthrough  {{- else }} login-windows-net {{- end }}
-                stat_prefix: login-windows-net_passthr
+                cluster: {{ $key }}
+                stat_prefix: {{ $key }}_passthr
+        {{- end }}
+        {{- range $key, $val := .Values.regionalDomains }}
         - filter_chain_match:
             server_names:
-              - www.google.com
+              - {{ $domainRegion -}} {{ $val }}
           filters:
             - name: envoy.filters.network.tcp_proxy
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                cluster: {{- if .Values.parent.enabled }} parent-passthrough  {{- else }} www-google-com {{- end }}
-                stat_prefix: google-com_passthr
+                cluster: {{ $key }}
+                stat_prefix: {{ $key }}_passthr
+        {{- end }}
+        {{- range $key, $val := .Values.customDomains }}
         - filter_chain_match:
             server_names:
-              - mcr.microsoft.com
+              - {{ $val }}
           filters:
             - name: envoy.filters.network.tcp_proxy
               typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                cluster: {{- if .Values.parent.enabled }} parent-passthrough  {{- else }} mcr-microsoft-com {{- end }}
-                stat_prefix: mcr-microsoft-com_passthr
-        - filter_chain_match:
-            server_names:
-              - northeurope.data.mcr.microsoft.com
-          filters:
-            - name: envoy.filters.network.tcp_proxy
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                cluster: {{- if .Values.parent.enabled }} parent-passthrough  {{- else }} region-data-mcr-microsoft-com {{- end }}
-                stat_prefix: region-data-mcr-microsoft-com_passthr
-        - filter_chain_match:
-            server_names:
-              - guestnotificationservice.azure.com
-          filters:
-            - name: envoy.filters.network.tcp_proxy
-              typed_config:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
-                cluster: {{- if .Values.parent.enabled }} parent-passthrough  {{- else }} guestnotificationservice-azure-com {{- end }}
-                stat_prefix: guest-net_passthr
+                cluster: {{ $key }}
+                stat_prefix: {{ $key }}_passthr
+        {{- end }}
+        {{- end }}
 
+      clusters:
       {{- if .Values.parent.enabled }}
       # If child layer point to parent proxy entrypoint
-      clusters:
       - name: parent-passthrough
         type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
+        dns_lookup_family: V4_ONLY
         load_assignment:
           cluster_name: parent-passthrough
           endpoints:
@@ -92,83 +92,52 @@ data:
                   socket_address:
                     address: {{ .Values.parent.proxyIp }}
                     port_value: {{ .Values.parent.proxyHttpsPort }}
-      
       {{- else }}
       # else if this is top layer point to outbound public URIs
-      clusters:
-      - name: management-azure-com
-        type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
-        load_assignment:
-          cluster_name: management-azure-com
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: management.azure.com
-                    port_value: 443
-      - name: login-windows-net
-        type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
-        load_assignment:
-          cluster_name: login-windows-net
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: login.windows.net
-                    port_value: 443
-      - name: www-google-com
+      {{- $httpsPort := .Values.parent.proxyHttpsPort -}}
+      {{- range $key, $val := .Values.domainNames }}
+      - name: {{ $key }}
         type: LOGICAL_DNS
         dns_lookup_family: V4_ONLY
         load_assignment:
-          cluster_name: www-google-com
+          cluster_name: {{ $key }}
           endpoints:
           - lb_endpoints:
             - endpoint:
                 address:
                   socket_address:
-                    address: www.google.com
-                    port_value: 443
-      - name: mcr-microsoft-com
+                    address: {{ $val }}
+                    port_value: {{ $httpsPort }}
+      {{- end }}
+      {{- range $key, $val := .Values.regionalDomains }}
+      - name: {{ $key }}
         type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
+        dns_lookup_family: V4_ONLY
         load_assignment:
-          cluster_name: mcr-microsoft-com
+          cluster_name: {{ $key }}
           endpoints:
           - lb_endpoints:
             - endpoint:
                 address:
                   socket_address:
-                    address: mcr.microsoft.com
-                    port_value: 443
-      - name: region-data-mcr-microsoft-com
+                    address: {{ $domainRegion -}} {{ $val }}
+                    port_value: {{ $httpsPort }}
+      {{- end }}
+      {{- range $key, $val := .Values.customDomains }}
+      - name: {{ $key }}
         type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
+        dns_lookup_family: V4_ONLY
         load_assignment:
-          cluster_name: region-data-mcr-microsoft-com
+          cluster_name: {{ $key }}
           endpoints:
           - lb_endpoints:
             - endpoint:
                 address:
                   socket_address:
-                    address: northeurope.data.mcr.microsoft.com
-                    port_value: 443
-      - name: guestnotificationservice-azure-com
-        type: LOGICAL_DNS
-        lb_policy: ROUND_ROBIN
-        load_assignment:
-          cluster_name: guestnotificationservice-azure-com
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: guestnotificationservice.azure.com
-                    port_value: 443
-    {{- end }}
+                    address: {{ $val }}
+                    port_value: {{ $httpsPort }}
+      {{- end }}
+      {{- end }}
     
     layered_runtime:
       layers:

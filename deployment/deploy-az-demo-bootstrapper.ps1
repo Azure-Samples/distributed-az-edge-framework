@@ -15,6 +15,14 @@ Param(
     $Location = 'westeurope'    
 )
 
+# --- Ensure Location is set to short name
+$regionName = (az account list-locations --query "[? contains(displayName, '$Location') || contains(name, '$Location')].name" -o json) `
+    | ConvertFrom-Json
+if($regionName.Count -eq 0) {
+    Write-Error "Location $Location not found"
+    exit
+}
+
 mkdir -p modules
 
 # Copy scripts from source location
