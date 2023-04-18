@@ -30,9 +30,19 @@ spec:
         ports:
         - containerPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
           name: https
-      # setting hostNetwork true will prevent injection default Azure based DNS as opposed to Kube-DNS one 
+        livenessProbe:
+          tcpSocket:
+            port: 9901
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        readinessProbe:
+          tcpSocket:
+            port: 9901
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      # setting hostNetwork true trigger DNS injection default Azure based DNS as opposed to Kube-DNS one 
       # which is what we want for Level 4 going out to internet through pod proxy but resolving locally elsewhere in cluster
-      {{- if .Values.parent }}
+      {{- if not .Values.parent.enabled }}
       hostNetwork: true
       dnsPolicy: Default
       {{- end }}

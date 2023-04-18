@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: envoy-https-service
+  name: envoy-service
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
@@ -10,6 +10,5 @@ spec:
     app: envoy-module
   ports:
     - protocol: TCP
-      port: {{ .Values.envoyReverseProxy.httsPort }}
+      port: {{ .Values.envoyReverseProxy.httpsPort }}
       targetPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
-

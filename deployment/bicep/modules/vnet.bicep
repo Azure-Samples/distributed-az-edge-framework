@@ -35,7 +35,7 @@ var allowProxyInboundSecurityRule = {
     priority: 1010
     access: 'Allow'
     direction: 'Inbound'
-    destinationPortRange: '3128'
+    destinationPortRange: '443'
     protocol: 'Tcp'
     sourcePortRange: '*'
     sourceAddressPrefix: 'VirtualNetwork'

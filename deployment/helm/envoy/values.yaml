@@ -2,15 +2,45 @@
 envoyReverseProxy:
   httpsContainerPort: 50000
   httpsPort: 443
+
 command:
   - /usr/local/bin/envoy
+
 args:
   - -c
   - /etc/envoy/envoy.yaml
   - -l
-  - info
+  - debug
 
 parent:
   enabled: false
   proxyIp: to_replace
   proxyHttpsPort: 443
+
+domainRegion: northeurope
+
+domainNames:
+  management_azure_com: management.azure.com
+  login_windows_net: login.windows.net
+  mcr_microsoft_com: mcr.microsoft.com
+  guestnotificationservice_azure_com: guestnotificationservice.azure.com
+  login_microsoftonline_com: login.microsoftonline.com
+  k8connecthelm_azureedge_net: k8connecthelm.azureedge.net
+  sts_windows_net: sts.windows.net
+  k8sconnectcsp_azureedge_net: k8sconnectcsp.azureedge.net
+  graph_microsoft_com: graph.microsoft.com
+  gbl_his_arc_azure_com: gbl.his.arc.azure.com
+  connectedclusters_arc_azure_com: connectedclusters.arc.azure.com
+  
+regionalDomains:
+  region_dp_kubernetesconfg_azure_com: .dp.kubernetesconfiguration.azure.com
+  region_data_mcr_microsoft_com: .data.mcr.microsoft.com
+  region_login_microsoft_com: .login.microsoft.com
+  # *.servicebus.windows.net
+  # *.his.arc.azure.com
+  # *.arc.azure.net
+
+
+# Provide additional domains that you want to proxy through
+# customDomains:
+#     comain1: www.domain1.com
