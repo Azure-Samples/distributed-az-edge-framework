@@ -14,19 +14,14 @@ Param(
 
 # Import text utilities module.
 Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/az-utils.psm1
 
 Write-Title("Start Deploying")
 $startTime = Get-Date
 $ApplicationName = $ApplicationName.ToLower()
 
 # --- Ensure Location is set to short name
-$regionName = (az account list-locations --query "[? contains(displayName, '$Location') || contains(name, '$Location')].name" -o json) `
-    | ConvertFrom-Json
-if($regionName.Count -eq 0) {
-    Write-Error "Location $Location not found"
-    exit
-}
-$Location = $regionName[0]
+$Location = Get-AzShortRegion($Location)
 
 # --- Deploying 3 layers: comment below block and uncomment bottom block for single layer:
 
@@ -34,7 +29,7 @@ $Location = $regionName[0]
 
 $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -Location $Location
 $l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $false -Location $Location
-$l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false -Location $Location
+# $l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false -Location $Location
 
 # # # 2. Deploy core platform in each layer (Dapr, Mosquitto and bridging).
 # $l4CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $null

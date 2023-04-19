@@ -19,6 +19,7 @@ spec:
       containers:
       - name: envoy-module
         image: envoyproxy/envoy:v1.25-latest
+        imagePullPolicy: IfNotPresent
         command: 
 {{ toYaml .Values.command | indent 12 }}
         args:

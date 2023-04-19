@@ -15,22 +15,19 @@ Param(
     $Location = 'westeurope'    
 )
 
-# --- Ensure Location is set to short name
-$regionName = (az account list-locations --query "[? contains(displayName, '$Location') || contains(name, '$Location')].name" -o json) `
-    | ConvertFrom-Json
-if($regionName.Count -eq 0) {
-    Write-Error "Location $Location not found"
-    exit
-}
-
 mkdir -p modules
 
 # Copy scripts from source location
 $baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/az-utils.psm1"
 
 # Import text utilities module.
 Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/az-utils.psm1
+
+# --- Ensure Location is set to short name
+$Location = Get-AzShortRegion($Location)
 
 Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1"
 Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1"

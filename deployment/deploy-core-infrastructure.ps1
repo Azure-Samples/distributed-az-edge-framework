@@ -3,59 +3,59 @@
 #  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 # ------------------------------------------------------------
 Param(
-    [Parameter(ValueFromPipeline = $true)]
-    [PSCustomObject]
-    $ParentConfig,
+  [Parameter(ValueFromPipeline = $true)]
+  [PSCustomObject]
+  $ParentConfig,
 
-    [string]
-    [Parameter(mandatory=$true)]
-    $ApplicationName,  
+  [string]
+  [Parameter(mandatory = $true)]
+  $ApplicationName,  
 
-    [string]
-    $Location = 'westeurope',
+  [string]
+  $Location = 'westeurope',
 
-    [Parameter(mandatory=$true)]
-    [string]
-    $VnetAddressPrefix,
+  [Parameter(mandatory = $true)]
+  [string]
+  $VnetAddressPrefix,
 
-    [Parameter(mandatory=$true)]
-    [string]
-    $SubnetAddressPrefix,
+  [Parameter(mandatory = $true)]
+  [string]
+  $SubnetAddressPrefix,
 
-    [Parameter(Mandatory = $false)]
-    [bool]
-    $SetupArc = $true
+  [Parameter(Mandatory = $false)]
+  [bool]
+  $SetupArc = $true
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name ./modules/text-utils.psm1
 
 Write-Title("Install Module powershell-yaml if not yet available")
-if ($null -eq (Get-Module -ListAvailable -Name powershell-yaml)) 
-{
-    Write-Host "Installing powershell-yaml module"
-    Install-Module -Name powershell-yaml -Scope CurrentUser
+if ($null -eq (Get-Module -ListAvailable -Name powershell-yaml)) {
+  Write-Host "Installing powershell-yaml module"
+  Install-Module -Name powershell-yaml -Scope CurrentUser
 }
 
 class Aks {
-    [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc, [string]$arcLocation){
+  [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc, [string]$arcLocation) {
     
     # ----- Get AKS Cluster Credentials
     Write-Title("Get AKS $aksName in $resourceGroupName Credentials")
     az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
 
-    # ----- Prepare domain names you want to add for allow-list and override to local proxy
-    $customDomainsHash = @{ www_google_com = "www.google.com"; www_envoy_proxy = "www.envoyproxy.io"} # to set to @{} if empty
-    # ---- Download service bus domains from URI
-    $serviceBusDomains = Invoke-WebRequest -Uri "https://guestnotificationservice.azure.com/urls/allowlist?api-version=2020-01-01&location=northeurope" -Method Get
+    # ----- Prepare domain names you want to add for allow-list, DNS override to local proxy
+    $customDomainsHash = @{ www_google_com = "www.google.com"; www_envoy_proxy = "www.envoyproxy.io" } # set to @{} if empty
+    # ---- Download service bus domains from URI for chosen Azure region
+    $serviceBusDomains = Invoke-WebRequest -Uri "https://guestnotificationservice.azure.com/urls/allowlist?api-version=2020-01-01&location=$arcLocation" -Method Get
     $serviceBusDomains = $serviceBusDomains.Content | ConvertFrom-Json
     foreach ($domain in $serviceBusDomains) {
-        $customDomainsHash.Add("key_$($customDomainsHash.Count)", $domain)
+      $customDomainsHash.Add("sb_$($customDomainsHash.Count)", $domain)
     }
     $customDomainsHelm = $customDomainsHash.GetEnumerator() | ForEach-Object { "customDomains.$($_.Key)=$($_.Value)" }
     $customDomainsHelm = $customDomainsHelm -Join ","
     
-    # ----- Install AKS Proxy #TODO change this once chart is released
+    # ----- Install AKS Proxy 
+    #TODO change this once chart is released
     # helm repo add envoy https://azure-samples.github.io/distributed-az-edge-framework
     # helm repo update
 
@@ -65,14 +65,14 @@ class Aks {
 
       Write-Title("Install Reverse Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
       helm install envoy ./helm/envoy `
-      --set parent.enabled=true `
-      --set-string domainRegion="$arcLocation" `
-      --set-string parent.proxyIp="$parentProxyIp" `
-      --set-string parent.proxyHttpsPort="$parentProxyPort" `
-      --set $customDomainsHelm `
-      --namespace reverse-proxy `
-      --create-namespace `
-      --wait
+        --set parent.enabled=true `
+        --set-string domainRegion="$arcLocation" `
+        --set-string parent.proxyIp="$parentProxyIp" `
+        --set-string parent.proxyHttpsPort="$parentProxyPort" `
+        --set $customDomainsHelm `
+        --namespace reverse-proxy `
+        --create-namespace `
+        --wait
     }
     else {
       Write-Title("Install envoy Reverse Proxy without Parent")
@@ -91,18 +91,26 @@ class Aks {
     $proxyPort = $proxy.spec.ports.port
     $proxyClusterIp = $proxy.spec.clusterIP
     
-    # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
-    $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
+    $arcDomainsList = ""
+    $arcregionalList = ""
 
-    $domainsList = foreach ($key in $helmValues.domainNames.keys) {
-        "$proxyClusterIp $($helmValues.domainNames[$key]) `n       "
+    # Currently setting up all Arc domains for proxying, even if Arc agent is not installed on this cluster
+    # if ($enableArc) {
+    
+    # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
+    # todo get from chart repo instead of local folder when chart is released
+    $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
+    $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
+      "$proxyClusterIp $($helmValues.arcDomainNames[$key]) `n       "
     }
-    $regionalList = foreach ($key in $helmValues.regionalDomains.keys) {
-        "$proxyClusterIp ${arcLocation}$($helmValues.regionalDomains[$key]) `n       "
+    $arcregionalList = foreach ($key in $helmValues.arcRegionalDomains.keys) {
+      "$proxyClusterIp ${arcLocation}$($helmValues.arcRegionalDomains[$key]) `n       "
     }
+    # }
+
     # Get additional custom domains if any defined above
     $customDomainList = foreach ($key in $customDomainsHash.keys) {
-        "$proxyClusterIp $($customDomainsHash[$key]) `n       "
+      "$proxyClusterIp $($customDomainsHash[$key]) `n       "
     }
 
     # Setup customized DNS configuration with CoreDNS for overriding a set of domain names to local proxy
@@ -123,29 +131,30 @@ class Aks {
         }
 "@
 
-    $dnsConfig = $dnsConfig.Replace("list_of_default_domains_to_replace", $domainsList)
-    $dnsConfig = $dnsConfig.Replace("list_of_regional_domains_to_replace", $regionalList)
+    $dnsConfig = $dnsConfig.Replace("list_of_default_domains_to_replace", $arcDomainsList)
+    $dnsConfig = $dnsConfig.Replace("list_of_regional_domains_to_replace", $arcregionalList)
     $dnsConfig = $dnsConfig.Replace("list_of_additional_domains_to_replace", $customDomainList)
     
     $dnsConfig | kubectl apply -f -
-    # restart kube-dns pods to take effect
+    # restart coredns pods to take effect
     kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
 
-    if($enableArc)
-    {
+    if ($enableArc) {
       # ----- Enroll AKS with Arc
-      # TODO at this stage should remove NSG permissions for outgoing traffice for L2/L3
-      Write-Title("Enroll AKS $aksName with Arc using proxy Ip $proxyIp and Port $proxyPort")
+      # TODO at this stage should remove NSG permissions for outgoing traffic for L2/L3
+      # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
+      # https://learn.microsoft.com/en-us/azure/aks/limit-egress-traffic
+
+      Write-Title("Enroll AKS $aksName with Arc")
       az connectedk8s connect --name $aksName --resource-group $resourceGroupName
       az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
     }
-    else
-    {
+    else {
       Write-Title("Not enrolling AKS $aksName with Arc")
     }
 
     return [PSCustomObject]@{
-      ProxyIp = $proxyIp
+      ProxyIp   = $proxyIp
       ProxyPort = $proxyPort     
     }
   }
@@ -175,24 +184,24 @@ $aksClientSecret = $aksServicePrincipal.password
 # ----- Deploy Bicep
 Write-Title("Deploy Bicep files")
 
-$ParentConfigVnetName = If ($ParentConfig -eq $null) {""} Else {$ParentConfig.VnetName}
-$ParentConfigVnetResourceGroup = If ($ParentConfig -eq $null) {""} Else {$ParentConfig.VnetResourceGroup}
+$ParentConfigVnetName = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetName }
+$ParentConfigVnetResourceGroup = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetResourceGroup }
 
 $r = (az deployment sub create --location $Location `
-           --template-file .\bicep\core-infrastructure.bicep --parameters `
-           applicationName=$ApplicationName `
-           remoteVnetName=$ParentConfigVnetName `
-           remoteVnetResourceGroupName=$ParentConfigVnetResourceGroup `
-           vnetName=$ApplicationName `
-           vnetAddressPrefix=$vnetAddressPrefix `
-           subnetAddressPrefix=$subnetAddressPrefix `
-           currentAzUsernameId=$currentAzUsernameId `
-           aksObjectId=$aksObjectId `
-           aksClientId=$aksClientId `
-           aksClientSecret=$aksClientSecret `
-           location=$Location `
-           --name "core-$deploymentId" `
-    )| ConvertFrom-Json
+    --template-file .\bicep\core-infrastructure.bicep --parameters `
+    applicationName=$ApplicationName `
+    remoteVnetName=$ParentConfigVnetName `
+    remoteVnetResourceGroupName=$ParentConfigVnetResourceGroup `
+    vnetName=$ApplicationName `
+    vnetAddressPrefix=$vnetAddressPrefix `
+    subnetAddressPrefix=$subnetAddressPrefix `
+    currentAzUsernameId=$currentAzUsernameId `
+    aksObjectId=$aksObjectId `
+    aksClientId=$aksClientId `
+    aksClientSecret=$aksClientSecret `
+    location=$Location `
+    --name "core-$deploymentId" `
+) | ConvertFrom-Json
 
 $aksClusterName = $r.properties.outputs.aksName.value
 $aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
@@ -209,13 +218,13 @@ $aks = [Aks]::new()
 $proxyConfig = $aks.Prepare($aksClusterResourceGroupName, $aksClusterName, $ParentConfig, $SetupArc, $Location)
 
 $config = [PSCustomObject]@{
-      AksClusterName = $aksClusterName
-      AksClusterResourceGroupName = $aksClusterResourceGroupName
-      ProxyIp = $proxyConfig.ProxyIp
-      ProxyPort = $proxyConfig.ProxyPort
-      VnetName = $ApplicationName
-      VnetResourceGroup = $aksClusterResourceGroupName
-    }
+  AksClusterName              = $aksClusterName
+  AksClusterResourceGroupName = $aksClusterResourceGroupName
+  ProxyIp                     = $proxyConfig.ProxyIp
+  ProxyPort                   = $proxyConfig.ProxyPort
+  VnetName                    = $ApplicationName
+  VnetResourceGroup           = $aksClusterResourceGroupName
+}
 
 $runningTime = New-TimeSpan -Start $startTime
 Write-Title("Running time core infra: $runningTime")

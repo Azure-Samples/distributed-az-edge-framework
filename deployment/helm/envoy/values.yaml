@@ -19,31 +19,40 @@ parent:
 
 domainRegion: northeurope
 
-domainNames:
+arcDomainNames:
   management_azure_com: management.azure.com
+  management_core_windows_net: management.core.windows.net
   login_windows_net: login.windows.net
+  aka_ms: aka.ms
+  pas_windows_net: pas.windows.net
   mcr_microsoft_com: mcr.microsoft.com
+  data_policy_core_windows_net: data.policy.core.windows.net
   guestnotificationservice_azure_com: guestnotificationservice.azure.com
   login_microsoftonline_com: login.microsoftonline.com
   k8connecthelm_azureedge_net: k8connecthelm.azureedge.net
   sts_windows_net: sts.windows.net
   k8sconnectcsp_azureedge_net: k8sconnectcsp.azureedge.net
+  manifestcdndev_azureedge_net: manifestcdndev.azureedge.net
   graph_microsoft_com: graph.microsoft.com
+  graph_windows_net: graph.windows.net
   gbl_his_arc_azure_com: gbl.his.arc.azure.com
   connectedclusters_arc_azure_com: connectedclusters.arc.azure.com
+  azurepolicyarckubernetes.azurecr.io: azurepolicyarckubernetes.azurecr.io #from video, not documented
+  dc_services_visualstudio_com: dc.services.visualstudio.com # from video, not documented
+  neu_his_arc_azure_com: eus.his.arc.azure.com # from video, should be neu? but does not exist
   # *.his.arc.azure.com
   # *.arc.azure.net
   
-regionalDomains:
+arcRegionalDomains:
   region_dp_kubernetesconfg_azure_com: .dp.kubernetesconfiguration.azure.com
+  region_rp_kubernetesconfg_azure_com: .rp.kubernetesconfiguration.azure.com
   region_data_mcr_microsoft_com: .data.mcr.microsoft.com
   region_login_microsoft_com: .login.microsoft.com
+  region_monitoring_azure_com: .monitoring.azure.com
   # *.servicebus.windows.net
   # *.his.arc.azure.com
   # *.arc.azure.net
 
-
-# TODO this would provide a way to add custom domain names, evaluate port number if needs to be added
 # Provide additional domains that you want to proxy through
 # customDomains:
-#   comain1: www.domain1.com
+#   domain1: www.domain1.com

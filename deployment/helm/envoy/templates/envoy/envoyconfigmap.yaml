@@ -26,14 +26,14 @@ data:
         {{- if .Values.parent.enabled }}
         - filter_chain_match:
             server_names:
-              {{- range $key, $val := .Values.domainNames }}
+              {{- range $key, $val := .Values.arcDomainNames }}
               - {{ $val }}
               {{- end }}
-              {{- range $key, $val := .Values.regionalDomains }}
+              {{- range $key, $val := .Values.arcRegionalDomains }}
               - {{ $domainRegion -}} {{ $val }}
               {{- end }}
               {{- range $key, $val := .Values.customDomains }}
-              - {{ $domainRegion -}} {{ $val }}
+              - {{ $val }}
               {{- end }}
           filters:
             - name: envoy.filters.network.tcp_proxy
@@ -42,7 +42,7 @@ data:
                 cluster: parent-passthrough
                 stat_prefix: parent_passthr
         {{- else }}
-        {{- range $key, $val := .Values.domainNames }}
+        {{- range $key, $val := .Values.arcDomainNames }}
         - filter_chain_match:
             server_names:
               - {{ $val }}
@@ -53,7 +53,7 @@ data:
                 cluster: {{ $key }}
                 stat_prefix: {{ $key }}_passthr
         {{- end }}
-        {{- range $key, $val := .Values.regionalDomains }}
+        {{- range $key, $val := .Values.arcRegionalDomains }}
         - filter_chain_match:
             server_names:
               - {{ $domainRegion -}} {{ $val }}
@@ -95,7 +95,7 @@ data:
       {{- else }}
       # else if this is top layer point to outbound public URIs
       {{- $httpsPort := .Values.parent.proxyHttpsPort -}}
-      {{- range $key, $val := .Values.domainNames }}
+      {{- range $key, $val := .Values.arcDomainNames }}
       - name: {{ $key }}
         type: LOGICAL_DNS
         dns_lookup_family: V4_ONLY
@@ -109,7 +109,7 @@ data:
                     address: {{ $val }}
                     port_value: {{ $httpsPort }}
       {{- end }}
-      {{- range $key, $val := .Values.regionalDomains }}
+      {{- range $key, $val := .Values.arcRegionalDomains }}
       - name: {{ $key }}
         type: LOGICAL_DNS
         dns_lookup_family: V4_ONLY
