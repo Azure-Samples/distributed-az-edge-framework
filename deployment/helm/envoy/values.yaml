@@ -23,32 +23,33 @@ arcDomainNames:
   management_azure_com: management.azure.com
   management_core_windows_net: management.core.windows.net
   login_windows_net: login.windows.net
-  aka_ms: aka.ms
-  pas_windows_net: pas.windows.net
   mcr_microsoft_com: mcr.microsoft.com
-  data_policy_core_windows_net: data.policy.core.windows.net
   guestnotificationservice_azure_com: guestnotificationservice.azure.com
   login_microsoftonline_com: login.microsoftonline.com
   k8connecthelm_azureedge_net: k8connecthelm.azureedge.net
   sts_windows_net: sts.windows.net
   k8sconnectcsp_azureedge_net: k8sconnectcsp.azureedge.net
-  manifestcdndev_azureedge_net: manifestcdndev.azureedge.net
   graph_microsoft_com: graph.microsoft.com
-  graph_windows_net: graph.windows.net
   gbl_his_arc_azure_com: gbl.his.arc.azure.com
   connectedclusters_arc_azure_com: connectedclusters.arc.azure.com
-  azurepolicyarckubernetes.azurecr.io: azurepolicyarckubernetes.azurecr.io #from video, not documented
-  dc_services_visualstudio_com: dc.services.visualstudio.com # from video, not documented
-  neu_his_arc_azure_com: eus.his.arc.azure.com # from video, should be neu? but does not exist
-  # *.his.arc.azure.com
-  # *.arc.azure.net
+  azurepolicyarckubernetes.azurecr.io: azurepolicyarckubernetes.azurecr.io # from video, not documented
+  # aka_ms: aka.ms # from arc 'server' requirements
+  # pas_windows_net: pas.windows.net # from arc 'server'requirements
+  graph_windows_net: graph.windows.net # from arc 'server' requirements
+  manifestcdndev_azureedge_net: manifestcdndev.azureedge.net # from video, not documented
+  data_policy_core_windows_net: data.policy.core.windows.net # from video, not documented
+  # wildcard_his_arc_azure_com: "his.arc.azure.com"
+  # dc_services_visualstudio_com: dc.services.visualstudio.com # from arc server requirements
+  # *.his.arc.azure.com # todo require full list of subdomains
+  # *.arc.azure.net # todo require full list of subdomains
+  # *.guestconfiguration.azure.com # todo require full list of subdomains
   
 arcRegionalDomains:
   region_dp_kubernetesconfg_azure_com: .dp.kubernetesconfiguration.azure.com
   region_rp_kubernetesconfg_azure_com: .rp.kubernetesconfiguration.azure.com
   region_data_mcr_microsoft_com: .data.mcr.microsoft.com
   region_login_microsoft_com: .login.microsoft.com
-  region_monitoring_azure_com: .monitoring.azure.com
+  region_monitoring_azure_com: .monitoring.azure.com # from other docs
   # *.servicebus.windows.net
   # *.his.arc.azure.com
   # *.arc.azure.net
