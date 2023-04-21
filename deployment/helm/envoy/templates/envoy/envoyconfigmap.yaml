@@ -76,6 +76,30 @@ data:
                 stat_prefix: {{ $key }}_passthr
         {{- end }}
         {{- end }}
+        # - filter_chain_match:
+        #     server_names:
+        #       - "*.azurewebsites.net"
+        #   filters:
+        #     - name: envoy.filters.network.tcp_proxy
+        #       typed_config:
+        #         "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+        #         cluster: azwebsitesnet
+        #         stat_prefix: fw_passthr
+        #       sub_filters:
+        #         - name: envoy.lua
+        #           typed_config:
+        #             "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+        #             inline_code: |
+        #               function envoy_on_request(request_handle)
+        #                 local headers = request_handle:headers()
+        #                 local host = headers:get(":authority")
+
+        #                 local load_assignment = request_handle:metadata():mutable_filter_metadata():get_mutable_fields()["envoy.transport_sockets.upstream"].fields["load_assignment"].list_value.values[1].struct_value
+
+        #                 local socket_address = load_assignment.fields["endpoints"].list_value.values[1].struct_value.fields["lb_endpoints"].list_value.values[1].struct_value.fields["endpoint"].struct_value.fields["address"].struct_value.fields["socket_address"].struct_value
+
+        #                 socket_address.address = host:gsub(".*%.(.*)", "%1")
+        #               end
 
       clusters:
       {{- if .Values.parent.enabled }}
@@ -138,7 +162,24 @@ data:
                     port_value: {{ $httpsPort }}
       {{- end }}
       {{- end }}
-    
+
+      - name: azwebsitesnet
+        connect_timeout: 0.25s
+        type: STRICT_DNS
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: azwebsitesnet
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: "168.63.129.16" #TODO
+                    port_value: 443
+        dns_lookup_family: V4_ONLY
+        common_http_protocol_options:
+          idle_timeout: 60s
+
     layered_runtime:
       layers:
       - name: static_layer_0

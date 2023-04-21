@@ -31,7 +31,6 @@ arcDomainNames:
   k8sconnectcsp_azureedge_net: k8sconnectcsp.azureedge.net
   graph_microsoft_com: graph.microsoft.com
   gbl_his_arc_azure_com: gbl.his.arc.azure.com
-  connectedclusters_arc_azure_com: connectedclusters.arc.azure.com
   azurepolicyarckubernetes.azurecr.io: azurepolicyarckubernetes.azurecr.io # from video, not documented
   # aka_ms: aka.ms # from arc 'server' requirements
   # pas_windows_net: pas.windows.net # from arc 'server'requirements
@@ -50,7 +49,6 @@ arcRegionalDomains:
   region_data_mcr_microsoft_com: .data.mcr.microsoft.com
   region_login_microsoft_com: .login.microsoft.com
   region_monitoring_azure_com: .monitoring.azure.com # from other docs
-  # *.servicebus.windows.net
   # *.his.arc.azure.com
   # *.arc.azure.net
 

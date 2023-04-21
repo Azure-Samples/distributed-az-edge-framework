@@ -32,8 +32,9 @@ This section describes the nested topology design implemented by this solution.
 
 ![alt text](architecture/nested-topology-hld.png "Nested Toplogy")
 
-At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance).
-These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. We are currently implementing functionality for data planes to transverse layers directly and evaluating an improvement to force this communication to pass through the proxy transparently. Currently only Azure Arc is configured to connect through proxy.
+At the core of the nested topology design, we have proxies (now using Envoy) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. We are currently implementing functionality for data planes to traverse layers directly and evaluating an improvement to force this communication to pass through the proxy transparently. Currently, only Azure Arc and GitOps/Flux locations are configured to connect through the proxy.
+
+For more information about the network topology and usage of Envoy reverse proxy please see the detailed document: [Network Separation and Reverse Proxy](./docs/reverseproxy.md).
 
 ## Technology Stack
 
