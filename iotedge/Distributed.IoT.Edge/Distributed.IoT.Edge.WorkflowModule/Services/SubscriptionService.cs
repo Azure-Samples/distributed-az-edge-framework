@@ -1,28 +1,35 @@
-namespace Distributed.IoT.Edge.DataGatewayModule.Services
-{
-    using Dapr.AppCallback.Autogen.Grpc.v1;
-    using Dapr.Client;
-    using Dapr.Client.Autogen.Grpc.v1;
-    using Google.Protobuf.WellKnownTypes;
-    using Grpc.Core;
+using Dapr.AppCallback.Autogen.Grpc.v1;
+using Dapr.Client;
+using Dapr.Client.Autogen.Grpc.v1;
+using Dapr.Workflow;
+using Distributed.IoT.Edge.WorkflowModule.Workflows;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 
+namespace Distributed.IoT.Edge.WorkflowModule.Services
+{
     public class SubscriptionService : AppCallback.AppCallbackBase
     {
         private readonly ILogger<SubscriptionService> _logger;
         private readonly DaprClient _daprClient;
+        private readonly WorkflowEngineClient _workflowClient;
         private readonly string _receiverPubsubName;
         private readonly string _receiverPubsubTopicName;
-        private readonly string _senderPubsubName;
-        private readonly string _senderPubsubTopicName;
-        private readonly string _receiverWorkflowPubsubTopicName;
 
-        internal SubscriptionService(
+        public SubscriptionService(
             ILogger<SubscriptionService> logger,
             DaprClient daprClient,
-            DataGatewayParameters parameters)
+            WorkflowEngineClient workflowClient,
+            WorkflowParameters parameters)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _daprClient = daprClient ?? throw new ArgumentNullException(nameof(daprClient));
+            _workflowClient = workflowClient ?? throw new ArgumentNullException(nameof(workflowClient));
+            if (parameters == null)
+            {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
             _receiverPubsubName = parameters.ReceiverPubSubName ??
                                   throw new ArgumentNullException(
                                       nameof(parameters.ReceiverPubSubName),
@@ -31,30 +38,21 @@ namespace Distributed.IoT.Edge.DataGatewayModule.Services
                                        throw new ArgumentNullException(
                                            nameof(parameters.ReceiverPubSubTopicName),
                                            "Parameter cannot be null.");
-            _receiverWorkflowPubsubTopicName = parameters.ReceiverWorkflowPubSubTopicName ??
-                                               throw new ArgumentNullException(
-                                                   nameof(parameters.ReceiverWorkflowPubSubTopicName),
-                                                   "Parameter cannot be null.");
-            _senderPubsubName = parameters.SenderPubSubName ??
-                                throw new ArgumentNullException(
-                                    nameof(parameters.SenderPubSubName),
-                                    "Parameter cannot be null.");
-            _senderPubsubTopicName = parameters.SenderPubSubTopicName ??
-                                     throw new ArgumentNullException(
-                                         nameof(parameters.SenderPubSubTopicName),
-                                         "Parameter cannot be null.");
         }
 
         public override Task<ListTopicSubscriptionsResponse> ListTopicSubscriptions(
             Empty request,
             ServerCallContext context)
         {
+            _logger.LogInformation("Receiving subscription list");
             var subscriptionsResponse = new ListTopicSubscriptionsResponse
             {
                 Subscriptions =
                 {
-                    new TopicSubscription { PubsubName = _receiverPubsubName, Topic = _receiverPubsubTopicName },
-                    new TopicSubscription { PubsubName = _receiverPubsubName, Topic = _receiverWorkflowPubsubTopicName }
+                    new TopicSubscription()
+                    {
+                        PubsubName = _receiverPubsubName, Topic = _receiverPubsubTopicName
+                    }
                 }
             };
 
@@ -71,11 +69,15 @@ namespace Distributed.IoT.Edge.DataGatewayModule.Services
             }
 
             var topicString = request.Data.ToStringUtf8();
-            _logger.LogTrace(
-                $"Sending event to message layer, pubsub name {_senderPubsubName}, topic {_senderPubsubTopicName}, object string: {topicString}");
 
-            // TODO: Find way to specify partition key to allow ordering of messages within a defined scope, currently events are distributed evenly accross partitions.
-            await _daprClient.PublishEventAsync(_senderPubsubName, _senderPubsubTopicName, topicString);
+            _logger.LogTrace($"Sending event to workflow, object string: {topicString}");
+            await Task.Delay(30);
+
+            // starting workflow to enrich and transform the data
+            // await _workflowClient.ScheduleNewWorkflowAsync(
+            //     name: nameof(EnrichTelemetryWorkflow),
+            //     instanceId: request.Id,
+            //     input: topicString);
 
             // Depending on the status return dapr side will either retry or drop the message from underlying pubsub.
             return new TopicEventResponse() { Status = TopicEventResponse.Types.TopicEventResponseStatus.Success };

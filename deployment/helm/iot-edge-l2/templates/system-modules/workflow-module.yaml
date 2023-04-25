@@ -1,0 +1,27 @@
+# System Data Gateway module/pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-module-deployment
+  labels:
+    app: workflow-module
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workflow-module
+  template:
+    metadata:
+      labels:
+        app: workflow-module
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "workflow-module"
+        dapr.io/app-port: "80"
+        dapr.io/app-protocol: "grpc"
+    spec:
+      containers:
+      - name: workflow-module
+        image: {{ .Values.images.workflowmodule }}
+        imagePullPolicy: Always
+      restartPolicy: Always

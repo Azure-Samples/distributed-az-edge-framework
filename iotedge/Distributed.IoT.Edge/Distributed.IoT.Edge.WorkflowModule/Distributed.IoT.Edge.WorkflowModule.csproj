@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <Import Project="../common.props" />
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Protobuf Include="Protos\*.proto" ProtoRoot="Protos" GrpcServices="None" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Messaging.EventHubs" Version="5.7.5" />
+        <PackageReference Include="CommandLineParser" Version="2.9.1" />
+        <PackageReference Include="Dapr.AspNetCore" Version="1.10.0" />
+        <PackageReference Include="Dapr.Workflow" Version="1.10.0" />
+        <PackageReference Include="Google.Api.CommonProtos" Version="2.8.0" />
+        <PackageReference Include="Google.Protobuf" Version="3.22.0" />
+        <PackageReference Include="Grpc.AspNetCore" Version="2.51.0" />
+        <PackageReference Include="Grpc.Net.Client" Version="2.51.0" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Distributed.IoT.Edge.Common\Distributed.IoT.Edge.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.1   ">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+</Project>
