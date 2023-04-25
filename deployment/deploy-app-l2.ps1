@@ -17,9 +17,7 @@ Param(
     $AksClusterResourceGroupName,
 
     [string]
-    $Location = 'westeurope',
-
-    [string]
+    [Parameter(mandatory=$false)]
     $ScriptsBranch = "main"
 )
 
