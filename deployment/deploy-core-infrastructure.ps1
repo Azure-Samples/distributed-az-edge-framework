@@ -119,12 +119,10 @@ class Aks {
 }
 
 # ------
-# Temporary check for Linux based systems and enabling Arc - exit as not tested on Linux outside of Clous Shell
+# Temporary check for Linux based systems and enabling Arc - exit as not tested on Linux outside of Cloud Shell
 if($SetupArc){
-  # Arc proxying is now tested on Azure Cloud Shell PW terminal. If running Linux and not in cloudshell: exit
-  if($IsLinux -and !$env:AZUREPS_HOST_ENVIRONMENT)
+  if( -not (Confirm-AzEnvironment))
   {
-      Write-Warning "When enabling Arc please note the scripts are not tested on Linux/Unix other than Azure Cloud Shell"
       Write-Title("Exiting - please use the developer setup or run this in Azure Cloud Shell PowerShell")
       Exit
   }
