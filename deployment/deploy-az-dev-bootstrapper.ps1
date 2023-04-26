@@ -29,7 +29,7 @@ $Location = Get-AzShortRegion($Location)
 
 $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -Location $Location
 $l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $false -Location $Location
-# $l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false -Location $Location
+$l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $false -Location $Location
 
 # # 2. Deploy core platform in each layer (Dapr, Mosquitto and bridging).
 $l4CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $null -ArcEnabled $false
@@ -37,17 +37,17 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
 ./deploy-core-platform.ps1 -AksClusterName $l2LevelCoreInfra.AksClusterName -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName -DeployDapr $true -MosquittoParentConfig $l3CorePlatform -ArcEnabled $false
 
 # # 3. Deploy app resources in Azure, build images and deploy helm on level L4 and L2.
-# $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
-#     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
-#     -AksClusterName $l4LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L4") `
-#     -Location $Location
+$l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
+    -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
+    -AksClusterName $l4LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L4") `
+    -Location $Location
 
-# # Note currently for developer flow we need Azure Ccontianer Registry deployed by L4 (via L4AppConfig). 
-# ./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
-#     -AksClusterName $l2LevelCoreInfra.AksClusterName `
-#     -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName `
-#     -AksServicePrincipalName ($ApplicationName + "L2") `
-#     -L4AppConfig $l4AppConfig
+# # Note currently for developer flow we need Azure Container Registry deployed by L4 (via L4AppConfig). 
+./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
+    -AksClusterName $l2LevelCoreInfra.AksClusterName `
+    -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName `
+    -AksServicePrincipalName ($ApplicationName + "L2") `
+    -L4AppConfig $l4AppConfig
 
 # # --- Deploying just a single layer: comment above block and uncomment below:
 
