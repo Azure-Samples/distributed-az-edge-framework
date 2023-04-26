@@ -12,6 +12,7 @@ Param(
   $ApplicationName,  
 
   [string]
+    [Parameter(mandatory=$false)]
   $Location = 'westeurope',
 
   [Parameter(mandatory = $true)]
@@ -167,6 +168,34 @@ class Aks {
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
       }
 
+      # ----- Before enrolling with Arc: create Service Account, get token and store in temp folder for Arc Cluster Connect in other scripts
+      Write-Title("Before enrolling AKS $aksName with Arc: create ServiceAccount and store token on disk for now")
+      kubectl create serviceaccount arc-user
+      kubectl create clusterrolebinding arc-user-binding --clusterrole cluster-admin --serviceaccount default:arc-user
+
+      # create secret with service account token
+      $serviceAccountToken=@"
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: arc-user-secret
+        annotations:
+          kubernetes.io/service-account.name: arc-user
+      type: kubernetes.io/service-account-token
+"@
+      
+      $serviceAccountToken | kubectl apply -f -
+
+      $tokenB64 = (kubectl get secret arc-user-secret -o jsonpath='{$.data.token}')
+      # Store secret in base64 in ./temp/tokens folder - #TODO this should go into Key Vault instead
+      $tempFolder = "./temp/tokens"
+      If(!(Test-Path -PathType container -Path $tempFolder))
+      {
+          New-Item -ItemType Directory -Path $tempFolder
+      }
+      Write-Title("Writing Service Account token for $aksName to ./temp/tokens folder, required for Arc cluster connect")
+      Set-Content -Path "$tempFolder/$aksName.txt" -Value "$tokenB64"
+
       # ----- Enroll AKS with Arc
       Write-Title("Enroll AKS $aksName with Arc")
       az connectedk8s connect --name $aksName --resource-group $resourceGroupName
@@ -182,6 +211,17 @@ class Aks {
     }
   }
 }
+
+# ------
+# Temporary check for Linux based systems and enabling Arc - exit as not tested on Linux outside of Cloud Shell
+if($SetupArc){
+  if( -not (Confirm-AzEnvironment))
+  {
+      Write-Title("Exiting - please use the developer setup or run this in Azure Cloud Shell PowerShell")
+      Exit
+  }
+}
+# ------
 
 Write-Title("Start Deploying Core Infrastructure")
 $startTime = Get-Date

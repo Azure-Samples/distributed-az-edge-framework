@@ -17,17 +17,21 @@ Param(
     $AksClusterResourceGroupName,
 
     [string]
+    [Parameter(mandatory=$false)]
     $Location = 'westeurope',
 
     [string]
+    [Parameter(mandatory=$false)]
     $ScriptsBranch = "main"
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name ./modules/text-utils.psm1
+# Import-Module -Name ./modules/process-utils.psm1
 
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
+$kubeConfigFile = "./temp/$AksClusterName"
 
 Write-Title("Start Deploying Application for L4")
 $startTime = Get-Date
@@ -51,13 +55,25 @@ $eventHubConnectionString = (az eventhubs eventhub authorization-rule keys list 
 $storageKey = (az storage account keys list  --resource-group $resourceGroupApp `
                 --account-name $storageName --query [0].value -o tsv)
 
-# ----- Run Helm
-Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
+# ----- Prepare for Helm, out of band secret creation first
+Write-Title("Connect via Arc to cluster, setup out of band config/secrets")
 
-# ----- Get AKS Cluster Credentials for L4 layer
-az aks get-credentials --admin --name $AKSClusterName --resource-group $AKSClusterResourceGroupName --overwrite-existing
+# ----- Create Arc cluster connect connection 
+# Arc proxying is now tested on Azure Cloud Shell PW terminal. If running Linux and not in cloudshell: exit
+if( -not (Confirm-AzEnvironment))
+{
+    Exit
+}
+$token = Get-DecodedToken("./temp/tokens/$AksClusterName.txt")
+# Start Arc cluster connect in separate terminal process
 
-kubectl create namespace $appKubernetesNamespace
+Write-Title("Starting terminal Arc proxy")
+Start-ProcessInNewTerminalPW -ProcessArgs "az connectedk8s proxy -n $AksClusterName -g $AksClusterResourceGroupName --file $kubeConfigFile --token $token" -WindowTitle "ArcProxy$AksClusterName"
+
+Write-Title("Sleep for a few seconds to initialize proxy...")
+Start-Sleep -s 10
+
+kubectl create namespace $appKubernetesNamespace --kubeconfig $kubeConfigFile
 
 # Create secrets' seed on Kubernetes via Arc, this is required by application to boot.
 $dataGatewaySecretsSeed=@"
@@ -69,7 +85,15 @@ dataGatewayModule:
   storageAccountKey: {2}
 "@ -f $eventHubConnectionString, $storageName, $storageKey
 
-kubectl create secret generic data-gateway-module-secrets-seed --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace
+kubectl create secret generic data-gateway-module-secrets-seed `
+  --from-literal=dataGatewaySecrets=$dataGatewaySecretsSeed -n $appKubernetesNamespace `
+  --kubeconfig $kubeConfigFile
+
+# --- Close Arc proxy
+Write-Title("Closing Azure Arc proxy")
+Stop-ProcessInNewTerminal -WindowTitle "ArcProxy$AksClusterName"
+
+Write-Title("Install Latest Release of Helm Chart for Data Gateway via Flux v2 and Azure Arc")
 
 # Deploy Flux v2 configuration to install app on kubernetes edge L4 layer.
 az k8s-configuration flux create -g $AksClusterResourceGroupName -c $AksClusterName `

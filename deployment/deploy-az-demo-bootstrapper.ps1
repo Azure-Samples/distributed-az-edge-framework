@@ -8,6 +8,7 @@ Param(
     $ApplicationName,
 
     [string]
+    [Parameter(mandatory=$false)]
     $ScriptsBranch = "main",
 
     [string]
@@ -21,9 +22,10 @@ mkdir -p modules
 $baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/az-utils.psm1"
-
-# Import text utilities module.
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/process-utils.psm1" -OutFile "./modules/process-utils.psm1"
+# Import text and process utilities module.
 Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/process-utils.psm1
 Import-Module -Name ./modules/az-utils.psm1
 
 # --- Ensure Location is set to short name
@@ -65,4 +67,4 @@ $l3CorePlatform = ./deploy-core-platform.ps1 -AksClusterName $l3LevelCoreInfra.A
     -ScriptsBranch $ScriptsBranch
 
 Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Group with suffix -App, please use the Event Hub instance in tha Resource Group to view the OPC UA and Simulated Temperature Sensor telemetry.")
-Write-Title("Your kubectl current context is now set to the AKS cluster '$(kubectl config current-context)'.")
+Write-Title("To connect to the clusters through Azure Arc, use 'az connectedk8s proxy -n {} -g {} --token {}'.")
