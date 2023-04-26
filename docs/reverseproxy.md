@@ -50,7 +50,7 @@ Level 4 NSG allows Internet outbound traffic. This could be further restricted u
 
 ## Envoy Helm Chart and Scripted Setup of CoreDNS
 
-We assume that the same persona who manages the cluster will also set up this infrastructure, this is the reason why you will find this section of the deployment in the file `./deployment/deploy-core-infrastructure.ps1`.
+We assume that the same persona who manages the cluster will also set up this infrastructure, this is the reason why you will find this section of the deployment in the file [./deployment/deploy-core-infrastructure.ps1](./deployment/deploy-core-infrastructure.ps1).
 
 Before running the deployment, the deployment script prepares the input values for the Envoy Helm Chart. The primary information passed to the chart is a list of custom domains that need to be brokered through to the next layer or Level 4, which is the internet.
 
@@ -74,7 +74,9 @@ Furthermore, the Service tag `AzureArcInfrastructure` is added to the `Allow` li
 
 ## SSL Termination
 
-In order to maintain a zero-trust security approach, the Envoy reverse proxy does not perform SSL termination. This eliminates the need for control between where HTTPS traffic is decrypted and then re-encrypted. By doing so, it reduces the risk of any communication being transmitted in plain text before being re-encrypted again. Additionally, it simplifies Envoy proxy configuration by allowing for custom CA certificates with SNI domain overwriting to be used.
+In order to maintain a zero-trust security approach, the Envoy reverse proxy does **not** perform SSL termination. This eliminates the need for control between where HTTPS traffic is decrypted and then re-encrypted. By doing so, it reduces the risk of any communication being transmitted in plain text before being re-encrypted again. 
+
+Even though the Envoy TLS Inspector Filter is employed, it does so only to read out the hostname in the SNI. This information is available in the SSL ClientHello which is the TLS handshake first message and sent in unencrypted. In this manner we are able to use filters based on SNI and proxy the traffic to allowed domain names only (in Envoy *clusters*). 
 
 This topic is still being debated and might change in the future.
 
@@ -87,6 +89,6 @@ This topic is still being debated and might change in the future.
 
 ## Future Planned Additions in this Sample:
 
-- Wildcard sub-domain redirection: some of the domains required for Azure Arc K8S are documented in the form of wildcard subdomains (*.his.arc.azure.com, *.arc.azure.com, *.data.mcr.microsoft.com, *.guestnotificationservice.azure.com). Because of the configuration of Envoy
+- Wildcard sub-domain redirection: some of the domains required for Azure Arc K8S are documented in the form of wildcard subdomains (*.his.arc.azure.com, *.arc.azure.com, *.data.mcr.microsoft.com, *.guestnotificationservice.azure.com). Currently implemented using SNI dynamic forward proxy in Envoy.
 - Level 4 connected (local) container registry for all required container images, including a copy of public images like Envoy and Mosquitto
 - Mosquitto bridging through proxy

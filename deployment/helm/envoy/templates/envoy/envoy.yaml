@@ -31,6 +31,8 @@ spec:
         ports:
         - containerPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
           name: https
+        - containerPort: 50001
+          name: wildcard
         livenessProbe:
           tcpSocket:
             port: 9901

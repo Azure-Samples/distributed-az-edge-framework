@@ -12,3 +12,18 @@ spec:
     - protocol: TCP
       port: {{ .Values.envoyReverseProxy.httpsPort }}
       targetPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: envoy-service-wildcard
+#   annotations:
+#     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+# spec:
+#   type: LoadBalancer
+#   selector:
+#     app: envoy-module
+#   ports:
+#     - protocol: TCP
+#       port: {{ .Values.envoyReverseProxy.httpsPort }}
+#       targetPort: 50001
