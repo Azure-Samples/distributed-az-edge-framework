@@ -1,0 +1,23 @@
+# TODO: Add overarching component configuration.
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: state-store  
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: {{ .Values.stateStoreModule.redisUri }}
+    #value: localhost:6379
+  - name: redisPassword
+    # value: ""
+    secretKeyRef:
+      name: redis
+      key: redis-password
+  
+ # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
+  # - name: enableTLS
+  #   value: true 
+scopes:
+- workflow-module

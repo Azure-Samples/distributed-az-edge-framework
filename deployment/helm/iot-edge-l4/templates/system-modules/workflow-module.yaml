@@ -24,4 +24,5 @@ spec:
       - name: workflow-module
         image: {{ .Values.images.workflowmodule }}
         imagePullPolicy: Always
+        args: ["--receiverPubSubName", "{{ .Values.gatewayPubSubModule.name }}"]
       restartPolicy: Always

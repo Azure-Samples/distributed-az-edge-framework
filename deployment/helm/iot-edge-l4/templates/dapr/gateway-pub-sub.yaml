@@ -18,12 +18,13 @@ spec:
     value: "{podName}"
   # Lock down type of access for each service.
   - name: publishingScopes
-    value: "data-gateway-module="
+    value: "data-gateway-module=;workflow-module=enriched-telemetry"
   - name: subscriptionScopes
-    value: "data-gateway-module=telemetry;"
+    value: "data-gateway-module=telemetry,enriched-telemetry;workflow-module=telemetry"
   # Lock down the topics on this pubsub component.
   - name: allowedTopics
-    value: "telemetry"
+    value: "telemetry,enriched-telemetry"
 
 scopes:
 - data-gateway-module
+- workflow-module
