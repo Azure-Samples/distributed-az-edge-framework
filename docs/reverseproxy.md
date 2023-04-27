@@ -22,7 +22,7 @@ The L3/L4 TCP filter is employed to capture incoming traffic and redirect it upw
 - At Level 3, Envoy has an identical setup as the proxy at Level 2, forwarding all traffic up to Level 4.
 - At Level 4, there is a specific set of listeners and destination clusters. For each authorized domain name, the proxy has a designated destination cluster that directs the traffic to the intended public domain name.
 
-> It is essential to note that at Level 4, the Envoy Pod has custom network setup that does not use the rewritten domains by the local CoreDNS in Kubernetes. This guarantees that local address translation within the cluster forwards a set of domain names to the Envoy proxy Endpoint on the same Level 4 cluster. However, Envoy Pod itself resolves public addresses with the Azure or public DNS, overwriting its local DNS resolution to prevent an infinite redirection loop of DNS requests to the proxy itself. This implementation can be seen in the `hostNetwork` and `dnsPolicy` settings of the Envoy deployment manifest (in Helm).
+> It worth noting that at Level 4, the Envoy Pod has custom network setup that does not use the rewritten domains by the local CoreDNS in Kubernetes. This guarantees that local address translation within the cluster forwards a set of domain names to the Envoy proxy Endpoint on the same Level 4 cluster. However, Envoy Pod itself resolves public addresses with the Azure or public DNS, overwriting its local DNS resolution to prevent an infinite redirection loop of DNS requests to the proxy itself. This implementation can be seen in the `hostNetwork` and `dnsPolicy` settings of the Envoy deployment manifest (in Helm).
 
 ## DNS Rewriting with CoreDNS
 
@@ -79,6 +79,11 @@ In order to maintain a zero-trust security approach, the Envoy reverse proxy doe
 Even though the Envoy TLS Inspector Filter is employed, it does so only to read out the hostname in the SNI. This information is available in the SSL ClientHello which is the TLS handshake first message and sent in unencrypted. In this manner we are able to use filters based on SNI and proxy the traffic to allowed domain names only (in Envoy *clusters*). 
 
 This topic is still being debated and might change in the future.
+
+## Envoy configuration for top level (L4) dynamic cluster resolution
+
+TODO explain here the approach with wildcard matches and forward sni proxy
+Order of filter_chain_match and importance for precedence of full URL vs * in chain order.
 
 ## Design Considerations for Future Extension
 

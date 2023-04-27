@@ -100,8 +100,16 @@ class Aks {
     $proxyPort = $proxy.spec.ports.port
     $proxyClusterIp = $proxy.spec.clusterIP
     
+    $dnsWildcardTemplateBlock = @"
+
+      to_replace_key.override: |
+        rewrite stop {
+          name regex to_replace_with_expression envoy-service.reverse-proxy.svc.cluster.local.
+        }
+"@
     $arcDomainsList = ""
     $arcregionalList = ""
+    $wildcardDomainOverride = ""
 
     # Currently setting up all Arc domains for proxying, even if Arc agent is not installed on this cluster
     # if ($enableArc) {
@@ -109,15 +117,22 @@ class Aks {
     # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
     # TODO get from chart repo instead of local folder when chart is released
     $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
+
     $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
       "$proxyClusterIp $($helmValues.arcDomainNames[$key]) `n       "
     }
     $arcregionalList = foreach ($key in $helmValues.arcRegionalDomains.keys) {
       "$proxyClusterIp ${arcLocation}$($helmValues.arcRegionalDomains[$key]) `n       "
     }
+    foreach ($key in $helmValues.arcWildcardSubDomains.keys) {
+      $wildcardDomain = $($helmValues.arcWildcardSubDomains[$key]).Replace("*", "").Replace(".", "\.")
+      $expression = "(.*)$wildcardDomain\.$"
+      $wildcardDomainBlock = $dnsWildcardTemplateBlock.Replace("to_replace_key", $key).Replace("to_replace_with_expression", $expression)
+      $wildcardDomainOverride += $wildcardDomainBlock
+    }
     # }
 
-    # Get additional custom domains if any defined above
+    # Get additional custom domains if any defined above in script
     $customDomainList = foreach ($key in $customDomainsHash.keys) {
       "$proxyClusterIp $($customDomainsHash[$key]) `n       "
     }
@@ -130,20 +145,25 @@ class Aks {
     metadata:
       name: coredns-custom
       namespace: kube-system
+      labels:
+          addonmanager.kubernetes.io/mode: EnsureExists
     data:
       azurearc.override: | 
         hosts {
           list_of_default_domains_to_replace
           list_of_regional_domains_to_replace
           list_of_additional_domains_to_replace
+          
           fallthrough
         }
+      list_of_wildcard_overrides_to_replace
 "@
-
+  
     $dnsConfig = $dnsConfig.Replace("list_of_default_domains_to_replace", $arcDomainsList)
     $dnsConfig = $dnsConfig.Replace("list_of_regional_domains_to_replace", $arcregionalList)
     $dnsConfig = $dnsConfig.Replace("list_of_additional_domains_to_replace", $customDomainList)
-    
+    $dnsConfig = $dnsConfig.Replace("list_of_wildcard_overrides_to_replace", $wildcardDomainOverride)
+  
     $dnsConfig | kubectl apply -f -
     # restart coredns pods to take effect
     kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
@@ -186,7 +206,7 @@ class Aks {
         $aksApiIp = [System.Net.Dns]::GetHostAddresses("$aksApiUri")[0].IPAddressToString
 
         # this first rule is temporary for allowing AKS to connect to Azure Arc Infra (wildcard domains), will be removed later
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowArcInfraHTTPSOutbound" --priority 1000 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureArcInfrastructure --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to ArcInfra."
+        # az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowArcInfraHTTPSOutbound" --priority 1000 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureArcInfrastructure --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to ArcInfra."
         # default rules for AKS outbound connectivity to work in node pools and between nodes
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes $aksApiIp --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.northeurope --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."

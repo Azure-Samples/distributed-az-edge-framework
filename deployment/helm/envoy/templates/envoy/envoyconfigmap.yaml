@@ -17,7 +17,7 @@ data:
             port_value: 50000
         
         listener_filters:
-        - name: "single_tls_inspector"
+        - name: envoy.filters.listener.tls_inspector
           typed_config:
             "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
         per_connection_buffer_limit_bytes: 32768  # 32 KiB
@@ -36,7 +36,7 @@ data:
               - {{ $val }}
               {{- end }}
               {{- range $key, $val := .Values.arcWildcardSubDomains }}
-              - {{ $val }}
+              - {{ $val | quote }}
               {{- end }}
           filters:
             - name: envoy.filters.network.tcp_proxy
@@ -80,10 +80,12 @@ data:
         {{- end }}
         {{- if .Values.arcWildcardSubDomains}}
         # Temporary solution for wildcard subdomains, using SNI foward proxy which is not production ready
+        # Must be the last filter chain in the list to match wildcard domains that have not been matched above
+        # Example gbl.his.arc.azure.com is matched above, all other *.his.arc.azure.com will be matched here
         - filter_chain_match:
             server_names:
               {{- range $key, $val := .Values.arcWildcardSubDomains }}
-              - {{ $val }}
+              - {{ $val | quote }}
               {{- end }} 
           filters:
             - name: envoy.filters.network.sni_dynamic_forward_proxy
@@ -99,7 +101,6 @@ data:
                 stat_prefix: forward_wildcard_tcp
                 cluster: dynamic_forward_proxy_cluster
         {{- end }}
-
         {{- end }}
         
       clusters:

@@ -30,14 +30,14 @@ arcDomainNames:
   sts_windows_net: sts.windows.net
   k8sconnectcsp_azureedge_net: k8sconnectcsp.azureedge.net
   graph_microsoft_com: graph.microsoft.com
-  azurepolicyarckubernetes.azurecr.io: azurepolicyarckubernetes.azurecr.io # from video, not documented
-  # aka_ms: aka.ms # from arc 'server' requirements
-  # pas_windows_net: pas.windows.net # from arc 'server'requirements
+  azurepolicyarckubernetes_azurecr_io: azurepolicyarckubernetes.azurecr.io # not documented
   graph_windows_net: graph.windows.net # from arc 'server' requirements
-  manifestcdndev_azureedge_net: manifestcdndev.azureedge.net # from video, not documented
-  data_policy_core_windows_net: data.policy.core.windows.net # from video, not documented
+  manifestcdndev_azureedge_net: manifestcdndev.azureedge.net # not documented
+  data_policy_core_windows_net: data.policy.core.windows.net # not documented
   #gbl_his_arc_azure_com: gbl.his.arc.azure.com # will be matched via the wildcard domains
   # dc_services_visualstudio_com: dc.services.visualstudio.com # from arc server requirements
+  # aka_ms: aka.ms # from arc 'server' requirements
+  # pas_windows_net: pas.windows.net # from arc 'server'requirements
 
 
 arcRegionalDomains:
@@ -47,12 +47,12 @@ arcRegionalDomains:
   region_login_microsoft_com: .login.microsoft.com
   region_monitoring_azure_com: .monitoring.azure.com # from other docs
 
-arcWildCardSubDomains:
-  - his_arc_azure_com: "*.his.arc.azure.com"
-  - arc_azure_net: "*.arc.azure.net"
-  - guestconfiguration_azure_com: "*.guestconfiguration.azure.com"
-  - azwebsites: "*.azurewebsites.net" # just for testing
+arcWildcardSubDomains:
+  his_arc_azure_com: "*.his.arc.azure.com"
+  arc_azure_net: "*.arc.azure.net"
+  guestconfiguration_azure_com: "*.guestconfiguration.azure.com"
+  azwebsites: "*.azurewebsites.net" # just for testing
 
-# Provide additional domains that you want to proxy through
+# Provide additional domains that you want to proxy through, pass the whole collection through Values
 # customDomains:
 #   domain1: www.domain1.com
