@@ -10,20 +10,20 @@ If low-code is not sufficient and there is a need to run high-compute load for w
 
 ### Features
 
-| | Arc-enabled Logic Apps | Dapr Logic Apps | Dapr Workflow |
-| --- | --- | --- | --- |
-| Low-code | x | x | c# SDK |
-| Connectors | x | x | - |
+| | Arc-enabled Logic Apps | [Deprecated] Dapr Logic Apps | Dapr Workflow | Conductor |
+| --- | --- | --- | --- | --- |
+| Low-code | x | x | c# SDK | x |
+| Connectors | x | x | - | x |
 | High compute | not natively, can call external APIs | not natively, can call external APIs | C# SDKS and implementation can run high compute workload|
-| Low-code | `git status` | List all *new or modified* files | |
 
 ### Arc-enabled Logic Apps
 
 - requires [App Service Kubernetes environment](https://learn.microsoft.com/en-us/azure/app-service/manage-create-arc-environment?tabs=bash#install-the-app-service-extension)
 
-### Dapr Logic Apps Integration
+### [Deprecated] Dapr Logic Apps Integration
 
 - high code overhead for bootstrap
+- 
 
 ### Dapr Workflow
 

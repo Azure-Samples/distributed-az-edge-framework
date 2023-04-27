@@ -4,6 +4,11 @@ dataGatewayModule:
   storageAccountName: "replace_with_storage_account_name_at_deploy_time"
   storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
 
+# Workflow State Store module settings
+stateStoreModule:
+  redisUri: "redis-master.edge-core.svc.cluster.local:6379"
+
+
 # Local Pub Sub module settings
 gatewayPubSubModule:
   mqttUri: "tcp://mosquittocluster.edge-core.svc.cluster.local:1883"
@@ -12,3 +17,4 @@ gatewayPubSubModule:
 # Docker images
 images:
   datagatewaymodule: ghcr.io/azure-samples/distributed-az-iot-edge/datagatewaymodule:main-78b133d
+  workflowmodule: ghcr.io/azure-samples/distributed-az-iot-edge/workflowmodule:main-78b133d

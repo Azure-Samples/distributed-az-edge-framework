@@ -20,7 +20,7 @@ namespace Distributed.IoT.Edge.WorkflowModule
 
         [Option(
             "senderPubSubName",
-            Default = "local-pub-sub",
+            Default = "gateway-pub-sub",
             Required = false,
             HelpText = "Dapr pubsub messaging component name for sending messages.")]
         public string? SenderPubSubName { get; set; }
