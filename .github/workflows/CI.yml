@@ -3,6 +3,7 @@ on:
   push:
     branches: 
       - main
+      - feature/workflowEngine
     paths:
       - 'iotedge/Distributed.IoT.Edge'
       - 'lib/Industrial-IoT'
@@ -61,6 +62,24 @@ jobs:
         push: true
         tags: ${{ steps.dataGatewayMeta.outputs.tags }}
         labels: ${{ steps.dataGatewayMeta.outputs.labels }}
+
+    - name: Extract metadata (tags, labels) for WorkflowModule Docker
+      id: workflowMeta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/workflowmodule
+        tags: |
+          type=raw,value=latest,priority=1000
+          type=raw,value={{branch}}-{{sha}},priority=200
+
+    - name: Build and push WorkflowModule Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: iotedge/Distributed.IoT.Edge/.
+        file: iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.WorkflowModule/Dockerfile
+        push: true
+        tags: ${{ steps.workflowMeta.outputs.tags }}
+        labels: ${{ steps.workflowMeta.outputs.labels }}
 
     - name: Extract metadata (tags, labels) for SimulatedTemperatureSensorModule Docker
       id: tempSensorMeta
