@@ -34,11 +34,10 @@ arcDomainNames:
   graph_windows_net: graph.windows.net # from arc 'server' requirements
   manifestcdndev_azureedge_net: manifestcdndev.azureedge.net # not documented
   data_policy_core_windows_net: data.policy.core.windows.net # not documented
-  #gbl_his_arc_azure_com: gbl.his.arc.azure.com # will be matched via the wildcard domains
+  gbl_his_arc_azure_com: gbl.his.arc.azure.com
   # dc_services_visualstudio_com: dc.services.visualstudio.com # from arc server requirements
   # aka_ms: aka.ms # from arc 'server' requirements
   # pas_windows_net: pas.windows.net # from arc 'server'requirements
-
 
 arcRegionalDomains:
   region_dp_kubernetesconfg_azure_com: .dp.kubernetesconfiguration.azure.com
