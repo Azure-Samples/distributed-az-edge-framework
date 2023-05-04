@@ -27,6 +27,11 @@ $Location = Get-AzShortRegion($Location)
 
 # 1. Deploy core infrastructure (AKS clusters, VNET)
 
+# Notes on the current status of this branch with Envoy reverse proxy
+# - Envoy setup is active and working for core infrastructure, be it with a few custom NSG service tags
+# - Envoy setup is working on the core platform layer only for L4 as it requires outbound access to internet
+# - Envoy setup is not yet active for the app layer, as it requires access to docker hub and the docker hub IP ranges are not yet known
+
 $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $true -Location $Location
 $l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $true -Location $Location
 $l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $true -Location $Location

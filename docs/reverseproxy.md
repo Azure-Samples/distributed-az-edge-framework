@@ -34,7 +34,7 @@ Each service or pod in the Kubernetes cluster is automatically provided with loc
 
 For modifying some of the domain names that must pass through the Envoy proxy, the CoreDNS plugin model is employed. Customization can be done using the `hosts` and custom `forward` servers.
 
-Upon a successful installation of the Envoy proxy, a load balancer service endpoint listening on port 443 is generated. This internal endpoint is assigned to a set of domain names to be overwritten via the `hosts` plugin model for CoreDNS. In Azure AKS, this customization is possible but limited, and it can be accomplished through the ConfigMap `coredns-custom`. Please see [Customize CoreDNS with Azure Kubernetes Service](https://learn.microsoft.com/en-us/azure/aks/coredns-custom) for more information.
+Upon a successful installation of the Envoy proxy, a load balancer service endpoint listening on port 443 is generated. This internal endpoint is assigned to a set of domain names to be overwritten via the `hosts` and `rewrite` plugin model for CoreDNS. In Azure AKS, this customization is possible but limited, and it can be accomplished through the ConfigMap `coredns-custom`. Please see [Customize CoreDNS with Azure Kubernetes Service](https://learn.microsoft.com/en-us/azure/aks/coredns-custom) for more information.
 
 ## Virtual Network Configuration
 
@@ -82,18 +82,25 @@ This topic is still being debated and might change in the future.
 
 ## Envoy configuration for top level (L4) dynamic cluster resolution
 
-TODO explain here the approach with wildcard matches and forward sni proxy
-Order of filter_chain_match and importance for precedence of full URL vs * in chain order.
+Azure Arc resources require certain domain names to be allowed for egress, including wildcard domains. However, configuring Envoy for a reverse proxy setup can be challenging when the full domain name is not known upfront. Envoy proxy requires a dynamic cluster endpoint configuration to be set up for such scenarios.
+
+To address this challenge, the current sample uses the SNI Dynamic Forward Proxy solution, which is capable of resolving a number of pre-set wildcard domains. 
+
+> Note: It is important to point out that this feature is currently in an alpha stage and should not be used in production scenarios.
+
+Let's consider an example where both the full domain `gbl.his.arc.azure.com` and the wildcard domain `*.his.arc.azure.com` are required. In the case of the former, we can set up a filter match and a cluster with a full endpoint. However, for the latter, we need to configure a dynamic forward proxy to resolve the dynamic part of the URL.
+
+Envoy applies the filter match chains in the order that they are defined through the `filter_chains` collection. In this example, because the first URL is matched and its cluster destination is set statically, we can control the reverse proxy configuration when the URI is fully known.
 
 ## Design Considerations for Future Extension
 
-- Default gateway for host system (Kubernetes nodes and OS level communication)
-- Routing tables for host system
+- Default gateway for host system (AKS Kubernetes nodes and OS level communication)
+- Routing tables and UDR for AKS host system
 - Customer owned firewalls and proxies
-- Mutual TLS between proxies
+- Mutual TLS between reverse proxies
 
 ## Future Planned Additions in this Sample:
 
 - Wildcard sub-domain redirection: some of the domains required for Azure Arc K8S are documented in the form of wildcard subdomains (*.his.arc.azure.com, *.arc.azure.com, *.data.mcr.microsoft.com, *.guestnotificationservice.azure.com). Currently implemented using SNI dynamic forward proxy in Envoy.
 - Level 4 connected (local) container registry for all required container images, including a copy of public images like Envoy and Mosquitto
-- Mosquitto bridging through proxy
+- Mosquitto bridging through reverse proxy

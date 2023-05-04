@@ -205,16 +205,22 @@ class Aks {
         # ----- Close down Internet access for cluster after Infra setup, allow only AKS Azure specific outbound
         # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
         # https://learn.microsoft.com/en-us/azure/aks/limit-egress-traffic
-        $aksApiUri = (az aks show -g $resourceGroupName -n $aksName --query "fqdn" -o tsv)
-        $aksApiIp = [System.Net.Dns]::GetHostAddresses("$aksApiUri")[0].IPAddressToString
+        # $aksApiUri = (az aks show -g $resourceGroupName -n $aksName --query "fqdn" -o tsv)
+        # $aksApiIp = [System.Net.Dns]::GetHostAddresses("$aksApiUri")[0].IPAddressToString
 
         # this first rule is temporary for allowing AKS to connect to Azure Arc Infra (wildcard domains), will be removed later
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowArcInfraHTTPSOutbound" --priority 1000 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureArcInfrastructure --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to ArcInfra."
         # default rules for AKS outbound connectivity to work in node pools and between nodes
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes $aksApiIp --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.northeurope --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
+        
+        # This rule is now using a tag vs IP in order to work with restarts which can change the IP
+        # az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes $aksApiIp --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
+        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
+        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagMcr" --priority 1040 --source-address-prefixes VirtualNetwork --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to MCR."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagFrontDoorFirstParty" --priority 1050 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AzFrontDoor.FirstParty."
+        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiUdpOutbound" --priority 1060 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '1194' --direction Outbound --access Allow --protocol Udp --description "Allow VirtualNetwork to AKS API UDP."
+        # TODO allow also Azure Global application rules for AKS egress
+        # https://learn.microsoft.com/en-us/azure/aks/outbound-rules-control-egress#azure-global-required-fqdn--application-rules
         # # Deny all Internet outbound traffic
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
 
