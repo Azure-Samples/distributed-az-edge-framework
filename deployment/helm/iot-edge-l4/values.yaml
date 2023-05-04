@@ -17,4 +17,4 @@ gatewayPubSubModule:
 # Docker images
 images:
   datagatewaymodule: ghcr.io/azure-samples/distributed-az-iot-edge/datagatewaymodule:main-78b133d
-  workflowmodule: ghcr.io/azure-samples/distributed-az-iot-edge/workflowmodule:main-78b133d
+  workflowmodule: ghcr.io/bindsi/distributed-az-iot-edge/workflowmodule:feature-workflowengine-632c44d

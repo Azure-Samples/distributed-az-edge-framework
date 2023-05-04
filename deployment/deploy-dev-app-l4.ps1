@@ -5,19 +5,19 @@
 
 Param(
     [string]
-    [Parameter(mandatory=$true)]
+    #[Parameter(mandatory=$true)]
     $ApplicationName,
 
     [string]
-    [Parameter(mandatory=$true)]
+    #[Parameter(mandatory=$true)]
     $AksClusterName,
 
     [string]
-    [Parameter(mandatory=$true)]
+    #[Parameter(mandatory=$true)]
     $AksClusterResourceGroupName,
 
     [string]
-    [Parameter(Mandatory=$true)]
+    #[Parameter(Mandatory=$true)]
     $AksServicePrincipalName,
 
     [string]
@@ -25,7 +25,7 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-dev-bootstrapper.ps1
-# Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
 
 $appKubernetesNamespace = "edge-app1"
 $deploymentId = Get-Random
@@ -58,10 +58,11 @@ $storageKey = (az storage account keys list  --resource-group $resourceGroupApp 
                 --account-name $storageName --query [0].value -o tsv)
 
 # ----- Build and Push Containers
-Write-Title("Build and Push Container Data Gateway")
+Write-Title("Build and Push Container Data Gateway and Workflow")
 $deploymentDir = Get-Location
 Set-Location -Path ../iotedge/Distributed.IoT.Edge
 az acr build --image datagatewaymodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.DataGatewayModule/Dockerfile .
+az acr build --image workflowmodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.WorkflowModule/Dockerfile .
 Set-Location -Path $deploymentDir
 
 # ----- Get Cluster Credentials for L4 layer
@@ -71,12 +72,18 @@ az aks get-credentials `
     --name $AksClusterName `
     --resource-group $AksClusterResourceGroupName `
     --overwrite-existing
+    
+# Copy Redis secret from edge-core namesapce to edge-app1 namespace where application is deployed.
+kubectl create namespace $appKubernetesNamespace
+kubectl get secret redis --namespace=edge-core -o yaml | % {$_.replace("namespace: edge-core","namespace: $appKubernetesNamespace")} | kubectl apply -f - 
 
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
+$workflowmoduleimage = $acrName + ".azurecr.io/workflowmodule:" + $deploymentId
 helm install iot-edge-l4 ./helm/iot-edge-l4 `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+    --set-string images.workflowmodule="$workflowmoduleimage" `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
