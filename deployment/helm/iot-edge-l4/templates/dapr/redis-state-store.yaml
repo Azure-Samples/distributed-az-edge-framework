@@ -15,7 +15,8 @@ spec:
     secretKeyRef:
       name: redis
       key: redis-password
-  
+  - name: actorStateStore
+    value: "true"
  # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
   # - name: enableTLS
   #   value: true 

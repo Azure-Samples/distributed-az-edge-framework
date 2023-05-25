@@ -15,11 +15,12 @@
         public EnrichmentActivity(ILogger<EnrichmentActivity> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger.LogTrace($"Entering: {nameof(EnrichmentActivity)}");
         }
 
         public override Task<string> RunAsync(WorkflowActivityContext context, string input)
         {
-            _logger.LogInformation($"Enriching data for raw input: {input}");
+            _logger.LogTrace($"Enriching data for raw input: {input}");
             var data = JsonConvert.DeserializeObject<dynamic>(input);
             if (data == null)
             {

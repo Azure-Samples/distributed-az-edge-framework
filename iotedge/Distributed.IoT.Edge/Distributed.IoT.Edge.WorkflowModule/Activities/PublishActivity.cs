@@ -36,11 +36,13 @@
                                      throw new ArgumentNullException(
                                          nameof(parameters.SenderPubSubTopicName),
                                          "Parameter cannot be null.");
+
+            _logger.LogTrace($"Entering: {nameof(PublishActivity)}");
         }
 
         public override async Task<bool> RunAsync(WorkflowActivityContext context, string input)
         {
-            _logger.LogInformation($"Publishing data: {input}");
+            _logger.LogTrace($"Publishing data: {input}");
             try
             {
                 await _daprClient.PublishEventAsync(_senderPubsubName, _senderPubsubTopicName, input);

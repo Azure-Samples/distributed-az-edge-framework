@@ -3,9 +3,7 @@ on:
   push:
     branches: 
       - main
-    paths:
-      - 'iotedge/Distributed.IoT.Edge'
-      - 'lib/Industrial-IoT'
+      - feature/workflowEngine
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -48,7 +46,7 @@ jobs:
       id: dataGatewayMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/datagatewaymodule
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/datagatewaymodule
         tags: |
           type=raw,value=latest,priority=1000
           type=raw,value={{branch}}-{{sha}},priority=200
@@ -62,11 +60,29 @@ jobs:
         tags: ${{ steps.dataGatewayMeta.outputs.tags }}
         labels: ${{ steps.dataGatewayMeta.outputs.labels }}
 
+    - name: Extract metadata (tags, labels) for WorkflowModule Docker
+      id: workflowMeta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/workflowmodule
+        tags: |
+          type=raw,value=latest,priority=1000
+          type=raw,value={{branch}}-{{sha}},priority=200
+
+    - name: Build and push WorkflowModule Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: iotedge/Distributed.IoT.Edge/.
+        file: iotedge/Distributed.IoT.Edge/Distributed.IoT.Edge.WorkflowModule/Dockerfile
+        push: true
+        tags: ${{ steps.workflowMeta.outputs.tags }}
+        labels: ${{ steps.workflowMeta.outputs.labels }}
+
     - name: Extract metadata (tags, labels) for SimulatedTemperatureSensorModule Docker
       id: tempSensorMeta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/simulatedtemperaturesensormodule
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/simulatedtemperaturesensormodule
         tags: |
           type=raw,value={{branch}}-{{sha}},priority=200
           type=raw,value=latest,priority=1000
@@ -84,7 +100,7 @@ jobs:
       id: opcUaPublisher
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/opcuapublisher
+        images: ${{ env.REGISTRY }}/bindsi/distributed-az-iot-edge/opcuapublisher
         tags: |
           type=raw,value={{branch}}-{{sha}},priority=200
           type=raw,value=latest,priority=1000

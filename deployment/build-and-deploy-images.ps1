@@ -41,6 +41,7 @@ Write-Title("Build and Push Containers")
 $deploymentDir = Get-Location
 Set-Location -Path ../iotedge/Distributed.IoT.Edge
 az acr build --image datagatewaymodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.DataGatewayModule/Dockerfile .
+az acr build --image workflowmodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.WorkflowModule/Dockerfile .
 az acr build --image simulatedtemperaturesensormodule:$deploymentId --registry $acrName --file Distributed.IoT.Edge.SimulatedTemperatureSensorModule/Dockerfile .
 Set-Location -Path $deploymentDir
 
@@ -56,6 +57,7 @@ Set-Location -Path $deploymentDir
 
 Write-Title("Upgrade/Install Pod/Containers with Helm charts in Cluster L4")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
+$workflowmoduleimage = $acrName + ".azurecr.io/workflowmodule:" + $deploymentId
 
 # ----- Get Cluster Credentials for L4 layer
 Write-Title("Get AKS Credentials L4 Layer")
@@ -67,8 +69,9 @@ az aks get-credentials `
     --overwrite-existing
 
 helm upgrade iot-edge-l4 ./helm/iot-edge-l4 `
-    --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
-    --namespace $appKubernetesNamespace `
+--set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+--set-string images.workflowmodule="$workflowmoduleimage" `
+--namespace $appKubernetesNamespace `
     --reuse-values `
     --install
 

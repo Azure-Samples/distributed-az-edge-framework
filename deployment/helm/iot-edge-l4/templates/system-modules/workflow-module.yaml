@@ -19,6 +19,7 @@ spec:
         dapr.io/app-id: "workflow-module"
         dapr.io/app-port: "80"
         dapr.io/app-protocol: "grpc"
+        dapr.io/log-level: "debug"
     spec:
       containers:
       - name: workflow-module

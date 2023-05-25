@@ -17,6 +17,10 @@ Param(
     $DeployDapr = $false,
 
     [Parameter(mandatory=$false)]
+    [bool]
+    $DeployRedis = $false,
+
+    [Parameter(mandatory=$false)]
     [PSCustomObject]
     $MosquittoParentConfig = $null,
 
@@ -81,6 +85,19 @@ if($DeployDapr){
         --kubeconfig $kubeConfigFile
 }
 
+# ----- Redis
+if($DeployRedis){
+    Write-Title("Install Redis")
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm repo update
+    helm install redis bitnami/redis `
+        --namespace edge-core `
+        --wait `
+        --create-namespace `
+        --wait `
+        --kubeconfig $kubeConfigFile
+
+}
 # ----- Mosquitto
 helm repo add azedgefx https://azure-samples.github.io/distributed-az-edge-framework --force-update
 helm repo update
