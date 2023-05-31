@@ -31,8 +31,12 @@ spec:
         ports:
         - containerPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
           name: https
+          protocol: TCP
         - containerPort: 50001
           name: wildcard
+        - containerPort: {{ .Values.envoyReverseProxy.oboPort }} # Azure Arc requirement for cluster connect
+          name: obo
+          protocol: TCP
         livenessProbe:
           tcpSocket:
             port: 9901

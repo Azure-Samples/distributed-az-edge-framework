@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dnsmasq-module-deployment
+spec:
+  selector:
+    matchLabels:
+      app: dnsmasq
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dnsmasq
+    spec:
+      containers: 
+      - image: {{ .Values.image }}
+        name: dnsmasq 
+        ports: 
+        - containerPort: 53 
+          protocol: UDP 
+          name: udp-53
+        volumeMounts: 
+        - name: dnsmasq-conf 
+          mountPath: "/var/dnsmasq/conf" 
+        - name: dnsmasq-hosts 
+          mountPath: "/var/dnsmasq"
+        securityContext: 
+          capabilities: 
+            add: 
+            - NET_ADMIN 
+      dnsPolicy: None 
+      dnsConfig: 
+        nameservers: 
+        - {{ .Values.azureDnsServer }}
+      restartPolicy: Always 
+      volumes: 
+      - name: dnsmasq-conf 
+        configMap: 
+          defaultMode: 0666 
+          name:  dnsmasq-conf 
+      - name: dnsmasq-hosts 
+        configMap: 
+          defaultMode: 0666 
+          name:  dnsmasq-hosts 

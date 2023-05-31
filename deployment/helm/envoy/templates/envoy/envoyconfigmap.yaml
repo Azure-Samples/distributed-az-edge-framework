@@ -101,7 +101,44 @@ data:
                 stat_prefix: forward_wildcard_tcp
                 cluster: dynamic_forward_proxy_cluster
         {{- end }}
+        {{- end }} 
+
+      - name: obo_listener
+        address:
+          socket_address:
+            address: 0.0.0.0
+            port_value: {{ .Values.envoyReverseProxy.oboPort }}
+        
+        listener_filters:
+        - name: envoy.filters.listener.tls_inspector
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
+        per_connection_buffer_limit_bytes: 32768  # 32 KiB
+        filter_chains:
+        {{- $domainRegion := .Values.domainRegion -}}
+        {{- if .Values.parent.enabled }}
+        - filter_chain_match:
+            server_names:
+              - {{ $domainRegion -}} {{ .Values.arcOboClusterConnect.region_obo_arc_azure_com }}
+          filters:
+            - name: envoy.filters.network.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                cluster: parent-passthrough-obo
+                stat_prefix: parent_passthr_obo
+        {{- else }}
+        
+        - filter_chain_match:
+            server_names:
+              - {{ $domainRegion -}} {{ .Values.arcOboClusterConnect.region_obo_arc_azure_com }}
+          filters:
+            - name: envoy.filters.network.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+                cluster: region-obo-arc-azure-com
+                stat_prefix: obo_tcp
         {{- end }}
+      
         
       clusters:
       
@@ -119,6 +156,19 @@ data:
                   socket_address:
                     address: {{ .Values.parent.proxyIp }}
                     port_value: {{ .Values.parent.proxyHttpsPort }}
+                    
+      - name: parent-passthrough-obo
+        type: LOGICAL_DNS
+        dns_lookup_family: V4_ONLY
+        load_assignment:
+          cluster_name: parent-passthrough-obo
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: {{ .Values.parent.proxyIp }}
+                    port_value: {{ .Values.parent.proxyOboPort }}
       {{- else }}
       # else if this is top layer point to outbound public URIs
       {{- $httpsPort := .Values.parent.proxyHttpsPort -}}
@@ -176,6 +226,24 @@ data:
               dns_lookup_family: V4_ONLY
       
       {{- end }}
+
+      {{- $oboPort := .Values.parent.proxyOboPort -}}
+      {{- if .Values.arcOboClusterConnect }}
+      - name: region-obo-arc-azure-com
+        type: LOGICAL_DNS
+        dns_lookup_family: V4_ONLY
+        load_assignment:
+          cluster_name: region-obo-arc-azure-com
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: {{ $domainRegion -}} {{ .Values.arcOboClusterConnect.region_obo_arc_azure_com }}
+                    port_value: {{ $oboPort }}
+      
+      {{- end }}
+
 
       {{- end }}
 

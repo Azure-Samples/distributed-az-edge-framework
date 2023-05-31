@@ -47,7 +47,6 @@ class Aks {
 
     # ----- Prepare domain names you want to add for allow-list, DNS override to local proxy
     # Github.com and github.io required for flux and helm repos in GitOps
-    # TODO make mosquitto image availalbe in allowed registry URI
     # TODO investigate using private registry for mosquitto, custom and other images to avoid proxying github uris
     $customDomainsHash = @{ 
       azure_samples_github = "azure-samples.github.io"; 
@@ -65,7 +64,7 @@ class Aks {
     $customDomainsHelm = $customDomainsHash.GetEnumerator() | ForEach-Object { "customDomains.$($_.Key)=$($_.Value)" }
     $customDomainsHelm = $customDomainsHelm -Join ","
     
-    # ----- Install AKS Proxy 
+    # ----- Install AKS reverse Proxy 
     # TODO change this once chart is released
     # helm repo add envoy https://azure-samples.github.io/distributed-az-edge-framework
     # helm repo update
@@ -81,7 +80,7 @@ class Aks {
         --set-string parent.proxyIp="$parentProxyIp" `
         --set-string parent.proxyHttpsPort="$parentProxyPort" `
         --set $customDomainsHelm `
-        --namespace reverse-proxy `
+        --namespace edge-infra `
         --create-namespace `
         --wait
     }
@@ -90,85 +89,30 @@ class Aks {
       helm install envoy ./helm/envoy `
         --set-string domainRegion="$arcLocation" `
         --set $customDomainsHelm `
-        --namespace reverse-proxy `
+        --namespace edge-infra `
         --create-namespace `
         --wait
     }
 
     # ----- Get AKS Proxy IP Address
     Write-Title("Get AKS $aksName Proxy Ip Address and Port")
-    $proxy = kubectl get service envoy-service -n reverse-proxy -o json | ConvertFrom-Json
+    $proxy = kubectl get service envoy-service -n edge-infra -o json | ConvertFrom-Json
     $proxyIp = $proxy.status.loadBalancer.ingress.ip
-    $proxyPort = $proxy.spec.ports.port
+    $proxyPort = $proxy.spec.ports[0].port
     $proxyClusterIp = $proxy.spec.clusterIP
     
-    # ----- Prepare DNS override for local proxy
-    $dnsWildcardTemplateBlock = @"
+    # ----- Configure DNS resolution within AKS cluster via CoreDNS customization
+    ConfigureCoreDns($customDomainsHash, $proxyClusterIp)
 
-      to_replace_key.override: |
-        rewrite stop {
-          name regex to_replace_with_expression envoy-service.reverse-proxy.svc.cluster.local.
-        }
-"@
-    $arcDomainsList = ""
-    $arcregionalList = ""
-    $wildcardDomainOverride = ""
+    # ----- Install DNSMasq Helm chart to host DNS resolution for child cluster
+    Write-Title("Installing DNSMasq Helm chart for DNS resolution of child cluster")
+    helm install dnsmasq ./helm/dnsmasqaks `
+      --set-string proxyDnsServer="$proxyIp" `
+      --namespace edge-infra `
+      --wait
 
-    # Currently setting up all Arc domains for proxying, even if Arc agent is not installed on this cluster
-    # if ($enableArc) {
-    
-    # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
-    # TODO get from chart repo instead of local folder when chart is released
-    $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
-
-    $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
-      "$proxyClusterIp $($helmValues.arcDomainNames[$key]) `n         "
-    }
-    $arcregionalList = foreach ($key in $helmValues.arcRegionalDomains.keys) {
-      "$proxyClusterIp ${arcLocation}$($helmValues.arcRegionalDomains[$key]) `n         "
-    }
-    foreach ($key in $helmValues.arcWildcardSubDomains.keys) {
-      $wildcardDomain = $($helmValues.arcWildcardSubDomains[$key]).Replace("*", "").Replace(".", "\.")
-      $expression = "(.*)$wildcardDomain\.$"
-      $wildcardDomainBlock = $dnsWildcardTemplateBlock.Replace("to_replace_key", $key).Replace("to_replace_with_expression", $expression)
-      $wildcardDomainOverride += $wildcardDomainBlock
-    }
-    # }
-    # Get additional custom domains if any defined above in script
-    $customDomainList = foreach ($key in $customDomainsHash.keys) {
-      "$proxyClusterIp $($customDomainsHash[$key]) `n         "
-    }
-
-    # Setup customized DNS configuration with CoreDNS for overriding a set of domain names to local proxy
-    Write-Title("Setup customized DNS configuration with CoreDNS for overriding domain names to local proxy")
-    $dnsConfig = @"
-    apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: coredns-custom
-      namespace: kube-system
-      labels:
-          addonmanager.kubernetes.io/mode: EnsureExists
-    data:
-      azurearc.override: | 
-        hosts {
-          list_of_default_domains_to_replace
-          list_of_regional_domains_to_replace
-          list_of_additional_domains_to_replace
-          
-          fallthrough
-        }
-      list_of_wildcard_overrides_to_replace
-"@
-  
-    $dnsConfig = $dnsConfig.Replace("list_of_default_domains_to_replace", $arcDomainsList)
-    $dnsConfig = $dnsConfig.Replace("list_of_regional_domains_to_replace", $arcregionalList)
-    $dnsConfig = $dnsConfig.Replace("list_of_additional_domains_to_replace", $customDomainList)
-    $dnsConfig = $dnsConfig.Replace("list_of_wildcard_overrides_to_replace", $wildcardDomainOverride)
-  
-    $dnsConfig | kubectl apply -f -
-    # restart coredns pods to take effect
-    kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
+    $dnsService = kubectl get service dsnmasq-service -n edge-infra -o json | ConvertFrom-Json
+    $dnsMasqIp = $dnsService.status.loadBalancer.ingress.ip
 
     if ($enableArc) {
       # ----- Before enrolling with Arc: create Service Account, get token and store in temp folder for Arc Cluster Connect in other scripts
@@ -201,28 +145,29 @@ class Aks {
 
       # If parent proxy config is present = this is a lower layer and we are blocking all outbound traffic
       if ($proxyConfig) {
-        Write-Title("Parent proxy config is present, adding NSGs blocking outbound traffic and setting DNS to parent")
+        Write-Title("Parent proxy config is present, adding NSGs, blocking outbound traffic")
         # ----- Close down Internet access for cluster after Infra setup, allow only AKS Azure specific outbound
         # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
-        # https://learn.microsoft.com/en-us/azure/aks/limit-egress-traffic
-        # $aksApiUri = (az aks show -g $resourceGroupName -n $aksName --query "fqdn" -o tsv)
-        # $aksApiIp = [System.Net.Dns]::GetHostAddresses("$aksApiUri")[0].IPAddressToString
-
-        # this first rule is temporary for allowing AKS to connect to Azure Arc Infra (wildcard domains), will be removed later
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowArcInfraHTTPSOutbound" --priority 1000 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureArcInfrastructure --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to ArcInfra."
-        # default rules for AKS outbound connectivity to work in node pools and between nodes
+        # https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic#egress-traffic-requirements
         
-        # This rule is now using a tag vs IP in order to work with restarts which can change the IP
-        # az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes $aksApiIp --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
+        # this first rule is temporary for allowing AKS to connect to Azure Arc Infra, will be removed later
+        # az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowArcInfraHTTPSOutbound" --priority 1000 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureArcInfrastructure --destination-port-ranges 443 8084 --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to ArcInfra."
+        # default rules for AKS outbound connectivity to work in node pools and between nodes
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagMcr" --priority 1040 --source-address-prefixes VirtualNetwork --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to MCR."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagFrontDoorFirstParty" --priority 1050 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AzFrontDoor.FirstParty."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiUdpOutbound" --priority 1060 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '1194' --direction Outbound --access Allow --protocol Udp --description "Allow VirtualNetwork to AKS API UDP."
-        # TODO allow also Azure Global application rules for AKS egress
-        # https://learn.microsoft.com/en-us/azure/aks/outbound-rules-control-egress#azure-global-required-fqdn--application-rules
-        # # Deny all Internet outbound traffic
+        # Deny all Internet outbound traffic
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
+
+        # ----- Set DNS server in VNET and restart AKS nodes
+        Write-Title("Setting VNET DNS server, restarting AKS nodes to pick up new DNS server to peered VNET")
+        $parentDnsServer = $proxyConfig.DnsServer
+        az network vnet update -g $resourceGroupName -n $resourceGroupName --dns-servers $parentDnsServer
+        # ----- Restart AKS nodes to pick up new DNS server in peered VNET
+        az aks stop --name $aksName --resource-group $resourceGroupName
+        az aks start --name $aksName --resource-group $resourceGroupName
 
       }
 
@@ -237,10 +182,83 @@ class Aks {
 
     return [PSCustomObject]@{
       ProxyIp   = $proxyIp
-      ProxyPort = $proxyPort     
+      ProxyPort = $proxyPort   
+      DnsMasqIp = $dnsMasqIp  
     }
   }
 }
+
+# ------ Begin funcion ConfigureCoreDns
+Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
+{
+  # ----- Prepare DNS override for local proxy
+  $dnsWildcardTemplateBlock = @"
+
+  to_replace_key.override: |
+    rewrite stop {
+      name regex to_replace_with_expression envoy-service.edge-infra.svc.cluster.local.
+    }
+"@
+
+  $arcDomainsList = ""
+  $arcregionalList = ""
+  $wildcardDomainOverride = ""
+
+  # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
+  # TODO get from chart repo instead of local folder when chart is released
+  $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
+
+  $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
+    "$envoyProxyClusterIp $($helmValues.arcDomainNames[$key]) `n         "
+  }
+  $arcregionalList = foreach ($key in $helmValues.arcRegionalDomains.keys) {
+    "$envoyProxyClusterIp ${arcLocation}$($helmValues.arcRegionalDomains[$key]) `n         "
+  }
+  foreach ($key in $helmValues.arcWildcardSubDomains.keys) {
+    $wildcardDomain = $($helmValues.arcWildcardSubDomains[$key]).Replace("*", "").Replace(".", "\.")
+    $expression = "(.*)$wildcardDomain\.$"
+    $wildcardDomainBlock = $dnsWildcardTemplateBlock.Replace("to_replace_key", $key).Replace("to_replace_with_expression", $expression)
+    $wildcardDomainOverride += $wildcardDomainBlock
+  }
+  
+  # Get additional custom domains if any passed in collection $customDomains
+  $customDomainList = foreach ($key in $customDomains.keys) {
+    "$envoyProxyClusterIp $($customDomains[$key]) `n         "
+  }
+
+  # Setup customized DNS configuration with CoreDNS for overriding a set of domain names to local proxy
+  Write-Title("Setup customized DNS configuration with CoreDNS for overriding domain names to local proxy")
+  $dnsConfig = @"
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: coredns-custom
+    namespace: kube-system
+    labels:
+        addonmanager.kubernetes.io/mode: EnsureExists
+  data:
+    azurearc.override: | 
+      hosts {
+        list_of_default_domains_to_replace
+        list_of_regional_domains_to_replace
+        list_of_additional_domains_to_replace
+        
+        fallthrough
+      }
+    list_of_wildcard_overrides_to_replace
+"@
+
+  $dnsConfig = $dnsConfig.Replace("list_of_default_domains_to_replace", $arcDomainsList)
+  $dnsConfig = $dnsConfig.Replace("list_of_regional_domains_to_replace", $arcregionalList)
+  $dnsConfig = $dnsConfig.Replace("list_of_additional_domains_to_replace", $customDomainList)
+  $dnsConfig = $dnsConfig.Replace("list_of_wildcard_overrides_to_replace", $wildcardDomainOverride)
+
+  $dnsConfig | kubectl apply -f -
+  # restart coredns pods to take effect
+  kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
+
+}
+# ------ End funcion ConfigureCoreDns
 
 # ------
 # Temporary check for Linux based systems and enabling Arc - exit as not tested on Linux outside of Cloud Shell
@@ -298,15 +316,6 @@ $r = (az deployment sub create --location $Location `
 $aksClusterName = $r.properties.outputs.aksName.value
 $aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
 
-# Temp
-# $aksClusterName = "aks-kdg26L4"
-# $aksClusterResourceGroupName = "kdg26L4"
-# TODO for layer 3 - setup vnet custom DNS server to point to parent
-
-# then restart cluster
-
-# then setup proxy and arc
-
 # ----- Install Arc CLI Extensions
 Write-Title("Azure Arc CLI Extensions")
 az extension add --name "connectedk8s"
@@ -325,6 +334,7 @@ $config = [PSCustomObject]@{
   ProxyPort                   = $proxyConfig.ProxyPort
   VnetName                    = $ApplicationName
   VnetResourceGroup           = $aksClusterResourceGroupName
+  DnsServer                   = $proxyConfig.DnsMasqIp
 }
 
 $runningTime = New-TimeSpan -Start $startTime

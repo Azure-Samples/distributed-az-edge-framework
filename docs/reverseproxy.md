@@ -68,9 +68,7 @@ As per the documented requirements in [Control egress traffic for cluster nodes 
 
 - AKS API Server endpoint required for any applications running within the cluster that need to call out to the API on port 443. This applies to some Azure Arc agent services.
 - AzureCloud.Region service tag on ports 1194 and 9000.
-- MicrosoftContainerRegistry service tag for downloading containers for Azure Arc.
-
-Furthermore, the Service tag `AzureArcInfrastructure` is added to the `Allow` list at this stage to work around the issue of wildcard domains (see below). However, this is only a temporary solution.
+- MicrosoftContainerRegistry service tag for downloading containers for initial bootstrapping of AKS or upon cluster restart.
 
 ## SSL Termination
 

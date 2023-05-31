@@ -2,6 +2,7 @@
 envoyReverseProxy:
   httpsContainerPort: 50000
   httpsPort: 443
+  oboPort: 8084
 
 command:
   - /usr/local/bin/envoy
@@ -16,6 +17,7 @@ parent:
   enabled: false
   proxyIp: to_replace
   proxyHttpsPort: 443
+  proxyOboPort: 8084
 
 domainRegion: northeurope
 
@@ -35,6 +37,9 @@ arcDomainNames:
   manifestcdndev_azureedge_net: manifestcdndev.azureedge.net # not documented
   data_policy_core_windows_net: data.policy.core.windows.net # not documented
   gbl_his_arc_azure_com: gbl.his.arc.azure.com
+  package_ms_com: packages.microsoft.com # for AKS egress
+  acs_mirror_azureedge_net: acs-mirror.azureedge.net # for AKS egress
+
   # dc_services_visualstudio_com: dc.services.visualstudio.com # from arc server requirements
   # aka_ms: aka.ms # from arc 'server' requirements
   # pas_windows_net: pas.windows.net # from arc 'server'requirements
@@ -42,15 +47,22 @@ arcDomainNames:
 arcRegionalDomains:
   region_dp_kubernetesconfg_azure_com: .dp.kubernetesconfiguration.azure.com
   region_rp_kubernetesconfg_azure_com: .rp.kubernetesconfiguration.azure.com
-  region_data_mcr_microsoft_com: .data.mcr.microsoft.com
   region_login_microsoft_com: .login.microsoft.com
   region_monitoring_azure_com: .monitoring.azure.com # from other docs
+  region_obo_arc_azure_com: .obo.arc.azure.com # https://<region>.obo.arc.azure.com:8084/ for cluster connect
 
 arcWildcardSubDomains:
   his_arc_azure_com: "*.his.arc.azure.com"
   arc_azure_net: "*.arc.azure.net"
-  guestconfiguration_azure_com: "*.guestconfiguration.azure.com"
-  azwebsites: "*.azurewebsites.net" # just for testing
+  data_mcr_microsoft_com: "*.data.mcr.microsoft.com"
+  guestconfiguration_azure_com: "*.guestnotificationservice.azure.com"
+  hcp_region_azmk8s.io: "*.azmk8s.io" # for AKS egress
+  docker_com: "*.docker.com" # temporary for mosquitto image # TODO remove once usage of connected container registry
+  docker_io: "*.docker.io" # temporary for mosquitto image # TODO remove once usage of connected container registry
+  azurecr_io: "*.azurecr.io" # temporary for dev images of this project # TODO remove once usage of connected container registry
+
+arcOboClusterConnect:
+  region_obo_arc_azure_com: ".obo.arc.azure.com" # https://<region>.obo.arc.azure.com:8084/ for cluster connect
 
 # Provide additional domains that you want to proxy through, pass the whole collection through Values
 # customDomains:
