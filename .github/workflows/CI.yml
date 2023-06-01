@@ -3,9 +3,11 @@ on:
   push:
     branches: 
       - main
+      - nestedcharts
     paths:
       - 'iotedge/Distributed.IoT.Edge'
       - 'lib/Industrial-IoT'
+      - 'deployment/docker/dnsmasqaks'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -98,3 +100,20 @@ jobs:
         tags: ${{ steps.opcUaPublisher.outputs.tags }}
         labels: ${{ steps.opcUaPublisher.outputs.labels }}
     
+    - name: Extract metadata (tags, labels) for DNSMasq Docker
+      id: dnsMasqMeta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/azure-samples/distributed-az-iot-edge/dnsmasqaks
+        tags: |
+          type=raw,value=latest,priority=1000
+          type=raw,value={{branch}}-{{sha}},priority=200
+
+    - name: Build and push DNSMasq Docker image
+      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+      with:
+        context: deployment/docker/dnsmasqaks/.
+        file: Dockerfile
+        push: true
+        tags: ${{ steps.dnsMasqMeta.outputs.tags }}
+        labels: ${{ steps.dnsMasqMeta.outputs.labels }}
