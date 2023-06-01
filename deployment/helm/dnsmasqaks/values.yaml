@@ -26,10 +26,13 @@ wildcardDomains:
   guestconfiguration_azure_com: "guestconfiguration.azure.com" # Arc
   region_login_ms_com: "login.microsoft.com" # Arc
   region_dp_kubernetesconfiguration_az_com: "dp.kubernetesconfiguration.azure.com" #Arc
+  guestnotificationservice_azure_com: "guestnotificationservice.azure.com" # Arc
+  servicebus_windows_net: "servicebus.windows.net" # Arc
   hcp_region_azmk8s.io: "azmk8s.io"  # for AKS egress
   docker_com: "docker.com" # temporary for mosquitto image # TODO remove once usage of connected container registry
   docker_io: "docker.io" # temporary for mosquitto image # TODO remove once usage of connected container registry
   azurecr_io: "azurecr.io" # temporary for dev images of this project # TODO remove once usage of connected container registry
+  githubusercontent_com: "githubusercontent.com" # for flux repo in GitHub
 
 # Provide additional domains that you want to proxy through, pass the whole collection through Values
 # customDomains:

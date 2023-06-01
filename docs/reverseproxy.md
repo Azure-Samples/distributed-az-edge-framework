@@ -70,6 +70,15 @@ As per the documented requirements in [Control egress traffic for cluster nodes 
 - AzureCloud.Region service tag on ports 1194 and 9000.
 - MicrosoftContainerRegistry service tag for downloading containers for initial bootstrapping of AKS or upon cluster restart.
 
+### Azure Kubernetes Services (AKS) DNS Resolution for Host System
+
+AKS clusters are deployed with a default DNS resolution configuration that uses the default Azure DNS service. Because the L2 and L3 networks have been denied outbound Internet Access (see above), access to container registries and GitOps repos for usage by the host system (like `kubelet` and `containerd`) also needs to be pointing to go through the Envoy reverse proxy on the above layer.
+
+This is done by using a simple DNSMasq service that is deployed on the L4 and L3 layers. The DNSMasq service is configured to override a set of URLs that are allowed to pass through to the Internet. The DNSMasq service is configured to use the Envoy proxy as the upstream DNS resolver. At L4 only, Envoy proxy is configured to use the Azure DNS service as the upstream DNS resolver.
+By updating the Virtual Network DNS setting for L2 and L3 to each use the upstream DNSMasq service, the host system will be able to resolve the URLs that are allowed to pass through to the Internet.
+
+The reason for a simplified override with DNSMasq is that the DNS configuration is typically something part of customer's architecture and existing setup so this sample approach works for this Sample sandbox but will not be implemented in a real world scenario.
+
 ## SSL Termination
 
 In order to maintain a zero-trust security approach, the Envoy reverse proxy does **not** perform SSL termination. This eliminates the need for control between where HTTPS traffic is decrypted and then re-encrypted. By doing so, it reduces the risk of any communication being transmitted in plain text before being re-encrypted again. 
@@ -93,12 +102,12 @@ Envoy applies the filter match chains in the order that they are defined through
 ## Design Considerations for Future Extension
 
 - Default gateway for host system (AKS Kubernetes nodes and OS level communication)
-- Routing tables and UDR for AKS host system
-- Customer owned firewalls and proxies
+- Customer owned firewalls and proxies, and how to integrate with them
+- Level 4 CA certificate integration for outbound traffic via customer proxies and firewalls
 - Mutual TLS between reverse proxies
 
 ## Future Planned Additions in this Sample:
 
-- Wildcard sub-domain redirection: some of the domains required for Azure Arc K8S are documented in the form of wildcard subdomains (*.his.arc.azure.com, *.arc.azure.com, *.data.mcr.microsoft.com, *.guestnotificationservice.azure.com). Currently implemented using SNI dynamic forward proxy in Envoy.
-- Level 4 connected (local) container registry for all required container images, including a copy of public images like Envoy and Mosquitto
-- Mosquitto bridging through reverse proxy
+- Wildcard sub-domain redirection: some of the domains required for Azure Arc K8S are documented in the form of wildcard subdomains (*.his.arc.azure.com, *.arc.azure.com, *.data.mcr.microsoft.com, *.guestnotificationservice.azure.com). Currently implemented using SNI dynamic forward proxy in Envoy on L4 out to the internet.
+- Level 4 connected (local) container registry for all required container images, including a copy of public images like Envoy and Mosquitto.
+- Mosquitto bridging through reverse proxy and no longer directly between layers.

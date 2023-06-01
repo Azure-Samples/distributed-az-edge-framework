@@ -47,7 +47,6 @@ class Aks {
 
     # ----- Prepare domain names you want to add for allow-list, DNS override to local proxy
     # Github.com and github.io required for flux and helm repos in GitOps
-    # TODO investigate using private registry for mosquitto, custom and other images to avoid proxying github uris
     $customDomainsHash = @{ 
       azure_samples_github = "azure-samples.github.io"; 
       github_com = "github.com";
@@ -102,7 +101,15 @@ class Aks {
     $proxyClusterIp = $proxy.spec.clusterIP
     
     # ----- Configure DNS resolution within AKS cluster via CoreDNS customization
-    ConfigureCoreDns($customDomainsHash, $proxyClusterIp)
+    Write-Title("Get AKS $aksName Proxy Ip Address and Port")
+
+    try{
+      ConfigureCoreDns -customDomains $customDomainsHash -envoyProxyClusterIp $proxyClusterIp
+    }catch
+    {
+      Write-Error $_.Exception.Message
+      break
+    }
 
     # ----- Install DNSMasq Helm chart to host DNS resolution for child cluster
     Write-Title("Installing DNSMasq Helm chart for DNS resolution of child cluster")
@@ -150,8 +157,6 @@ class Aks {
         # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
         # https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic#egress-traffic-requirements
         
-        # this first rule is temporary for allowing AKS to connect to Azure Arc Infra, will be removed later
-        # az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowArcInfraHTTPSOutbound" --priority 1000 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureArcInfrastructure --destination-port-ranges 443 8084 --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to ArcInfra."
         # default rules for AKS outbound connectivity to work in node pools and between nodes
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
@@ -162,19 +167,21 @@ class Aks {
         az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
 
         # ----- Set DNS server in VNET and restart AKS nodes
-        Write-Title("Setting VNET DNS server, restarting AKS nodes to pick up new DNS server to peered VNET")
         $parentDnsServer = $proxyConfig.DnsServer
+        Write-Title("Setting VNET DNS server to peered parent DNS on IP ${parentDnsServer}")
         az network vnet update -g $resourceGroupName -n $resourceGroupName --dns-servers $parentDnsServer
         # ----- Restart AKS nodes to pick up new DNS server in peered VNET
+        Write-Title("Stopping AKS")
         az aks stop --name $aksName --resource-group $resourceGroupName
+        Write-Title("Starting AKS nodes to pick up new DNS server to peered VNET. This will take a few minutes...")
         az aks start --name $aksName --resource-group $resourceGroupName
-
       }
 
       # ----- Enroll AKS with Arc
-      Write-Title("Enroll AKS $aksName with Arc")
+      Write-Title("Enroll AKS $aksName with Arc. This will take a few minutes...")
       az connectedk8s connect --name $aksName --resource-group $resourceGroupName
       az connectedk8s enable-features -n $aksName -g $resourceGroupName --features cluster-connect
+
     }
     else {
       Write-Title("Not enrolling AKS $aksName with Arc, no egress NSG restrictions applied")
@@ -194,10 +201,10 @@ Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
   # ----- Prepare DNS override for local proxy
   $dnsWildcardTemplateBlock = @"
 
-  to_replace_key.override: |
-    rewrite stop {
-      name regex to_replace_with_expression envoy-service.edge-infra.svc.cluster.local.
-    }
+    to_replace_key.override: |
+      rewrite stop {
+        name regex to_replace_with_expression envoy-service.edge-infra.svc.cluster.local.
+      }
 "@
 
   $arcDomainsList = ""
@@ -209,10 +216,10 @@ Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
   $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
 
   $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
-    "$envoyProxyClusterIp $($helmValues.arcDomainNames[$key]) `n         "
+    "$envoyProxyClusterIp $($helmValues.arcDomainNames[$key]) `n       "
   }
   $arcregionalList = foreach ($key in $helmValues.arcRegionalDomains.keys) {
-    "$envoyProxyClusterIp ${arcLocation}$($helmValues.arcRegionalDomains[$key]) `n         "
+    "$envoyProxyClusterIp ${arcLocation}$($helmValues.arcRegionalDomains[$key]) `n       "
   }
   foreach ($key in $helmValues.arcWildcardSubDomains.keys) {
     $wildcardDomain = $($helmValues.arcWildcardSubDomains[$key]).Replace("*", "").Replace(".", "\.")
@@ -223,7 +230,7 @@ Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
   
   # Get additional custom domains if any passed in collection $customDomains
   $customDomainList = foreach ($key in $customDomains.keys) {
-    "$envoyProxyClusterIp $($customDomains[$key]) `n         "
+    "$envoyProxyClusterIp $($customDomains[$key]) `n       "
   }
 
   # Setup customized DNS configuration with CoreDNS for overriding a set of domain names to local proxy
