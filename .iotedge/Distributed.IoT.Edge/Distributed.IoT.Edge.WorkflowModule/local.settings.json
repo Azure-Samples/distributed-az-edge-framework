@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "WORKFLOWS_TENANT_ID": "16b3c013-d300-468d-ac64-7eda0820b6d3",
+    "WORKFLOWS_SUBSCRIPTION_ID": "e8539ee2-fc38-4b40-8931-a829e7e9ef87",
+    "WORKFLOWS_RESOURCE_GROUP_NAME": "RG-DevEnv",
+    "WORKFLOWS_LOCATION_NAME": "westeurope",
+    "WORKFLOWS_MANAGEMENT_BASE_URI": "https://management.azure.com/",
+    "FUNCTIONS_WORKER_RUNTIME": "node"
+  }
+}

@@ -4,37 +4,42 @@
 # ------------------------------------------------------------
 
 Param(
-    [Parameter(mandatory=$true)]
+    [Parameter(mandatory = $true)]
     [String]
     $AksClusterName,
 
-    [Parameter(mandatory=$true)]
+    [Parameter(mandatory = $true)]
     [string]
     $AksClusterResourceGroupName,
 
-    [Parameter(mandatory=$false)]
+    [Parameter(mandatory = $false)]
     [bool]
     $DeployDapr = $false,
 
-    [Parameter(mandatory=$false)]
+    [Parameter(mandatory = $false)]
     [PSCustomObject]
     $MosquittoParentConfig = $null,
 
-    [Parameter(mandatory=$false)]
+    [Parameter(mandatory = $false)]
     [bool]
-    $ArcEnabled = $true
+    $ArcEnabled = $true,
+
+    [Parameter(mandatory = $false)]
+    [bool]
+    $DeployAppSvcEnv = $true
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name ./modules/text-utils.psm1
-# Import-Module -Name ./modules/process-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/process-utils.psm1
 
 Write-Title("Start Deploying Core Platform")
 $startTime = Get-Date
 $tempCertsFolder = "./temp/mosquittocerts"
 $kubeConfigFile = "./temp/$AksClusterName"
+$location = "westeurope"
 
-function CleanHostname([string] $Hostname){
+function CleanHostname([string] $Hostname) {
     
     $pattern = '[^a-zA-Z0-9]'
     $result = $Hostname -replace $pattern, '' 
@@ -44,11 +49,10 @@ function CleanHostname([string] $Hostname){
 }
 
 # ----- Get AKS Cluster Credentials into kube context
-if($ArcEnabled){
+if ($ArcEnabled) {
     
     # Arc proxying is now tested on Azure Cloud Shell PW terminal. If running Linux and not in cloudshell: exit
-    if( -not (Confirm-AzEnvironment))
-    {
+    if ( -not (Confirm-AzEnvironment)) {
         Exit
     }
     
@@ -68,8 +72,10 @@ else {
     az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing --file $kubeConfigFile
 }
 
+az aks get-credentials --admin --name $AksClusterName --resource-group $AksClusterResourceGroupName --overwrite-existing --file $kubeConfigFile
+
 # ----- Dapr
-if($DeployDapr){
+if ($DeployDapr) {
     Write-Title("Install Dapr")
     helm repo add dapr https://dapr.github.io/helm-charts/
     helm repo update
@@ -80,30 +86,97 @@ if($DeployDapr){
         --wait `
         --kubeconfig $kubeConfigFile
 }
+function DeployAppServiceEnvironment([string] $AksClusterResourceGroupName, [string] $AksClusterName, [string] $Location) {
+    # Install the App Service extension
+    $extensionName = "appservice-ext" # Name of the App Service extension
+    $namespace = "appservice-ns" # Namespace in your cluster to install the extension and provision resources
+    $kubeEnvironmentName = "appservice-env" # Name of the App Service Kubernetes environment resource
+
+    az extension add --upgrade --yes --name connectedk8s
+    az extension add --upgrade --yes --name k8s-extension
+    az extension add --upgrade --yes --name customlocation
+    az provider register --namespace Microsoft.ExtendedLocation --wait
+    az provider register --namespace Microsoft.Web --wait
+    az provider register --namespace Microsoft.KubernetesConfiguration --wait
+    az extension remove --name appservice-kube
+    az extension add --upgrade --yes --name appservice-kube
+
+    az k8s-extension create `
+        --resource-group $AksClusterResourceGroupName `
+        --name $extensionName `
+        --cluster-type connectedClusters `
+        --cluster-name $AksClusterName `
+        --extension-type 'Microsoft.Web.Appservice' `
+        --release-train stable `
+        --auto-upgrade-minor-version true `
+        --scope cluster `
+        --release-namespace $namespace `
+        --configuration-settings "Microsoft.CustomLocation.ServiceAccount=default" `
+        --configuration-settings "appsNamespace=${namespace}" `
+        --configuration-settings "clusterName=${kubeEnvironmentName}" `
+        --configuration-settings "keda.enabled=true" `
+        --configuration-settings "buildService.storageClassName=default" `
+        --configuration-settings "buildService.storageAccessMode=ReadWriteOnce" `
+        --configuration-settings "customConfigMap=${namespace}/kube-environment-config" `
+        --configuration-settings "envoy.annotations.service.beta.kubernetes.io/azure-load-balancer-resource-group=${AksClusterName}"
+    $extensionId = $(az k8s-extension show `
+            --cluster-type connectedClusters `
+            --cluster-name $AksClusterName `
+            --resource-group $AksClusterResourceGroupName `
+            --name $extensionName `
+            --query id `
+            --output tsv)
+    az resource wait --ids $extensionId --custom "properties.installState!='Pending'" --api-version "2020-07-01-preview"
+
+    # Create a custom location
+    $customLocationName = "appservice-customlocation" # Name of the custom location
+    $connectedClusterId = $(az connectedk8s show --resource-group $AksClusterResourceGroupName --name $AksClusterName --query id --output tsv)
+    az customlocation create `
+        --resource-group $AksClusterResourceGroupName `
+        --name $customLocationName `
+        --host-resource-id $connectedClusterId `
+        --namespace $namespace `
+        --cluster-extension-ids $extensionId
+    $customLocationId = $(az customlocation show `
+            --resource-group $AksClusterResourceGroupName `
+            --name $customLocationName `
+            --query id `
+            --output tsv)
+
+    # Create the App Service Kubernetes environment
+    az appservice kube create `
+        --resource-group $AksClusterResourceGroupName `
+        --name $kubeEnvironmentName `
+        --custom-location $customLocationId
+}
+
+# ----- App Service Environment
+if ($ArcEnabled && $DeployAppSvcEnv) {
+    Write-Title("Install App Service Environment")
+    DeployAppServiceEnvironment -AksClusterResourceGroupName $AksClusterResourceGroupName -AksClusterName $AksClusterName -Location $location
+}
 
 # ----- Mosquitto
 helm repo add azedgefx https://azure-samples.github.io/distributed-az-edge-framework --force-update
 helm repo update
 
 # TODO optimize this by leveraging Key Vault for storing certs and keys
-function GenerateCerts ([string] $AksClusterName){
+function GenerateCerts ([string] $AksClusterName) {
     
     $aksClusterNameCleaned = CleanHostname($AksClusterName)
     $RootFolder = $tempCertsFolder
     $currentServiceCN = "${aksClusterNameCleaned}.edge-core.svc.cluster.local"
-    $SUBJECT_CA="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeCA/OU=CA/CN=camosquitto"
-    $SUBJECT_SERVER="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=$currentServiceCN"
-    $SUBJECT_CLIENT="/C=BE/ST=BR/L=Brussels/O=DistributedEdgeClient/OU=Client/CN=client$AksClusterName"
-    $SUBJECT_BRIDGE_CLIENT="/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeBridge/OU=Client/CN=bridge$AksClusterName"
+    $SUBJECT_CA = "/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeCA/OU=CA/CN=camosquitto"
+    $SUBJECT_SERVER = "/C=BE/ST=BR/L=Brussels/O=DistributedEdgeServer/OU=Server/CN=$currentServiceCN"
+    $SUBJECT_CLIENT = "/C=BE/ST=BR/L=Brussels/O=DistributedEdgeClient/OU=Client/CN=client$AksClusterName"
+    $SUBJECT_BRIDGE_CLIENT = "/C=BE/ST=BRA/L=Brussels/O=DistributedEdgeBridge/OU=Client/CN=bridge$AksClusterName"
     
-    If(!(Test-Path -PathType container -Path $RootFolder))
-    {
+    If (!(Test-Path -PathType container -Path $RootFolder)) {
         New-Item -ItemType Directory -Path $RootFolder
     }
 
     # Generate CA only if not yet found 
-    If(!(Test-Path "$RootFolder/ca.key" -PathType leaf))
-    {
+    If (!(Test-Path "$RootFolder/ca.key" -PathType leaf)) {
         openssl req -x509 -nodes -sha256 -newkey rsa:2048 -subj "$SUBJECT_CA"  -days 600 -keyout $RootFolder/ca.key -out $RootFolder/ca.crt
     }
    
@@ -121,18 +194,18 @@ function GenerateCerts ([string] $AksClusterName){
 # --- Generate certs and save to disk
 GenerateCerts($AksClusterName)
 
-if ($null -eq $MosquittoParentConfig){
+if ($null -eq $MosquittoParentConfig) {
 
     Write-Title("Install Mosquitto without bridge to parent")
     #  use default mosquitto deployment
     helm install mosquitto azedgefx/mosquitto `
-    --namespace edge-core `
-    --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
-    --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
-    --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
-    --create-namespace `
-    --kubeconfig $kubeConfigFile `
-    --wait
+        --namespace edge-core `
+        --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
+        --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
+        --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
+        --create-namespace `
+        --kubeconfig $kubeConfigFile `
+        --wait
 
 }
 else {
@@ -144,19 +217,19 @@ else {
     $parentHostname = "${parentCluster}.edge-core.svc.cluster.local"
 
     helm install mosquitto azedgefx/mosquitto `
-    --namespace edge-core `
-    --set-string bridge.enabled="true" `
-    --set-string bridge.connectionName="$AksClusterName-parent" `
-    --set-string bridge.remotename="$parentCluster" `
-    --set-string bridge.ipaddress="$mosquittoParentIp" `
-    --set-string bridge.hostname="$parentHostname" `
-    --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
-    --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
-    --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
-    --set-file certs.bridgeca.crt="$tempCertsFolder/ca.crt" `
-    --create-namespace `
-    --kubeconfig $kubeConfigFile `
-    --wait
+        --namespace edge-core `
+        --set-string bridge.enabled="true" `
+        --set-string bridge.connectionName="$AksClusterName-parent" `
+        --set-string bridge.remotename="$parentCluster" `
+        --set-string bridge.ipaddress="$mosquittoParentIp" `
+        --set-string bridge.hostname="$parentHostname" `
+        --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
+        --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
+        --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
+        --set-file certs.bridgeca.crt="$tempCertsFolder/ca.crt" `
+        --create-namespace `
+        --kubeconfig $kubeConfigFile `
+        --wait
     
 }
 
@@ -167,12 +240,12 @@ $mosquittoPort = $mosquittoSvc.spec.ports.port
 
 $mosquittoConfig = [PSCustomObject]@{
     ParentAksClusterName = $AksClusterName
-    MosquittoIp = $mosquittoIp
-    Port = $mosquittoPort
-  }
+    MosquittoIp          = $mosquittoIp
+    Port                 = $mosquittoPort
+}
 
 # If Arc connected, close the second process terminal before continuing
-if($ArcEnabled){
+if ($ArcEnabled) {
     Write-Host "Closing terminal Arc proxy"
     Stop-ProcessInNewTerminal -WindowTitle "ArcProxy$AksClusterName"
 }
