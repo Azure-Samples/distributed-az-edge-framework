@@ -1,0 +1,39 @@
+image: ghcr.io/azure-samples/distributed-az-iot-edge/dnsmasqaks:main-41d901d
+
+proxyDnsServer: to_replace
+azureDnsServer: "168.63.129.16" # Azure DNS
+
+hostsDomains:
+  management_azure_com: management.azure.com # for AKS egress
+  mcr_microsoft_com: mcr.microsoft.com # for AKS egress
+  login_microsoftonline_com: login.microsoftonline.com # for AKS egress
+  package_ms_com: packages.microsoft.com # for AKS egress
+  acs_mirror_azureedge_net: acs-mirror.azureedge.net # for AKS egress
+  gbl_his_arc_azure_com: gbl.his.arc.azure.com # Arc
+  k8connecthelm_azureedge_net: k8connecthelm.azureedge.net # Arc
+  sts_windows_net: sts.windows.net # Arc
+  k8sconnectcsp_azureedge_net: k8sconnectcsp.azureedge.net # Arc
+  azure_samples_github: azure-samples.github.io # TODO remove once usage of connected container registry
+  github_com: github.com # for base resources/helm/containers # TODO remove once usage of connected container registry
+  ghcr_io: ghcr.io # for base resources/helm/containers # TODO remove once usage of connected container registry
+  dapr_github_io: dapr.github.io # for dapr helm charts # TODO remove once usage of connected container registry
+
+wildcardDomains:
+  his_arc_azure_com: "his.arc.azure.com"
+  arc_azure_net: "arc.azure.net"
+  obo_arc_azure_com: "obo.arc.azure.com"
+  data_mcr_microsoft_com: "data.mcr.microsoft.com"
+  guestconfiguration_azure_com: "guestconfiguration.azure.com" # Arc
+  region_login_ms_com: "login.microsoft.com" # Arc
+  region_dp_kubernetesconfiguration_az_com: "dp.kubernetesconfiguration.azure.com" #Arc
+  guestnotificationservice_azure_com: "guestnotificationservice.azure.com" # Arc
+  servicebus_windows_net: "servicebus.windows.net" # Arc
+  hcp_region_azmk8s.io: "azmk8s.io"  # for AKS egress
+  docker_com: "docker.com" # temporary for mosquitto image # TODO remove once usage of connected container registry
+  docker_io: "docker.io" # temporary for mosquitto image # TODO remove once usage of connected container registry
+  azurecr_io: "azurecr.io" # temporary for dev images of this project # TODO remove once usage of connected container registry
+  githubusercontent_com: "githubusercontent.com" # for flux repo in GitHub
+
+# Provide additional domains that you want to proxy through, pass the whole collection through Values
+# customDomains:
+#   domain1: www.domain1.com

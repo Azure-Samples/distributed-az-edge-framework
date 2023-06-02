@@ -1,0 +1,28 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnsmasq-conf
+  labels:
+    app: dnsmasq
+data:
+  dnsmasq.conf: |
+    {{- $dnsServer := .Values.proxyDnsServer -}}
+    {{- range $key, $val := .Values.wildcardDomains }}
+    address=/{{- $val -}}/{{- $dnsServer }}
+    {{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnsmasq-hosts
+  labels:
+    app: dnsmasq
+data:
+  hosts: |
+    {{- $dnsServer := .Values.proxyDnsServer -}}
+    {{- range $key, $val := .Values.hostsDomains }}
+    {{ $dnsServer }} {{ $val }}
+    {{- end }}
+  
