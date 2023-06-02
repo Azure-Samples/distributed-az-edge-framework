@@ -6,7 +6,7 @@ on:
     paths:
       - 'iotedge/Distributed.IoT.Edge'
       - 'lib/Industrial-IoT'
-      - 'deployment/container/dnsmasqaks'
+      - 'deployment/container/**'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
