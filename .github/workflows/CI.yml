@@ -6,7 +6,7 @@ on:
     paths:
       - 'iotedge/Distributed.IoT.Edge'
       - 'lib/Industrial-IoT'
-      - 'deployment/container'
+      - 'deployment/container/**'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -112,7 +112,7 @@ jobs:
       uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
       with:
         context: deployment/container/dnsmasqaks/.
-        file: Dockerfile
+        file: deployment/container/dnsmasqaks/Dockerfile
         push: true
         tags: ${{ steps.dnsMasqMeta.outputs.tags }}
         labels: ${{ steps.dnsMasqMeta.outputs.labels }}
