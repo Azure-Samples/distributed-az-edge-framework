@@ -78,13 +78,6 @@ param currentAzUsernameId string
 @description('The AKS service principal object id')
 param aksObjectId string
 
-@description('The AKS service principal client id')
-param aksClientId string
-
-@secure()
-@description('The AKS service principal client secret')
-param aksClientSecret string
-
 var applicationNameWithoutDashes = replace(applicationName, '-', '')
 var aksName = take('aks-${applicationNameWithoutDashes}', 20)
 var resourceGroupName = applicationName
@@ -134,17 +127,6 @@ module downstreamvnetpeering 'modules/vnetpeering.bicep' = if (!empty(remoteVnet
   ]
 }
 
-module aks 'modules/aks.bicep' = {
-  name: 'aksDeployment'
-  scope: resourceGroup(rg.name)
-  params: {
-    aksName: aksName
-    aksLocation: location
-    aksClientId: aksClientId
-    aksClientSecret: aksClientSecret
-    vnetSubnetID: vnet.outputs.subnetId
-  }
-}
-
 output aksName string = aksName
 output aksResourceGroup string = resourceGroupName
+output subnetId string = vnet.outputs.subnetId

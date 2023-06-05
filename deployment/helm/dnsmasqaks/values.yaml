@@ -1,7 +1,7 @@
-image: katriendg/dnsmasq:0.1.0
+image: ghcr.io/azure-samples/distributed-az-iot-edge/dnsmasqaks:main-41d901d
 
 proxyDnsServer: to_replace
-azureDnsServer: "168.63.129.16"
+azureDnsServer: "168.63.129.16" # Azure DNS
 
 hostsDomains:
   management_azure_com: management.azure.com # for AKS egress

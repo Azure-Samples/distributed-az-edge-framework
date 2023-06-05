@@ -29,12 +29,12 @@ Param(
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-Import-Module -Name ./modules/text-utils.psm1
-Import-Module -Name ./modules/process-utils.psm1
+# Import-Module -Name ./modules/text-utils.psm1
+# Import-Module -Name ./modules/process-utils.psm1
 
 Write-Title("Install Module powershell-yaml if not yet available")
 if ($null -eq (Get-Module -ListAvailable -Name powershell-yaml)) {
-  Write-Host "Installing powershell-yaml module"
+  Write-Title("Installing powershell-yaml module")
   Install-Module -Name powershell-yaml -Scope CurrentUser
 }
 
@@ -51,29 +51,32 @@ class Aks {
       azure_samples_github = "azure-samples.github.io"; 
       github_com = "github.com";
       ghcr_io = "ghcr.io";
-      dapr_github_io = "dapr.github.io" } 
+      dapr_github_io = "dapr.github.io"; 
+      katriendggithub = "katriendg.github.io" } # todo remove katriendggithub
       # if you want an empty lis, set $customDomainsHash = @{}
       
     # ---- Download service bus domains from URI for chosen Azure region
     $serviceBusDomains = Invoke-WebRequest -Uri "https://guestnotificationservice.azure.com/urls/allowlist?api-version=2020-01-01&location=$arcLocation" -Method Get
     $serviceBusDomains = $serviceBusDomains.Content | ConvertFrom-Json
-    foreach ($domain in $serviceBusDomains) {
+    $serviceBusDomainsUnique = $serviceBusDomains | Select-Object -Unique # Sometimes the result has duplicates
+    foreach ($domain in $serviceBusDomainsUnique) {
       $customDomainsHash.Add("sb_$($customDomainsHash.Count)", $domain)
     }
     $customDomainsHelm = $customDomainsHash.GetEnumerator() | ForEach-Object { "customDomains.$($_.Key)=$($_.Value)" }
     $customDomainsHelm = $customDomainsHelm -Join ","
     
     # ----- Install AKS reverse Proxy 
-    # TODO change this once chart is released
-    # helm repo add envoy https://azure-samples.github.io/distributed-az-edge-framework
-    # helm repo update
+    # TODO remove katriendg 
+    # helm repo add azdistributededge https://azure-samples.github.io/distributed-az-edge-framework
+    helm repo add azdistributededge https://katriendg.github.io/distributed-az-edge-framework/
+    helm repo update
 
     if ($proxyConfig) {
       $parentProxyIp = $proxyConfig.ProxyIp
       $parentProxyPort = $proxyConfig.ProxyPort
 
       Write-Title("Install Reverse Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
-      helm install envoy ./helm/envoy `
+      helm install envoy azdistributededge/envoy-reverseproxy `
         --set parent.enabled=true `
         --set-string domainRegion="$arcLocation" `
         --set-string parent.proxyIp="$parentProxyIp" `
@@ -85,7 +88,7 @@ class Aks {
     }
     else {
       Write-Title("Install envoy Reverse Proxy without Parent")
-      helm install envoy ./helm/envoy `
+      helm install envoy azdistributededge/envoy-reverseproxy `
         --set-string domainRegion="$arcLocation" `
         --set $customDomainsHelm `
         --namespace edge-infra `
@@ -101,8 +104,7 @@ class Aks {
     $proxyClusterIp = $proxy.spec.clusterIP
     
     # ----- Configure DNS resolution within AKS cluster via CoreDNS customization
-    Write-Title("Get AKS $aksName Proxy Ip Address and Port")
-
+    Write-Title("CoreDNS customization to local Envoy proxy")
     try{
       ConfigureCoreDns -customDomains $customDomainsHash -envoyProxyClusterIp $proxyClusterIp
     }catch
@@ -113,7 +115,8 @@ class Aks {
 
     # ----- Install DNSMasq Helm chart to host DNS resolution for child cluster
     Write-Title("Installing DNSMasq Helm chart for DNS resolution of child cluster")
-    helm install dnsmasq ./helm/dnsmasqaks `
+    # TODO change to helm repo when published
+    helm install dnsmasq azdistributededge/dnsmasq `
       --set-string proxyDnsServer="$proxyIp" `
       --namespace edge-infra `
       --wait
@@ -149,33 +152,6 @@ class Aks {
       }
       Write-Title("Writing Service Account token for $aksName to ./temp/tokens folder, required for Arc cluster connect")
       Set-Content -Path "$tempFolder/$aksName.txt" -Value "$tokenB64"
-
-      # If parent proxy config is present = this is a lower layer and we are blocking all outbound traffic
-      if ($proxyConfig) {
-        Write-Title("Parent proxy config is present, adding NSGs, blocking outbound traffic")
-        # ----- Close down Internet access for cluster after Infra setup, allow only AKS Azure specific outbound
-        # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
-        # https://docs.microsoft.com/en-us/azure/aks/limit-egress-traffic#egress-traffic-requirements
-        
-        # default rules for AKS outbound connectivity to work in node pools and between nodes
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagMcr" --priority 1040 --source-address-prefixes VirtualNetwork --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to MCR."
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowTagFrontDoorFirstParty" --priority 1050 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AzFrontDoor.FirstParty."
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "AllowK8ApiUdpOutbound" --priority 1060 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${arcLocation} --destination-port-ranges '1194' --direction Outbound --access Allow --protocol Udp --description "Allow VirtualNetwork to AKS API UDP."
-        # Deny all Internet outbound traffic
-        az network nsg rule create -g $resourceGroupName --nsg-name "$aksName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
-
-        # ----- Set DNS server in VNET and restart AKS nodes
-        $parentDnsServer = $proxyConfig.DnsServer
-        Write-Title("Setting VNET DNS server to peered parent DNS on IP ${parentDnsServer}")
-        az network vnet update -g $resourceGroupName -n $resourceGroupName --dns-servers $parentDnsServer
-        # ----- Restart AKS nodes to pick up new DNS server in peered VNET
-        Write-Title("Stopping AKS")
-        az aks stop --name $aksName --resource-group $resourceGroupName
-        Write-Title("Starting AKS nodes to pick up new DNS server to peered VNET. This will take a few minutes...")
-        az aks start --name $aksName --resource-group $resourceGroupName
-      }
 
       # ----- Enroll AKS with Arc
       Write-Title("Enroll AKS $aksName with Arc. This will take a few minutes...")
@@ -213,7 +189,7 @@ Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
 
   # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
   # TODO get from chart repo instead of local folder when chart is released
-  $helmValues = (helm show values ./helm/envoy) | ConvertFrom-Yaml
+  $helmValues = (helm show values azdistributededge/envoy-reverseproxy) | ConvertFrom-Yaml
 
   $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
     "$envoyProxyClusterIp $($helmValues.arcDomainNames[$key]) `n       "
@@ -299,13 +275,12 @@ $aksObjectId = (az ad sp show --id $aksServicePrincipal.appId | ConvertFrom-Json
 $aksClientSecret = $aksServicePrincipal.password
 
 # ----- Deploy Bicep
-Write-Title("Deploy Bicep files")
-
+Write-Title("Deploy Bicep files - Vnet")
 $ParentConfigVnetName = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetName }
 $ParentConfigVnetResourceGroup = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetResourceGroup }
 
 $r = (az deployment sub create --location $Location `
-    --template-file .\bicep\core-infrastructure.bicep --parameters `
+    --template-file ./bicep/core-infra-vnet.bicep --parameters `
     applicationName=$ApplicationName `
     remoteVnetName=$ParentConfigVnetName `
     remoteVnetResourceGroupName=$ParentConfigVnetResourceGroup `
@@ -314,21 +289,55 @@ $r = (az deployment sub create --location $Location `
     subnetAddressPrefix=$subnetAddressPrefix `
     currentAzUsernameId=$currentAzUsernameId `
     aksObjectId=$aksObjectId `
-    aksClientId=$aksClientId `
-    aksClientSecret=$aksClientSecret `
     location=$Location `
     --name "core-$deploymentId" `
 ) | ConvertFrom-Json
 
-$aksClusterName = $r.properties.outputs.aksName.value
+$vnetSubnetId = $r.properties.outputs.subnetId.value
 $aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
+$aksClusterName = $r.properties.outputs.aksName.value
+
+# ----- Set VNET DNS to parent and close off outbound access if lower layer
+if ($SetupArc -eq $true -and $ParentConfig -ne $null)
+{
+  Write-Title("Parent proxy config is present, adding NSGs, blocking outbound traffic")
+  # ----- Close down Internet access for cluster after Infra setup, allow only AKS Azure specific outbound
+  # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
+  az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${Location} --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
+  az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${Location} --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
+  az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowTagMcr" --priority 1040 --source-address-prefixes VirtualNetwork --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to MCR."
+  az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowTagFrontDoorFirstParty" --priority 1050 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AzFrontDoor.FirstParty."
+  az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowK8ApiUdpOutbound" --priority 1060 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${Location} --destination-port-ranges '1194' --direction Outbound --access Allow --protocol Udp --description "Allow VirtualNetwork to AKS API UDP."
+  # Deny all Internet outbound traffic
+  az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
+
+  # ----- Set DNS server in VNET to parent peered VNET DNS server
+  $parentDnsServer = $ParentConfig.DnsServer
+  Write-Title("Setting VNET DNS server to peered parent DNS on IP ${parentDnsServer}")
+  az network vnet update -g $aksClusterResourceGroupName -n $aksClusterResourceGroupName --dns-servers $parentDnsServer
+}
+
+Write-Title("Deploy Bicep - AKS cluster")
+$aks = (az deployment group create `
+    --resource-group $aksClusterResourceGroupName `
+    --template-file ./bicep/core-infra-aks.bicep --parameters `
+    aksName=$aksClusterName `
+    aksLocation=$Location `
+    aksClientId=$aksClientId `
+    aksClientSecret=$aksClientSecret `
+    vnetSubnetID=$vnetSubnetId `
+    --name "aks-$deploymentId" `
+) | ConvertFrom-Json
 
 # ----- Install Arc CLI Extensions
-Write-Title("Azure Arc CLI Extensions")
-az extension add --name "connectedk8s"
-az extension add --name "k8s-configuration"
-az extension add --name "k8s-extension"
-az extension add --name "customlocation"
+if($SetupArc)
+{
+  Write-Title("Installing Azure Arc CLI Extensions")
+  az extension add --name "connectedk8s"
+  az extension add --name "k8s-configuration"
+  az extension add --name "k8s-extension"
+  az extension add --name "customlocation"
+}
 
 # ----- Install core dependencies in AKS cluster
 $aks = [Aks]::new()

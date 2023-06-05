@@ -15,6 +15,7 @@ Param(
 # Import text utilities module.
 Import-Module -Name ./modules/text-utils.psm1
 Import-Module -Name ./modules/az-utils.psm1
+Import-Module -Name ./modules/process-utils.psm1
 
 Write-Title("Start Deploying")
 $startTime = Get-Date
