@@ -100,7 +100,7 @@ class Aks {
     Write-Title("Get AKS $aksName Proxy Ip Address and Port")
     $proxy = kubectl get service envoy-service -n edge-infra -o json | ConvertFrom-Json
     $proxyIp = $proxy.status.loadBalancer.ingress.ip
-    $proxyPort = $proxy.spec.ports[0].port
+    $proxyPort = ($proxy.spec.ports | Where-Object { $_.name -eq "https" } | Select-Object -First 1).port
     $proxyClusterIp = $proxy.spec.clusterIP
     
     # ----- Configure DNS resolution within AKS cluster via CoreDNS customization
