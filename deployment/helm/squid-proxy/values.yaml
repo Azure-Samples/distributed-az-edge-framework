@@ -2,3 +2,5 @@
 squidProxy:
   image: ubuntu/squid
   port: 3128
+  htpasswd: "user:pwdhash"
+  

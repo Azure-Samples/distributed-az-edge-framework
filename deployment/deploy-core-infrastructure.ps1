@@ -30,6 +30,7 @@ Param(
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
 # Import-Module -Name ./modules/text-utils.psm1
+# Import-Module -Name ./modules/process-utils.psm1
 
 class Aks {
     [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc){
@@ -37,10 +38,15 @@ class Aks {
     # ----- Get AKS Cluster Credentials
     Write-Title("Get AKS $aksName in $resourceGroupName Credentials")
     az aks get-credentials --admin --name $aksName --resource-group $resourceGroupName --overwrite-existing
+
+    # Generate the htpasswd string using OpenSSL in PowerShell
+    $squidPassword = "admin" # Change this to a secure password, this is just for testing
+    $htpasswdHash = (openssl passwd -apr1 "$squidPassword" | Out-String).Trim()
+    $htpasswdContent = "${squidPassword}:${htpasswdHash}"
     
     #----- Install AKS Proxy
-    helm repo add squid https://azure-samples.github.io/distributed-az-edge-framework
-    helm repo update
+    # helm repo add squid https://azure-samples.github.io/distributed-az-edge-framework
+    # helm repo update
 
     if($proxyConfig)
     {
@@ -48,18 +54,22 @@ class Aks {
       $parentProxyPort = $proxyConfig.ProxyPort
 
       Write-Title("Install Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")      
-      helm install squid squid/squid-proxy `
+      helm install squid ./helm/squid-proxy `
           --set-string parent.ipAddress="$parentProxyIp" `
           --set-string parent.port="$parentProxyPort" `
+          --set htpasswd="$htpasswdContent" `
+          --set-string parent.loginUser="$squidPassword" `
+          --set-string parent.loginPassClear="$squidPassword" `
           --namespace edge-proxy `
           --create-namespace `
-          --wait          
+          --wait
     }
     else
     {
       Write-Title("Install Proxy without Parent")
-      helm install squid squid/squid-proxy `
+      helm install squid ./helm/squid-proxy `
           --namespace edge-proxy `
+          --set htpasswd="$htpasswdContent" `
           --create-namespace `
           --wait
     }
@@ -69,7 +79,10 @@ class Aks {
     $proxy = kubectl get service squid-proxy-module -n edge-proxy -o json | ConvertFrom-Json
     $proxyIp = $proxy.status.loadBalancer.ingress.ip
     $proxyPort = $proxy.spec.ports.port
-    $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort    
+    # $proxyUrl = "http://" + $proxyIp + ":" + $proxyPort   
+    $proxyUrl = "http://${squidPassword}:${squidPassword}@${proxyIp}:${proxyPort}"  
+
+    Write-Host "ProxyURl: $proxyUrl"
 
     if($enableArc)
     {

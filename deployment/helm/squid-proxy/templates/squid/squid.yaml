@@ -9,14 +9,23 @@ data:
   squid.conf: |
     # TODO: Customize to your own setup and security requirements.
     {{- if .Values.parent }}
-    cache_peer {{ .Values.parent.ipAddress }} parent {{ .Values.parent.port }} 0 no-query default
-    acl all src 0.0.0.0/0
-    http_access allow all
-    never_direct allow all
+    cache_peer {{ .Values.parent.ipAddress }} parent {{ .Values.parent.port }} 0 no-query default login={{- .Values.parent.loginUser -}}:{{- .Values.parent.loginPassClear }}
+    # cache_peer {{ .Values.parent.ipAddress }} parent {{ .Values.parent.port }} 0 no-query default login=PASSTHRU
+    # never_direct allow all
+    acl all src all
+    auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwd
+    auth_param basic realm proxy
+    acl authenticated proxy_auth REQUIRED
+    http_access allow authenticated
     {{- end }}
+
     {{- if not .Values.parent }}
-    acl all src 0.0.0.0/0
-    http_access allow all
+    acl all src all
+    # http_access allow all
+    auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwd
+    auth_param basic realm proxy
+    acl authenticated proxy_auth REQUIRED
+    http_access allow authenticated
     {{- end }}
 
     # Default config.
@@ -39,11 +48,15 @@ data:
     http_access allow localhost
     http_access deny all
     http_port {{ .Values.squidProxy.port }}
-    coredump_dir /var/spool/squid3
+    coredump_dir /var/spool/squid
     refresh_pattern ^ftp:           1440    20%     10080
     refresh_pattern ^gopher:        1440    0%      1440
     refresh_pattern -i (/cgi-bin/|\?) 0     0%      0
     refresh_pattern .               0       20%     4320
+
+  htpasswd: |
+    {{ .Values.htpasswd }}
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -65,14 +78,18 @@ spec:
         - name: squid-proxy-volume
           configMap:
             name: squid-proxy-configmap
+            items:
+            - key: squid.conf
+              path: squid.conf
+            - key: htpasswd
+              path: passwd
       containers:
       - name: squid-proxy-module
         image: {{ .Values.squidProxy.image }}
         imagePullPolicy: Always
         volumeMounts:
         - name: squid-proxy-volume
-          mountPath: /etc/squid/squid.conf
-          subPath: squid.conf
+          mountPath: /etc/squid/
         ports:
         - containerPort: {{ .Values.squidProxy.port }}
       restartPolicy: Always
