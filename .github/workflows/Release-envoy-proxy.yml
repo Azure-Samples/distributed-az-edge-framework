@@ -1,0 +1,36 @@
+name: Main - Release Helm Chart Envoy Proxy
+on: 
+  push:
+    branches: 
+      - main
+    paths:
+      # Only run this when chart file is updated.
+      - 'deployment/helm/envoy/Chart.yaml'
+      
+jobs:
+  Release-Artifacts:      
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Configure Git
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+    - name: Get the version
+      id: vars
+      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
+      
+    - name: Echo Docker images tag
+      run: echo ${{steps.vars.outputs.tag}}
+
+    - name: Run chart-releaser
+      uses: helm/chart-releaser-action@v1.1.0
+      env:
+        CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      with:
+        charts_dir: deployment/helm

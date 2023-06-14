@@ -1,5 +1,5 @@
 apiVersion: v2
-name: dnsmasq
+name: dnsmasqaks
 description: A Helm chart for deploying DNSmasq on Kubernetes as a DNS custom server.
 keywords:
     - dns
