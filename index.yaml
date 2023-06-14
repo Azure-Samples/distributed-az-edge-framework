@@ -1,5 +1,33 @@
 apiVersion: v1
 entries:
+  dnsmasqaks:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2023-06-14T11:42:50.141040753Z"
+    description: A Helm chart for deploying DNSmasq on Kubernetes as a DNS custom server.
+    digest: e7309839c3bd60a22d25346b93f998b3a69dacf7188b7e35b04354616bc6a332
+    keywords:
+    - dns
+    - dnsmasq
+    name: dnsmasqaks
+    type: application
+    urls:
+    - https://github.com/Azure-Samples/distributed-az-edge-framework/releases/download/dnsmasqaks-0.1.0/dnsmasqaks-0.1.0.tgz
+    version: 0.1.0
+  envoy-reverseproxy:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2023-06-14T11:42:50.32460894Z"
+    description: A Helm chart for deploying Envoy Reverse Proxy on K8s.
+    digest: 6947edb23695ade08a901de5b384a7c3c6fc0385e1aa899564106d8fcf481d6d
+    keywords:
+    - envoy
+    - reverse proxy
+    name: envoy-reverseproxy
+    type: application
+    urls:
+    - https://github.com/Azure-Samples/distributed-az-edge-framework/releases/download/envoy-reverseproxy-0.1.0/envoy-reverseproxy-0.1.0.tgz
+    version: 0.1.0
   iot-edge-accelerator:
   - apiVersion: v2
     appVersion: 0.4.0
