@@ -51,9 +51,8 @@ class Aks {
       azure_samples_github = "azure-samples.github.io"; 
       github_com = "github.com";
       ghcr_io = "ghcr.io";
-      dapr_github_io = "dapr.github.io"; 
-      katriendggithub = "katriendg.github.io" } # todo remove katriendggithub
-      # if you want an empty lis, set $customDomainsHash = @{}
+      dapr_github_io = "dapr.github.io";}
+      # if you want an empty list, set $customDomainsHash = @{}
       
     # ---- Download service bus domains from URI for chosen Azure region
     $serviceBusDomains = Invoke-WebRequest -Uri "https://guestnotificationservice.azure.com/urls/allowlist?api-version=2020-01-01&location=$arcLocation" -Method Get
@@ -66,16 +65,14 @@ class Aks {
     $customDomainsHelm = $customDomainsHelm -Join ","
     
     # ----- Install AKS reverse Proxy 
-    # TODO remove katriendg 
-    # helm repo add azdistributededge https://azure-samples.github.io/distributed-az-edge-framework
-    helm repo add azdistributededge https://katriendg.github.io/distributed-az-edge-framework/
+    helm repo add azdistributededge https://azure-samples.github.io/distributed-az-edge-framework
     helm repo update
 
     if ($proxyConfig) {
       $parentProxyIp = $proxyConfig.ProxyIp
       $parentProxyPort = $proxyConfig.ProxyPort
 
-      Write-Title("Install Reverse Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
+      Write-Title("Install Envoy Reverse Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
       helm install envoy azdistributededge/envoy-reverseproxy `
         --set parent.enabled=true `
         --set-string domainRegion="$arcLocation" `
@@ -87,7 +84,7 @@ class Aks {
         --wait
     }
     else {
-      Write-Title("Install envoy Reverse Proxy without Parent")
+      Write-Title("Install Envoy Reverse Proxy without Parent")
       helm install envoy azdistributededge/envoy-reverseproxy `
         --set-string domainRegion="$arcLocation" `
         --set $customDomainsHelm `
@@ -114,9 +111,8 @@ class Aks {
     }
 
     # ----- Install DNSMasq Helm chart to host DNS resolution for child cluster
-    Write-Title("Installing DNSMasq Helm chart for DNS resolution of child cluster")
-    # TODO change to helm repo when published
-    helm install dnsmasq azdistributededge/dnsmasq `
+    Write-Title("Installing DNSMasqAks Helm chart for DNS resolution of child cluster")
+    helm install dnsmasq azdistributededge/dnsmasqaks `
       --set-string proxyDnsServer="$proxyIp" `
       --namespace edge-infra `
       --wait
@@ -188,7 +184,6 @@ Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
   $wildcardDomainOverride = ""
 
   # --- Get the default values from Helm chart - note if you are overriding Values, load $helmValues differently
-  # TODO get from chart repo instead of local folder when chart is released
   $helmValues = (helm show values azdistributededge/envoy-reverseproxy) | ConvertFrom-Yaml
 
   $arcDomainsList = foreach ($key in $helmValues.arcDomainNames.keys) {
@@ -297,7 +292,7 @@ $vnetSubnetId = $r.properties.outputs.subnetId.value
 $aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
 $aksClusterName = $r.properties.outputs.aksName.value
 
-# ----- Set VNET DNS to parent and close off outbound access if lower layer
+# ----- Set VNET DNS to parent and close off outbound access if enabling Arc and lower layers only
 if ($SetupArc -eq $true -and $ParentConfig -ne $null)
 {
   Write-Title("Parent proxy config is present, adding NSGs, blocking outbound traffic")
@@ -311,7 +306,7 @@ if ($SetupArc -eq $true -and $ParentConfig -ne $null)
   # Deny all Internet outbound traffic
   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
 
-  # ----- Set DNS server in VNET to parent peered VNET DNS server
+  # ----- Set DNS server in VNET to parent peered VNET DNS server DNSMasq
   $parentDnsServer = $ParentConfig.DnsServer
   Write-Title("Setting VNET DNS server to peered parent DNS on IP ${parentDnsServer}")
   az network vnet update -g $aksClusterResourceGroupName -n $aksClusterResourceGroupName --dns-servers $parentDnsServer
