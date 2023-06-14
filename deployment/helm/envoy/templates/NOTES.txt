@@ -1,0 +1,6 @@
+You have installed release {{ .Chart.Version}} of {{ .Chart.Name }} of envoy proxy, pre-release version.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}

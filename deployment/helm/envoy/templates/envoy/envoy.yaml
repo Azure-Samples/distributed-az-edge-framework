@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy-module-deployment
+spec:
+  selector:
+    matchLabels:
+      app: envoy-module
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: envoy-module
+    spec:
+      volumes:
+        - name: envoy-volume
+          configMap:
+            name: envoy-configmap
+      containers:
+      - name: envoy-module
+        image: envoyproxy/envoy:v1.25-latest
+        imagePullPolicy: IfNotPresent
+        command: 
+{{ toYaml .Values.command | indent 12 }}
+        args:
+{{ toYaml .Values.args | indent 12 }}
+        volumeMounts:
+        - name: envoy-volume
+          mountPath: /etc/envoy/envoy.yaml
+          subPath: envoy.yaml
+        ports:
+        - containerPort: {{ .Values.envoyReverseProxy.httpsContainerPort }}
+          name: https
+          protocol: TCP
+        - containerPort: 50001
+          name: wildcard
+        - containerPort: {{ .Values.envoyReverseProxy.oboPort }} # Azure Arc requirement for cluster connect
+          name: obo
+          protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: 9901
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        readinessProbe:
+          tcpSocket:
+            port: 9901
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      # setting hostNetwork true trigger DNS injection default Azure based DNS as opposed to Kube-DNS one 
+      # which is what we want for Level 4 going out to internet through pod proxy but resolving locally elsewhere in cluster
+      {{- if not .Values.parent.enabled }}
+      hostNetwork: true
+      dnsPolicy: Default
+      {{- end }}
