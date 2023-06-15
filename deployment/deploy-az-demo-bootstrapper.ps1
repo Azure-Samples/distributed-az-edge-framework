@@ -21,7 +21,7 @@ mkdir -p modules
 # Copy scripts from source location
 $baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
-Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/az-utils.psm1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/az-utils.psm1" -OutFile "./modules/az-utils.psm1"
 Invoke-WebRequest -Uri "$baseLocation/deployment/modules/process-utils.psm1" -OutFile "./modules/process-utils.psm1"
 # Import text and process utilities module.
 Import-Module -Name ./modules/text-utils.psm1
