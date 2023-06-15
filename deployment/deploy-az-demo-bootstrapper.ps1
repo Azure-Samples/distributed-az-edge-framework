@@ -37,10 +37,10 @@ Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l2.ps1" -OutFile "de
 Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l4.ps1" -OutFile "deploy-app-l4.ps1"
 
 mkdir -p bicep/modules
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infrastructure.bicep" -OutFile "./bicep/core-infrastructure.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-aks.bicep" -OutFile "./bicep/core-infra-aks.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-vnet.bicep" -OutFile "./bicep/core-infra-vnet.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/aks.bicep" -OutFile "./bicep/modules/aks.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnet.bicep" -OutFile "./bicep/modules/vnet.bicep"
