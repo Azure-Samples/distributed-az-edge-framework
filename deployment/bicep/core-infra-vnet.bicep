@@ -78,6 +78,9 @@ param currentAzUsernameId string
 @description('The AKS service principal object id')
 param aksObjectId string
 
+@description('Wether to close down outbound internet access')
+param closeOutboundInternetAccess bool = false
+
 var applicationNameWithoutDashes = replace(applicationName, '-', '')
 var aksName = take('aks-${applicationNameWithoutDashes}', 20)
 var resourceGroupName = applicationName
@@ -98,6 +101,7 @@ module vnet 'modules/vnet.bicep' = {
     currentAzUsernameId: currentAzUsernameId
     aksName: aksName
     aksObjectId: aksObjectId
+    closeOutboundInternetAccess: closeOutboundInternetAccess
   }
 }
 
