@@ -20,31 +20,34 @@ mkdir -p modules
 
 # Copy scripts from source location
 $baseLocation = "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/$ScriptsBranch"
-Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1"
-Invoke-WebRequest -Uri "$baseLocation/deployment/modules/az-utils.psm1" -OutFile "./modules/az-utils.psm1"
-Invoke-WebRequest -Uri "$baseLocation/deployment/modules/process-utils.psm1" -OutFile "./modules/process-utils.psm1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/text-utils.psm1" -OutFile "./modules/text-utils.psm1" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/az-utils.psm1" -OutFile "./modules/az-utils.psm1" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/modules/process-utils.psm1" -OutFile "./modules/process-utils.psm1" | Out-Null
+exit
 # Import text and process utilities module.
 Import-Module -Name ./modules/text-utils.psm1
 Import-Module -Name ./modules/process-utils.psm1
 Import-Module -Name ./modules/az-utils.psm1
 
+Write-Title "Importing scripts and bicep templates from base GitHub location"
+
 # --- Ensure Location is set to short name
 $Location = Get-AzShortRegion($Location)
 
-Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1"
-Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1"
-Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l2.ps1" -OutFile "deploy-app-l2.ps1"
-Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l4.ps1" -OutFile "deploy-app-l4.ps1"
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-infrastructure.ps1" -OutFile "deploy-core-infrastructure.ps1" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-core-platform.ps1" -OutFile "deploy-core-platform.ps1" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l2.ps1" -OutFile "deploy-app-l2.ps1" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l4.ps1" -OutFile "deploy-app-l4.ps1" | Out-Null
 
 mkdir -p bicep/modules
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-aks.bicep" -OutFile "./bicep/core-infra-aks.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-vnet.bicep" -OutFile "./bicep/core-infra-vnet.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnet.bicep" -OutFile "./bicep/modules/vnet.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnetpeering.bicep" -OutFile "./bicep/modules/vnetpeering.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-aks.bicep" -OutFile "./bicep/core-infra-aks.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-vnet.bicep" -OutFile "./bicep/core-infra-vnet.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/eventhub.bicep" -OutFile "./bicep/modules/eventhub.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnet.bicep" -OutFile "./bicep/modules/vnet.bicep" | Out-Null
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/vnetpeering.bicep" -OutFile "./bicep/modules/vnetpeering.bicep" | Out-Null
 
 # Deploy 3 core infrastructure layers i.e. L4, L3, L2, replicating 3 levels of Purdue network topology.
 $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $true -Location $Location

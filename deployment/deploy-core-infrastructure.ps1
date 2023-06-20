@@ -274,7 +274,6 @@ Write-Title("Deploy Bicep files - Vnet")
 $ParentConfigVnetName = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetName }
 $ParentConfigVnetResourceGroup = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetResourceGroup }
 $closeOutboundInternetAccess = If ($SetupArc -eq $true -and $ParentConfig -ne $null) { $true } Else { $false }
-# $parentDnsServer = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.DnsServer }
 
 $r = (az deployment sub create --location $Location `
     --template-file ./bicep/core-infra-vnet.bicep --parameters `
@@ -295,23 +294,9 @@ $vnetSubnetId = $r.properties.outputs.subnetId.value
 $aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
 $aksClusterName = $r.properties.outputs.aksName.value
 
-# ----- Set VNET DNS to parent and close off outbound access if enabling Arc and lower layers only
-if ($SetupArc -eq $true -and $ParentConfig -ne $null)
+if ($closeOutboundInternetAccess -eq $true)
 {
-#   # TODO change to use all in bicep
-#   Write-Title("Parent proxy config is present, adding NSGs, blocking outbound traffic")
-#   # ----- Close down Internet access for cluster after Infra setup, allow only AKS Azure specific outbound
-#   # Because using AKS managed service, some traffic cannot be blocked by NSG as described in AKS egress networking requirements
-#   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowK8ApiHTTPSOutbound" --priority 1010 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${Location} --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AKS API."
-#   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowTagAks9000Outbound" --priority 1020 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${Location} --destination-port-ranges '9000' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to 9000 for node comms."
-#   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowTagMcr" --priority 1040 --source-address-prefixes VirtualNetwork --destination-address-prefixes MicrosoftContainerRegistry --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to MCR."
-#   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowTagFrontDoorFirstParty" --priority 1050 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureFrontDoor.FirstParty --destination-port-ranges '443' --direction Outbound --access Allow --protocol Tcp --description "Allow VirtualNetwork to AzFrontDoor.FirstParty."
-#   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "AllowK8ApiUdpOutbound" --priority 1060 --source-address-prefixes VirtualNetwork --destination-address-prefixes AzureCloud.${Location} --destination-port-ranges '1194' --direction Outbound --access Allow --protocol Udp --description "Allow VirtualNetwork to AKS API UDP."
-#   # Deny all Internet outbound traffic
-#   az network nsg rule create -g $aksClusterResourceGroupName --nsg-name "$aksClusterName" -n "DenyAllInternetOutbound" --priority 2000 --source-address-prefixes VirtualNetwork --destination-address-prefixes Internet --destination-port-ranges '*' --direction Outbound --access Deny --protocol * --description "Deny all oubound internet."
-
   # ----- Set DNS server in VNET to parent peered VNET DNS server DNSMasq
-  # TODO this is not working with bicep
   $parentDnsServer = $ParentConfig.DnsServer
   Write-Title("Setting VNET DNS server to peered parent DNS on IP ${parentDnsServer}")
   az network vnet update -g $aksClusterResourceGroupName -n $aksClusterResourceGroupName --dns-servers $parentDnsServer
