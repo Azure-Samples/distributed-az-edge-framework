@@ -167,7 +167,7 @@ class Aks {
   }
 }
 
-# ------ Begin funcion ConfigureCoreDns
+# ------ Begin function ConfigureCoreDns
 Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
 {
   # ----- Prepare DNS override for local proxy
@@ -236,7 +236,7 @@ Function ConfigureCoreDns([object]$customDomains, [string] $envoyProxyClusterIp)
   kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
 
 }
-# ------ End funcion ConfigureCoreDns
+# ------ End function ConfigureCoreDns
 
 # ------
 # Temporary check for Linux based systems and enabling Arc - exit as not tested on Linux outside of Cloud Shell

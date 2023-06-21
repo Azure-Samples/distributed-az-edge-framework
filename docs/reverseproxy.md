@@ -54,7 +54,7 @@ This repository utilizes AKS-based clusters to simplify the Azure setup process 
 
 When bootstrapping a cluster on a lower level, NSG rules are used to allow outbound traffic to specific Azure services and deny all other Internet outbound, except some proxied traffic through reverse proxy. 
 
-As per the documented requirements in [Control egress traffic for cluster nodes in Azure Kubernetes Service](https://learn.microsoft.com/en-us/azure/aks/limit-egress-traffic), several Network Security Group outbound rules are added to allow AKS service itself to continue functioning. These include:
+As per the documented requirements in [Outbound network and FQDN rules for Azure Kubernetes Service (AKS) clusters](https://learn.microsoft.com/en-us/azure/aks/outbound-rules-control-egress), several Network Security Group outbound rules are added to allow AKS service itself to continue functioning. These include:
 
 - AKS API Server endpoint required for any applications running within the cluster that need to call out to the API on port 443. This applies to some Azure Arc agent services.
 - AzureCloud service tag on ports 1194 and 9000.
