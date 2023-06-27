@@ -78,12 +78,8 @@ param currentAzUsernameId string
 @description('The AKS service principal object id')
 param aksObjectId string
 
-@description('The AKS service principal client id')
-param aksClientId string
-
-@secure()
-@description('The AKS service principal client secret')
-param aksClientSecret string
+@description('Wether to close down outbound internet access')
+param closeOutboundInternetAccess bool = false
 
 var applicationNameWithoutDashes = replace(applicationName, '-', '')
 var aksName = take('aks-${applicationNameWithoutDashes}', 20)
@@ -105,6 +101,7 @@ module vnet 'modules/vnet.bicep' = {
     currentAzUsernameId: currentAzUsernameId
     aksName: aksName
     aksObjectId: aksObjectId
+    closeOutboundInternetAccess: closeOutboundInternetAccess
   }
 }
 
@@ -134,17 +131,6 @@ module downstreamvnetpeering 'modules/vnetpeering.bicep' = if (!empty(remoteVnet
   ]
 }
 
-module aks 'modules/aks.bicep' = {
-  name: 'aksDeployment'
-  scope: resourceGroup(rg.name)
-  params: {
-    aksName: aksName
-    aksLocation: location
-    aksClientId: aksClientId
-    aksClientSecret: aksClientSecret
-    vnetSubnetID: vnet.outputs.subnetId
-  }
-}
-
 output aksName string = aksName
 output aksResourceGroup string = resourceGroupName
+output subnetId string = vnet.outputs.subnetId

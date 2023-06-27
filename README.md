@@ -30,10 +30,12 @@ Apart from the above arrangement, the following system modules/pods are part of 
 
 This section describes the nested topology design implemented by this solution.
 
-![alt text](architecture/nested-topology-hld.png "Nested Toplogy")
+![alt text](architecture/nested-topology-hld-envoy.png "Nested Toplogy")
 
-At the core of the nested topology design, we have proxies (currently Squid) which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance).
-These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. We are currently implementing functionality for data planes to transverse layers directly and evaluating an improvement to force this communication to pass through the proxy transparently. Currently only Azure Arc is configured to connect through proxy.
+At the core of the nested topology design, we have reverse proxies which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. Currently, data plane is tranversing layers directly between brokers, and we are evaluating an improvement to force this communication to pass through the proxy transparently. 
+Proxying of allowed URI calls from the lower L2 and L3 levels for the AKS host nodes (kubelet, containerd) is implemented using a DNS Server override in each lower Virtual Network.
+
+For more information about the network topology and usage of Envoy reverse proxy please see the detailed document: [Network Separation and Reverse Proxy](./docs/reverseproxy.md).
 
 ## Technology Stack
 
@@ -72,11 +74,11 @@ For more information about MQTT broker choice and comparison, please see [MQTT B
 
 Solution components are split into three layers from deployment perspective:
 
-1. **Core Infrastructure Layer** (Kubernetes, Kubectl/Helm clients configuration).
+1. **Core Infrastructure Layer** (Kubernetes, Arc, Kubectl/Helm clients configuration).
    This deployment is a responsibility of an organization's infrastructure team. Organizations may already have this infrastructure in place or may need to cater for specific requirements due to external constraints. Pre-Built Packages Available:
     * Core Infrastructure Package for Demo on the Azure Cloud.
   
-2. **Core Platform Layer** (Dapr, Arc, and Flux extensions on Kubernetes).
+2. **Core Platform Layer** (Dapr, Mosquitto, and Flux extensions on Kubernetes).
    This deployment is a responsibility of an organization's devops team. Pre-built deployment packages/scripts are provided which can be run by an organization to create resources (Core Platform Components) in the Kubernetes cluster. Pre-Built Packages Available:
     * Core Platform Package for Kubernetes in Cloud/On-prem.
   

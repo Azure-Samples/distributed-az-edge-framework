@@ -22,6 +22,6 @@ Lastly, MQTT bridging in some of the brokers also enables persistence. This is e
 | RabbitMQ	| No	| MPL 1.1	| |
 | JoramMQ	| Yes	| LGPL and Commercial	| | 
 
-## Eclispe Mosquitto Broker
+## Eclipse Mosquitto Broker
 
 In this sample we have chosen to do an implementation with Mosquitto. Is has many advantages, one being the open-source licensing of the bridging feature. Customers looking at commercially supported options might want to further evaluate solutions like HiveMQ Professional or Enterprise or others.

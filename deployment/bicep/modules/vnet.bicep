@@ -25,8 +25,14 @@ param aksName string
 @description('The AKS service principal object id')
 param aksObjectId string
 
+@description('Wether to close down outbound internet access')
+param closeOutboundInternetAccess bool = false
+
 var subnetName = aksName
 var subnetNsgName = aksName
+
+var arrayBasicRules = [ allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule ]
+var arrayBaseAndLockRules = [ allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule, allowK8ApiHTTPSOutbound, allowK8ApiUdpOutbound, allowTagAks9000Outbound, allowTagFrontDoorFirstParty, allowTagMcr, denyOutboundInternetAccessSecurityRule ]
 
 // TODO: We need to do this is nested manner e.g. use parent vnet/subnet if this is nested vnet/subnet creation.
 var allowProxyInboundSecurityRule = {
@@ -35,7 +41,7 @@ var allowProxyInboundSecurityRule = {
     priority: 1010
     access: 'Allow'
     direction: 'Inbound'
-    destinationPortRange: '3128'
+    destinationPortRange: '443'
     protocol: 'Tcp'
     sourcePortRange: '*'
     sourceAddressPrefix: 'VirtualNetwork'
@@ -58,13 +64,95 @@ var allowMqttSslInboundSecurityRule = {
   }
 }
 
+var allowK8ApiHTTPSOutbound = {
+  name: 'AllowK8ApiHTTPSOutbound'
+  properties: {
+    priority: 1010
+    access: 'Allow'
+    direction: 'Outbound'
+    destinationPortRange: '443'
+    protocol: 'Tcp'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'AzureCloud'
+  }
+}
+
+var allowTagAks9000Outbound = {
+  name: 'AllowTagAks9000Outbound'
+  properties: {
+    priority: 1020
+    access: 'Allow'
+    direction: 'Outbound'
+    destinationPortRange: '9000'
+    protocol: 'TCP'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'AzureCloud'
+  }
+}
+
+var allowTagMcr = {
+  name: 'AllowTagMcr'
+  properties: {
+    priority: 1040
+    access: 'Allow'
+    direction: 'Outbound'
+    destinationPortRange: '443'
+    protocol: 'TCP'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'MicrosoftContainerRegistry'
+  }
+}
+
+var allowTagFrontDoorFirstParty = {
+  name: 'AllowTagFrontDoorFirstParty'
+  properties: {
+    priority: 1050
+    access: 'Allow'
+    direction: 'Outbound'
+    destinationPortRange: '443'
+    protocol: 'TCP'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'AzureFrontDoor.FirstParty'
+  }
+}
+
+var allowK8ApiUdpOutbound = {
+  name: 'AllowK8ApiUdpOutbound'
+  properties: {
+    priority: 1060
+    access: 'Allow'
+    direction: 'Outbound'
+    destinationPortRange: '1194'
+    protocol: 'UDP'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'AzureCloud'
+  }
+}  
+
+var denyOutboundInternetAccessSecurityRule = {
+  name: 'DenyOutboundInternetAccess'
+  properties: {
+    priority: 2000
+    access: 'Deny'
+    direction: 'Outbound'
+    destinationPortRange: '*'
+    protocol: '*'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'Internet'
+  }
+}
+
 resource nsg 'Microsoft.Network/networkSecurityGroups@2021-02-01' = {
   name: subnetNsgName
   location: vnetLocation
   properties: {
-    securityRules: [
-      allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule
-    ]
+    securityRules: closeOutboundInternetAccess ? arrayBaseAndLockRules : arrayBasicRules 
   }
 }
 
@@ -116,6 +204,7 @@ resource assignNetworkContributorToCurrentAzureUser 'Microsoft.Authorization/rol
     roleDefinitionId: '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${roleNetworkContributor}'
   }
 }
+
 
 output vnetId string = vnet.id
 output subnetId string = '${vnet.id}/subnets/${subnetName}'

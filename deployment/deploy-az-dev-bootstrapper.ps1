@@ -14,10 +14,15 @@ Param(
 
 # Import text utilities module.
 Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/az-utils.psm1
+Import-Module -Name ./modules/process-utils.psm1
 
 Write-Title("Start Deploying")
 $startTime = Get-Date
 $ApplicationName = $ApplicationName.ToLower()
+
+# --- Ensure Location is set to short name
+$Location = Get-AzShortRegion($Location)
 
 # --- Deploying 3 layers: comment below block and uncomment bottom block for single layer:
 
@@ -38,7 +43,7 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
     -AksClusterName $l4LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L4") `
     -Location $Location
 
-# Note currently for developer flow we need Azure Ccontianer Registry deployed by L4 (via L4AppConfig). 
+# Note currently for developer flow we need Azure Container Registry deployed by L4 (via L4AppConfig). 
 ./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
     -AksClusterName $l2LevelCoreInfra.AksClusterName `
     -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName `
