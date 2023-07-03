@@ -5,6 +5,7 @@ In various edge infrastructure setups, particularly in manufacturing, applicatio
 For traffic that requires cloud-based resources, such as Azure Arc services, a reverse proxy is employed to facilitate the requests through each layer until they reach the topmost layer proxy. The topmost layer proxy is configured to determine which traffic is permitted through and to which destination it should be directed. This setup allows customers to modify the configuration of the proxy at each level to gain customized control over incoming and outgoing requests.
 
 Types of requests:
+
 - Azure Arc resources to enable Azure Arc enabled Kubernetes
 - GitOps repos
 - Container registry locations
@@ -22,11 +23,11 @@ The L3/L4 TCP filter is employed to capture incoming traffic and redirect it upw
 - At Level 3, Envoy has an identical setup as the proxy at Level 2, forwarding all traffic up to Level 4.
 - At Level 4, there is a specific set of listeners and destination clusters. For each authorized domain name, the proxy has a designated destination cluster that directs the traffic to the intended public domain name.
 
-> It worth noting that at Level 4, the Envoy Pod has custom network setup that does not use the rewritten domains by the local CoreDNS in Kubernetes. This guarantees that local address translation within the cluster forwards a set of domain names to the Envoy proxy Endpoint on the same Level 4 cluster. However, Envoy Pod itself resolves public addresses with the Azure or public DNS, overwriting its local DNS resolution to prevent an infinite redirection loop of DNS requests to the proxy itself. This implementation can be seen in the `hostNetwork` and `dnsPolicy` settings of the Envoy deployment manifest (in Helm).
+> It is worth noting that at Level 4, the Envoy pod has custom network setup that does not use the rewritten domains by the local CoreDNS in Kubernetes. This guarantees that local address translation within the cluster forwards a set of domain names to the Envoy proxy endpoint on the same Level 4 cluster. However, Envoy pod itself resolves public addresses with the Azure or public DNS, overwriting its local DNS resolution to prevent an infinite redirection loop of DNS requests to the proxy itself. This implementation can be seen in the `hostNetwork` and `dnsPolicy` settings of the Envoy deployment manifest (in Helm).
 
 ## DNS Rewriting with CoreDNS
 
-Within each cluster, regardless of the cluster's ability to directly access the Internet, CoreDNS is adjusted to modify a predefined set of domain names. This set includes all the fully qualified domain names specified in the Azure Arc Networking Requirements document, as well as some domain names necessary for downloading Helm charts, using GitOps, and accessing container images.
+Within each cluster, regardless of the cluster's ability to directly access the internet, CoreDNS is adjusted to modify a predefined set of domain names. This set includes all the fully qualified domain names specified in the Azure Arc networking requirements document, as well as some domain names necessary for downloading Helm charts, using GitOps, and accessing container images.
 
 Kubernetes has built-in DNS resolution capabilities for services and pods, as described in this relevant source [document](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/). CoreDNS is now the most used DNS service for Kubernetes and is available in Azure AKS.
 
@@ -40,42 +41,42 @@ Upon a successful installation of the Envoy proxy, a load balancer service endpo
 
 ### Inbound (Ingress) Network Configuration
 
-At the networking level within the Virtual Network, all traffic from lower layers in a peered VNET is allowed through. This can further be locked down and in this case NSGs should permit traffic inbound to upper levels for ports 443 (HTTPS), 8883 (MQTT), 8084 (for Arc) and 53 (custom DNS).
+At the networking level within the virtual network, all traffic from lower layers in a peered VNET is allowed through. This can further be locked down and in this case NSGs should permit traffic inbound to upper levels for ports 443 (HTTPS), 8883 (MQTT), 8084 (for Arc) and 53 (custom DNS).
 
 ### Outbound (Egress) Network Configuration
 
-Level 2 and Level 3 Network Security Groups have `Allow` rules for outbound traffic to the Virtual Network only. There is a `Deny`` rule for all Internet outbound traffic (except some requirements for Azure, see below).
+Level 2 and Level 3 Network Security Groups have `Allow` rules for outbound traffic to the virtual network only. There is a `Deny`` rule for all internet outbound traffic (except some requirements for Azure, see below).
 
-Level 4 NSG allows all Internet outbound traffic. This could be further restricted using a Firewall or custom default gateway for outbound traffic. 
+Level 4 NSG allows all internet outbound traffic. This could be further restricted using a firewall or custom default gateway for outbound traffic.
 
 ### Azure Kubernetes Services (AKS) Specific Sample Requirements
 
 This repository utilizes AKS-based clusters to simplify the Azure setup process for the sample, removing the need to focus on the infrastructure setup of Kubernetes. Because AKS is a managed service, there are some specific requirements for outbound network rules that must be applied. It's important to note that these requirements will not apply in a real implementation on the edge without AKS Azure networking.
 
-When bootstrapping a cluster on a lower level, NSG rules are used to allow outbound traffic to specific Azure services and deny all other Internet outbound, except some proxied traffic through reverse proxy. 
+When bootstrapping a cluster on a lower level, NSG rules are used to allow outbound traffic to specific Azure services and deny all other internet outbound, except some proxied traffic through reverse proxy.
 
 As per the documented requirements in [Outbound network and FQDN rules for Azure Kubernetes Service (AKS) clusters](https://learn.microsoft.com/en-us/azure/aks/outbound-rules-control-egress), several Network Security Group outbound rules are added to allow AKS service itself to continue functioning. These include:
 
-- AKS API Server endpoint required for any applications running within the cluster that need to call out to the API on port 443. This applies to some Azure Arc agent services.
+- AKS API server endpoint required for any applications running within the cluster that need to call out to the API on port 443. This applies to some Azure Arc agent services.
 - AzureCloud service tag on ports 1194 and 9000.
 - MicrosoftContainerRegistry service tag for downloading containers for initial bootstrapping of AKS or upon cluster restart.
 
 ### Azure Kubernetes Services (AKS) DNS Resolution for Host System
 
-AKS clusters are deployed with a default DNS resolution configuration that uses the default Azure DNS service. Because the L2 and L3 networks have been denied outbound Internet Access (see above), access to container registries and GitOps repos for usage by the host system (like `kubelet` and `containerd`) also needs to be pointing to go through the Envoy reverse proxy on the above layer.
+AKS clusters are deployed with a default DNS resolution configuration that uses the default Azure DNS service. Because the L2 and L3 networks have been denied outbound internet Access (see above), access to container registries and GitOps repos for usage by the host system (like `kubelet` and `containerd`) also needs to be pointing to go through the Envoy reverse proxy on the above layer.
 
-This is done by using a simple DNSMasq service that is deployed on the L4 and L3 layers. The DNSMasq service is configured to override a set of URLs that are allowed to pass through to the Internet and point them to the Envoy proxy. At L4 only, Envoy proxy is configured to use the default Azure DNS service as the upstream DNS resolver. At this topmost level all URLs are allowed.
-By updating the Virtual Network DNS setting for L2 and L3 to each use the upstream DNSMasq service, the host system will be able to resolve the URLs that are allowed to pass through to the Internet. 
+This is done by using a simple DNSMasq service that is deployed on the L4 and L3 layers. The DNSMasq service is configured to override a set of URLs that are allowed to pass through to the internet and point them to the Envoy proxy. At L4 only, Envoy proxy is configured to use the default Azure DNS service as the upstream DNS resolver. At this topmost level all URLs are allowed.
+By updating the Virtual Network DNS setting for L2 and L3 to each use the upstream DNSMasq service, the host system will be able to resolve the URLs that are allowed to pass through to the internet.
 
-> It is also worth noting that L2 and L3 DNS resolution for FQDNs that are not configured in DNSMasq will be resolved by the default Azure DNS service, see [What is IP address 168.63.129.16](https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16). This means that even FQDNs that are not in the allow-list going through Envoy proxy can be resolved. The requests to these URLs will never work because outbound traffic is blocked by default. This is a solution that is acceptable for this sample but in a production environment one would want to make sure only allow-list resolution is able to be resolved, and not all public FQDNs, regardless of whether the requests would get through or not.
+> It is also worth noting that L2 and L3 DNS resolution for FQDNs that are not configured in DNSMasq will be resolved by the default Azure DNS service, see [What is IP address 168.63.129.16](https://learn.microsoft.com/en-us/azure/virtual-network/what-is-ip-address-168-63-129-16). This means that even FQDNs that are not in the allow-list can be resolved by going through Envoy. The requests to these URLs will never work because outbound traffic is blocked by default. This is a solution that is acceptable for this sample but in a production environment one would want to make sure only allow-list resolution is able to be resolved, and not all public FQDNs, regardless of whether the requests would get through or not.
 
-The reason for a simplified override with DNSMasq is that the DNS configuration is typically something part of customer's architecture and existing setup, so this sample approach works for this Sample sandbox but will not be implemented in a real-world scenario.
+The reason for a simplified override with DNSMasq is that the DNS configuration is typically something part of customer's architecture and existing setup, so this sample approach works for this sample sandbox but will not be implemented in a real-world scenario.
 
 ## SSL Termination
 
-To maintain a zero-trust security approach, the Envoy reverse proxy does **not** perform SSL termination. This eliminates the need for control between where HTTPS traffic is decrypted and then re-encrypted. By doing so, it reduces the risk of any communication being transmitted in plain text before being re-encrypted again. 
+To maintain a zero-trust security approach, the Envoy reverse proxy does **not** perform SSL termination. This eliminates the need for control between where HTTPS traffic is decrypted and then re-encrypted. By doing so, it reduces the risk of any communication being transmitted in plain text before being re-encrypted again.
 
-Even though the Envoy TLS Inspector Filter is employed, it does so only to read out the hostname in the SNI. This information is available in the SSL ClientHello which is the TLS handshake first message and sent in unencrypted. In this manner we can use filters based on SNI and proxy the traffic to allowed domain names only (in Envoy *clusters*). 
+Even though the Envoy TLS Inspector Filter is employed, it does so only to read out the hostname in the SNI. This information is available in the SSL ClientHello which is the TLS handshake first message and sent in an unencrypted context. In this manner we can use filters based on SNI and proxy the traffic to allowed domain names only (in Envoy *clusters*).
 
 This topic is still being debated and might change in the future.
 
@@ -83,7 +84,7 @@ This topic is still being debated and might change in the future.
 
 Azure Arc resources require certain domain names to be allowed for egress, including wildcard domains. However, configuring Envoy for a reverse proxy setup can be challenging when the full domain name is not known upfront. Envoy proxy requires a dynamic cluster endpoint configuration to be set up for such scenarios.
 
-To address this challenge, the current sample uses the SNI Dynamic Forward Proxy solution, which can resolve a number of pre-set wildcard domains. 
+To address this challenge, the current sample uses the SNI Dynamic Forward Proxy solution, which can resolve a number of pre-set wildcard domains.
 
 > Note: It is important to point out that this feature is currently in an alpha stage and should not be used in production scenarios.
 
@@ -97,7 +98,7 @@ We assume that the same persona who manages the cluster will also set up this in
 
 Before running the deployment, the deployment script prepares the input values for the Envoy Helm Chart. The primary information passed to the chart is a list of custom domains that need to be brokered through to the next layer or Level 4, which is the internet.
 
-Because Envoy's listeners filter based on domain names in the request, the script also ensures that any new deployment or chart update is reflected in the CoreDNS domain rewrites. This domain name rewrite is accomplished by generating the `coredns-custom` ConfigMap with a set of custom `hosts` entries. The script gets all default Helm chart Values and generates input for the `coredns-custom` file.
+Because Envoy's listeners filter based on domain names in the request, the script also ensures that any new deployment or chart update is reflected in the CoreDNS domain rewrites. This domain name rewrite is accomplished by generating the `coredns-custom` ConfigMap with a set of custom `hosts` entries. The script gets all default Helm chart values and generates input for the `coredns-custom` file.
 
 If you plan to rerun the Helm chart, make sure to run the script or create a new version of the `coredns-custom` ConfigMap to ensure that the DNS rewriting redirects the request to the Envoy proxy endpoint, rather than resolving the domain name publicly.
 
@@ -130,14 +131,16 @@ flowchart TD;
 In this current implementation, we have chosen to setup the reverse proxy within the Kubernetes cluster for any proxying or forwarding purposes. This allows for better control of domain name resolution with CoreDNS. However, this option has its advantages and disadvantages.
 
 ### Advantages
+
 - CoreDNS can be configured to resolve all domain names to the reverse proxy endpoint, which is the Envoy proxy. This allows for a single point of control for all domain name resolution within the cluster.
 - If there is a need to locally override a domain name, it can be easily achieved by modifying the CoreDNS configuration.
 - Changes to the cluster IP address of the reverse proxy can be easily reflected by updating the CoreDNS configuration within the cluster.
 
 ### Disadvantages
+
 - For any AKS/Kubernetes host OS and system-level communication, you still need to configure DNS and proxy settings in the upper layer. Therefore, one might question why not use the same upper layer proxy for all communication instead of configuring both approaches.
 - Deployments within the cluster that require internet access may face limitations.
-- If the reverse proxy in the upper layer needs to be redeployed, a new load-balanced IP address might be assigned, requiring additional configuration in the lower layer cluster.
+- If the reverse proxy in the upper layer needs to be redeployed, a new load-balanced IP address might be assigned requiring additional configuration in the lower layer cluster.
 - Resolution and proxy through upper layer for all communication offers a simpler setup, both Kubernetes and host system rely on DNS and reverse proxy of the layer above. This provides a single point of control for all domain name resolution and proxying within or outside of the cluster.
 
 As an example to changes in the architecture, we take the same high level architecture as shown on the [Readme](../README.md) but with changes for DNS and proxy directly to the upper layer as follows:
@@ -151,9 +154,9 @@ As an example to changes in the architecture, we take the same high level archit
 - Level 4 CA certificate integration for outbound traffic via customer proxies and firewalls (potentially requiring custom CA certificate trust and user-based authentication)
 - Mutual TLS between reverse proxies
 
-## Future Planned Additions in this Sample:
+## Future Planned Additions in this Sample
 
 - Wildcard sub-domain redirection: some of the domains required for Azure Arc K8S are documented in the form of wildcard subdomains (*.his.arc.azure.com, *.arc.azure.com, *.data.mcr.microsoft.com, *.guestnotificationservice.azure.com). Currently implemented using SNI dynamic forward proxy in Envoy on L4 out to the internet.
-- Integrating with customer owned firewalls and proxies, especially for Internet bound access.
+- Integrating with customer owned firewalls and proxies, especially for internet bound access.
 - Level 4 connected (local) container registry for all required container images, including a copy of public images like Envoy and Mosquitto.
 - Mosquitto bridging through reverse proxy and no longer directly between layers.
