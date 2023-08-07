@@ -88,15 +88,55 @@ Solution components are split into three layers from deployment perspective:
 
 Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, `az` cmds and other scripts to deploy the solution and its dependencies.
 
-### Try It on Azure
+## Try It on Azure
 
-In Azure, for demo purposes we deploy all the three layers for you.
+### Easy Setup via Azure Cloud Shell
+
+**Pre-requisites**
+- Azure subscription
+- Azure permissions: `Owner` on the subscription (permissions to create Service Principals, provision resources and update RBAC on the resources)
+
+**Default Deployment**
+
+In Azure, for demo purposes we deploy all the three layers for you, Arc-enabling the clusters and deploying sample workloads to simulate messaging activities.
 
 Run the following command in the [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
 Optionally, for deploying a developer environment with local application building and deployment please see [Setup a development environment on Azure with local application deployment](./deployment/deploy-dev.md).
+
+### Validate Deployment
+
+After successful deployment, the following resources will be created in your Azure subscription:
+- Three resource groups with each having their own AKS cluster, separate and peered virtual networks and Azure Arc connected.
+- One resource group with Event Hub resource. Messages from the edge workload simulators will be published to this Event Hub.
+- All resources will be provisioned in West Europe region. 
+
+Within the sample AKS clusters, several workloads are deployed as depicted in the [Nested Topology](#nested-topology) section above. Application workloads are deployed using Arc's Flux extension (GitOps).
+The lower networks are denied outbound internet access and have to route traffic through to the upper layers until it reaches public internet on Level 4.
+
+To validate the deployment of the default resources and sample workloads you can validate a few things:
+
+- In Azure: 
+    - Review the new resource groups and their configuration. The resource groups will all be prefixed with the `ApplicationName` you supplied when running the script.
+    - Go to the Azure Event Hub in the `<ApplicatioName>-App` resource group and validate messages are coming through.
+- In Azure Cloud Shell CLI, use `kubectl` commands to review deployed workloads:
+    - Connect to the desired AKS cluster by running `az aks get-credentials --resource-group <ApplicationName>L4 --name aks-<ApplicationName>L4` (`L4` can be replaced by `L3` or `L2`). 
+    - Connect to L4 cluster and run the following command to see messages are being published to Event Hubs:
+        - Get the pods in `kubctl get pods -n edge-app1`
+        - Get the logs for the Data Gateway module: `kubectl logs -l app=data-gateway-module -n edge-app1`. You should see some logs about messages published.
+    - You can also further view other workloads by reviewing deployments in the namespaces `edge-core`, `edge-infra` and `azure-arc`.
+    - Connecto the L2 cluster and review the application (and their logs) deployed to `edge-app1` namespace.
+
+### Clean-up Resources
+
+> **Warning**
+> Please ensure you delete the deployed Azure resources after testing. Azure deployed resources will be charged into your subscription and can run up due to multiple AKS clusters being provisioned.
+
+`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/remove-dev-resources.ps1" -OutFile "./remove-dev-resources.ps1" && ./remove-dev-resources.ps1 -ApplicationName <ApplicationName>`
+
+Where `<ApplicationName>` is the name you entered when invoking the initial provisioning scrip.
 
 ## Further Enhancements
 
