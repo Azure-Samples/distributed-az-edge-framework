@@ -334,6 +334,10 @@ while ($true) {
         $wc.DownloadFile($url, $manifestToolPath)
 
         if (Test-Path $manifestToolPath) {
+            if ($IsLinux) {
+                Write-Host "Setting tool to be executable.."
+                chmod +x $manifestToolPath
+            }
             break
         }
     }
