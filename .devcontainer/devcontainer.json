@@ -21,7 +21,9 @@
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
-			"extensions": ["ms-azuretools.vscode-bicep", ]
+			"extensions": ["ms-azuretools.vscode-bicep", 
+				"davidanson.vscode-markdownlint", 
+				"streetsidesoftware.code-spell-checker"]
 		}
 	}
 

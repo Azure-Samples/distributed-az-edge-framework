@@ -32,7 +32,7 @@ This section describes the nested topology design implemented by this solution.
 
 ![alt text](architecture/nested-topology-hld-envoy.png "Nested Toplogy")
 
-At the core of the nested topology design, we have reverse proxies which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. Currently, data plane is tranversing layers directly between brokers, and we are evaluating an improvement to force this communication to pass through the proxy transparently. 
+At the core of the nested topology design, we have reverse proxies which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. Currently, data plane is traversing layers directly between brokers, and we are evaluating an improvement to force this communication to pass through the proxy transparently.
 Proxying of allowed URI calls from the lower L2 and L3 levels for the AKS host nodes (kubelet, containerd) is implemented using a DNS Server override in each lower Virtual Network.
 
 For more information about the network topology and usage of Envoy reverse proxy please see the detailed document: [Network Separation and Reverse Proxy](./docs/reverseproxy.md).
@@ -92,11 +92,12 @@ Deployment of the above artifacts may require multiple tools, this is where we c
 
 ### Easy Setup via Azure Cloud Shell
 
-**Pre-requisites**
-- Azure subscription
-- Azure permissions: `Owner` on the subscription (permissions to create Service Principals, provision resources and update RBAC on the resources)
+#### Pre-requisites
 
-**Default Deployment**
+* Azure subscription
+* Azure permissions: `Owner` on the subscription (permissions to create Service Principals, provision resources and update RBAC on the resources)
+
+#### Default Deployment
 
 In Azure, for demo purposes we deploy all the three layers for you, Arc-enabling the clusters and deploying sample workloads to simulate messaging activities.
 
@@ -108,26 +109,18 @@ Optionally, for deploying a developer environment with local application buildin
 
 ### Validate Deployment
 
-After successful deployment, the following resources will be created in your Azure subscription:
-- Three resource groups with each having their own AKS cluster, separate and peered virtual networks and Azure Arc connected.
-- One resource group with Event Hub resource. Messages from the edge workload simulators will be published to this Event Hub.
-- All resources will be provisioned in West Europe region. 
+After deployment the following resources will be created in your Azure subscription:
 
-Within the sample AKS clusters, several workloads are deployed as depicted in the [Nested Topology](#nested-topology) section above. Application workloads are deployed using Arc's Flux extension (GitOps).
-The lower networks are denied outbound internet access and have to route traffic through to the upper layers until it reaches public internet on Level 4.
+* 3 Azure resource groups: `<ApplicaitonName>L2`, `<ApplicaitonName>L3`, `<ApplicaitonName>L4` with AKS Clusters, Azure Arc and networking.
+* 1 Azure resource group `<ApplicationName>-App` with an Event Hub instance and Storage account.
+* All resources will be provisioned in West Europe region by default.
 
-To validate the deployment of the default resources and sample workloads you can validate a few things:
+Within the sample AKS clusters, several workloads are deployed as depicted in the [Nested Topology](#nested-topology) section above.
 
-- In Azure: 
-    - Review the new resource groups and their configuration. The resource groups will all be prefixed with the `ApplicationName` you supplied when running the script.
-    - Go to the Azure Event Hub in the `<ApplicatioName>-App` resource group and validate messages are coming through.
-- In Azure Cloud Shell CLI, use `kubectl` commands to review deployed workloads:
-    - Connect to the desired AKS cluster by running `az aks get-credentials --resource-group <ApplicationName>L4 --name aks-<ApplicationName>L4` (`L4` can be replaced by `L3` or `L2`). 
-    - Connect to L4 cluster and run the following command to see messages are being published to Event Hubs:
-        - Get the pods in `kubctl get pods -n edge-app1`
-        - Get the logs for the Data Gateway module: `kubectl logs -l app=data-gateway-module -n edge-app1`. You should see some logs about messages published.
-    - You can also further view other workloads by reviewing deployments in the namespaces `edge-core`, `edge-infra` and `azure-arc`.
-    - Connecto the L2 cluster and review the application (and their logs) deployed to `edge-app1` namespace.
+To validate the deployment was successful and information is flowing through, you can verify Azure Event Hubs instance in the resource group `<ApplicationName>-App`.
+
+Using the Azure Portal, open the Event Hub's main pane and check the metrics for **Messages Received**. You should see a continuous flow of messages being received over the last period since deployment.
+Optionally, you can use the Azure Portal to process the messages with Azure Stream Analytics and view actual message contents by following this tutorial: [https://learn.microsoft.com/en-us/azure/event-hubs/process-data-azure-stream-analytics](Process data from your event hub using Azure Stream Analytics).
 
 ### Clean-up Resources
 
@@ -136,7 +129,7 @@ To validate the deployment of the default resources and sample workloads you can
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/remove-dev-resources.ps1" -OutFile "./remove-dev-resources.ps1" && ./remove-dev-resources.ps1 -ApplicationName <ApplicationName>`
 
-Where `<ApplicationName>` is the name you entered when invoking the initial provisioning scrip.
+Where `<ApplicationName>` is the name you entered when invoking the initial provisioning script.
 
 ## Further Enhancements
 
