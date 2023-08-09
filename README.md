@@ -127,7 +127,7 @@ Optionally, you can use the Azure Portal to process the messages with Azure Stre
 > **Warning**
 > Please ensure you delete the deployed Azure resources after testing. Azure deployed resources will be charged into your subscription and can run up due to multiple AKS clusters being provisioned.
 
-`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/remove-dev-resources.ps1" -OutFile "./remove-dev-resources.ps1" && ./remove-dev-resources.ps1 -ApplicationName <ApplicationName>`
+`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/cleanup-az-resources.ps1.ps1" -OutFile "./cleanup-az-resources.ps1.ps1" && ./cleanup-az-resources.ps1.ps1 -ApplicationName <ApplicationName>`
 
 Where `<ApplicationName>` is the name you entered when invoking the initial provisioning script.
 

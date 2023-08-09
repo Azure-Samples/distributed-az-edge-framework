@@ -96,10 +96,10 @@ To remove all Azure resources setup by the default script (AKS clusters, app res
 
 ### Delete PowerShell
 
-`./remove-dev-resources.ps1 -ApplicationName <short-name>`
+`./cleanup-az-resources.ps1 -ApplicationName <short-name>`
 
 ## Optional Single Network Layer Deployment
 
 The deployment script also has an option to deploy a single layer of AKS and networking infrastructure. To use the single deployment version, uncomment the second section in the `deploy-az-dev-bootstrapper.ps1`. Instructions can be found in the comments of the script.
 
-Follow a similar approach for removing resources in nested deployments. `remove-dev-resources.ps1` also has commented sections to delete the single layer resources.
+Follow a similar approach for removing resources in nested deployments. `cleanup-az-resources.ps1` also has commented sections to delete the single layer resources.
