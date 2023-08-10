@@ -32,7 +32,7 @@ This section describes the nested topology design implemented by this solution.
 
 ![alt text](architecture/nested-topology-hld-envoy.png "Nested Toplogy")
 
-At the core of the nested topology design, we have reverse proxies which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. Currently, data plane is tranversing layers directly between brokers, and we are evaluating an improvement to force this communication to pass through the proxy transparently. 
+At the core of the nested topology design, we have reverse proxies which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. Currently, data plane is traversing layers directly between brokers, and we are evaluating an improvement to force this communication to pass through the proxy transparently.
 Proxying of allowed URI calls from the lower L2 and L3 levels for the AKS host nodes (kubelet, containerd) is implemented using a DNS Server override in each lower Virtual Network.
 
 For more information about the network topology and usage of Envoy reverse proxy please see the detailed document: [Network Separation and Reverse Proxy](./docs/reverseproxy.md).
@@ -88,15 +88,48 @@ Solution components are split into three layers from deployment perspective:
 
 Deployment of the above artifacts may require multiple tools, this is where we can potentially attempt to make use of [CNAB bundles and Porter](https://porter.sh/). Porter can package Helm charts, `az` cmds and other scripts to deploy the solution and its dependencies.
 
-### Try It on Azure
+## Try It on Azure
 
-In Azure, for demo purposes we deploy all the three layers for you.
+### Easy Setup via Azure Cloud Shell
+
+#### Pre-requisites
+
+* Azure subscription
+* Azure permissions: `Owner` on the subscription (permissions to create Service Principals, provision resources and update RBAC on the resources)
+
+#### Default Deployment
+
+In Azure, for demo purposes we deploy all the three layers for you, Arc-enabling the clusters and deploying sample workloads to simulate messaging activities.
 
 Run the following command in the [Azure Cloud Shell](https://shell.azure.com/powershell) (PowerShell):
 
 `Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/deploy-az-demo-bootstrapper.ps1" -OutFile "./deploy-az-demo-bootstrapper.ps1" && ./deploy-az-demo-bootstrapper.ps1`
 
 Optionally, for deploying a developer environment with local application building and deployment please see [Setup a development environment on Azure with local application deployment](./deployment/deploy-dev.md).
+
+### Validate Deployment
+
+After deployment the following resources will be created in your Azure subscription:
+
+* 3 Azure resource groups: `<ApplicaitonName>L2`, `<ApplicaitonName>L3`, `<ApplicaitonName>L4` with AKS Clusters, Azure Arc and networking.
+* 1 Azure resource group `<ApplicationName>-App` with an Event Hub instance and Storage account.
+* All resources will be provisioned in West Europe region by default.
+
+Within the sample AKS clusters, several workloads are deployed as depicted in the [Nested Topology](#nested-topology) section above.
+
+To validate the deployment was successful and information is flowing through, you can verify Azure Event Hubs instance in the resource group `<ApplicationName>-App`.
+
+Using the Azure Portal, open the Event Hub's main pane and check the metrics for **Messages Received**. You should see a continuous flow of messages being received over the last period since deployment.
+Optionally, you can use the Azure Portal to process the messages with Azure Stream Analytics and view actual message contents by following this tutorial: [https://learn.microsoft.com/en-us/azure/event-hubs/process-data-azure-stream-analytics](Process data from your event hub using Azure Stream Analytics).
+
+### Clean-up Resources
+
+> **Warning**
+> Please ensure you delete the deployed Azure resources after testing. Azure deployed resources will be charged into your subscription and can run up due to multiple AKS clusters being provisioned.
+
+`Invoke-WebRequest -Uri "https://raw.githubusercontent.com/azure-samples/distributed-az-edge-framework/main/deployment/cleanup-az-resources.ps1.ps1" -OutFile "./cleanup-az-resources.ps1.ps1" && ./cleanup-az-resources.ps1.ps1 -ApplicationName <ApplicationName>`
+
+Where `<ApplicationName>` is the name you entered when invoking the initial provisioning script.
 
 ## Further Enhancements
 
