@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+  {{- include "grafana.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+    {{- include "grafana.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: grafana
+      {{- include "grafana.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: METHOD
+          value: WATCH
+        - name: LABEL
+          value: grafana_dashboard
+        - name: FOLDER
+          value: /tmp/dashboards
+        - name: RESOURCE
+          value: both
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ .Values.grafana.kubernetesClusterDomain }}
+        image: {{ .Values.grafana.grafanaScDashboard.image.repository }}:{{ .Values.grafana.grafanaScDashboard.image.tag }}
+        imagePullPolicy: IfNotPresent
+        name: grafana-sc-dashboard
+        resources: {}
+        volumeMounts:
+        - mountPath: /tmp/dashboards
+          name: sc-dashboard-volume
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ .Values.grafana.kubernetesClusterDomain }}
+        image: {{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: {{ .Values.grafana.port }}
+          timeoutSeconds: 1
+        name: grafana
+        ports:
+        - containerPort: {{ .Values.grafana.port }}
+          name: http-grafana
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /robots.txt
+            port: {{ .Values.grafana.port }}
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources: {{- toYaml .Values.grafana.resources | nindent 10 }}
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: grafana-pv
+        - mountPath: /etc/grafana/
+          name: grafana-config-volume
+        - mountPath: /tmp/dashboards
+          name: sc-dashboard-volume
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+        - 0
+      serviceAccountName: grafana
+      volumes:
+      - name: grafana-pv
+        persistentVolumeClaim:
+          claimName: grafana-pvc
+      - name: grafana-config-volume
+        projected:
+          sources:
+          - configMap:
+              items:
+              - key: grafana.ini
+                path: grafana.ini
+              - key: datasource.yaml
+                path: provisioning/datasources/datasource.yaml
+              name: grafana-config
+          - configMap:
+              items:
+              - key: provider.yaml
+                path: provisioning/dashboards/sc-dashboardproviders.yaml
+              name: grafana-config-dashboards
+      - emptyDir: {}
+        name: sc-dashboard-volume

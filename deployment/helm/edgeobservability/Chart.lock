@@ -1,0 +1,12 @@
+dependencies:
+- name: tempo
+  repository: https://grafana.github.io/helm-charts
+  version: 0.16.2
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 2.16.0
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 24.1.0
+digest: sha256:ba32594e3ea01c7aa9c464d651961ea075f7140b33e8c46a3ec692664b390c8b
+generated: "2023-09-04T15:00:54.7608265+02:00"

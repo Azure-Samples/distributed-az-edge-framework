@@ -33,6 +33,9 @@ wildcardDomains:
   docker_io: "docker.io" # temporary for mosquitto image # TODO remove once usage of connected container registry
   azurecr_io: "azurecr.io" # temporary for dev images of this project # TODO remove once usage of connected container registry
   githubusercontent_com: "githubusercontent.com" # for flux repo in GitHub
+  quay_io: "quay.io" # for images for cert-manager and otel operator
+  pkg_dev: "pkg.dev" # for images from registry.k8s.io - kube-state-metrics # TODO remove once usage of connected container registry
+  amazonaws_com: "amazonaws.com" # for images from registry.k8s.io - kube-state-metrics # TODO remove once usage of connected container registry
 
 # Provide additional domains that you want to proxy through, pass the whole collection through Values
 # customDomains:

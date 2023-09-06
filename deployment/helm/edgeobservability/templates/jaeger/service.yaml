@@ -1,0 +1,33 @@
+{{ if .Values.jaeger.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  labels:
+    app: jaeger
+    app.kubernetes.io/component: collector
+  {{- include "jaeger.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.jaeger.collector.type }}
+  selector:
+    app.kubernetes.io/component: all-in-one
+    app.kubernetes.io/name: jaeger
+  {{- include "jaeger.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: jaeger-collector-tchannel
+      port: {{ .Values.jaeger.collector.tchannel.port }}
+      protocol: TCP
+      targetPort: {{ .Values.jaeger.collector.tchannel.port }}
+    - name: jaeger-collector-http
+      port: {{ .Values.jaeger.collector.http.port }}
+      protocol: TCP
+      targetPort: {{ .Values.jaeger.collector.http.port }}
+    - name: jaeger-collector-zipkin
+      port: {{ .Values.jaeger.collector.zipkin.port }}
+      protocol: TCP
+      targetPort: {{ .Values.jaeger.collector.zipkin.port }}
+    - name: jaeger-collector-otel
+      port: {{ .Values.jaeger.collector.otelgrpc.port }}
+      protocol: TCP
+      targetPort: {{ .Values.jaeger.collector.otelgrpc.port }}
+{{ end }}
