@@ -32,7 +32,8 @@ jobs:
     
     - name: Add Helm dependencies
       run: |
-        helm repo add prometheus https://prometheus-community.github.io/helm-charts
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo add grafana https://grafana.github.io/helm-charts
 
     - name: Run chart-releaser
       uses: helm/chart-releaser-action@v1.1.0
