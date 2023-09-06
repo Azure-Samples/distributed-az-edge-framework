@@ -21,13 +21,6 @@ jobs:
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-    # - name: Get the version
-    #   id: vars
-    #   run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
-      
-    # - name: Echo Docker images tag
-    #   run: echo ${{steps.vars.outputs.tag}}
-
     - name: Setup Helm
       uses: azure/setup-helm@v3.5 
       with:
