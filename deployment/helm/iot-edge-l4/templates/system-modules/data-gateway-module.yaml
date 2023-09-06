@@ -19,10 +19,24 @@ spec:
         dapr.io/app-id: "data-gateway-module"
         dapr.io/app-port: "80"
         dapr.io/app-protocol: "grpc"
+        dapr.io/log-as-json: "true"
+        dapr.io/enable-metrics: {{ .Values.observability.enabled | quote }}
+        dapr.io/metrics-port: "9090"
+        {{- if .Values.observability.enabled }}
+        dapr.io/config: "l4-tracingconfig"
+        dapr.io/log-level: {{ .Values.observability.daprLogLevel | quote }}
+        {{ end }}
     spec:
       containers:
       - name: data-gateway-module
         image: {{ .Values.images.datagatewaymodule }}
         imagePullPolicy: Always
         args: ["--receiverPubSubName", "{{ .Values.gatewayPubSubModule.name }}"]
+        env:
+        - name: Logging__LogLevel__Default
+          value: {{ .Values.dataGatewayModule.logLevel | quote }}
+        - name: Logging__LogLevel__Microsoft__AspNetCore # note this is still an open issue in .NET / for usage of periods in namespaces see https://github.com/dotnet/runtime/issues/35989
+          value: {{ .Values.dataGatewayModule.logLevel | quote }}
+        - name: Logging__Console__FormatterName
+          value: "Json"
       restartPolicy: Always
