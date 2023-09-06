@@ -1,0 +1,86 @@
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: false
+  kube-state-metrics:
+    enabled: false
+  prometheus-node-exporter:
+    enabled: false
+  prometheus-pushgateway:
+    enabled: false
+  server:
+    extraFlags:
+      - web.enable-lifecycle
+      - web.enable-remote-write-receiver
+
+jaeger:
+  enabled: true
+  image:
+    repository: jaegertracing/all-in-one
+    tag: 1.48
+  replicas: 1
+  collectorZipkinPort: 9411
+  kubernetesClusterDomain: cluster.local
+  collector:
+    tchannel:
+      port: 14267
+    http:
+      port: 14268
+    zipkin:
+      port: 9411
+    otelgrpc:
+      port: 4317
+  query:
+    http:
+      port: 16686
+  
+tempo:
+  enabled: true
+  
+loki:
+  enabled: true
+  rbac:
+    pspEnabled: false
+  podAnnotations:
+    prometheus.io/scrape: "false"
+
+grafana:
+  enabled: true
+  config:
+    grafanaIni: |-
+      [auth]
+        disable_login_form = true
+        [auth.anonymous]
+        enabled = true
+        org_role = Editor
+  image:
+    repository: grafana/grafana
+    tag: 9.1.0
+  resources:
+    requests:
+      cpu: 250m
+      memory: 750Mi
+  grafanaScDashboard:
+    image:
+      repository: quay.io/kiwigrid/k8s-sidecar
+      tag: 1.19.2
+  port: 3000    
+  grafanaSvc:
+    port: 3000
+    type: ClusterIP
+  pvc:
+    storageRequest: 1Gi
+  kubernetesClusterDomain: cluster.local
+  datasources:
+    prometheus: 
+      enabled: true
+      endpoint:  http://edgeobservability-prometheus-server
+    jaeger:
+      enabled: true
+      endpoint: http://jaeger-query:16686
+    tempo:
+      enabled: true
+      endpoint: http://edgeobservability-tempo:3100
+    loki:
+      enabled: true
+      endpoint: http://edgeobservability-loki:3100

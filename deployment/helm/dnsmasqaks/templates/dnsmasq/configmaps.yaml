@@ -25,4 +25,7 @@ data:
     {{- range $key, $val := .Values.hostsDomains }}
     {{ $dnsServer }} {{ $val }}
     {{- end }}
+    {{- range $key, $val := .Values.customDomains }}
+    {{ $dnsServer }} {{ $val }}
+    {{- end }}
   

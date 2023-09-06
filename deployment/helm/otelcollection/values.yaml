@@ -1,0 +1,73 @@
+# Chart values
+collector:
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib
+  tag: 0.84.0
+  replicas: 1 
+  name: otel
+  resources:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 200m
+      memory: 400Mi
+
+# fluent-bit
+fluentbit:
+  enabled: true
+  image: cr.fluentbit.io/fluent/fluent-bit
+  tag: 2.1.8
+  otlpEndpoint: otel-collector.monitoring.svc.cluster.local
+  otlpPort: 4318 # Fluent Bit exporter to OTLP only supports HTTP
+  logLevel: warn # Allowed values are: off, error, warn, info, debug and trace. Note that trace mode is only available if Fluent Bit was built with the WITH_TRACE option enabled.
+
+kubeStateMetricsChart:
+  enabled: true
+
+# node-exporter
+nodeExporterChart:
+  enabled: false
+
+prometheus:
+  scrapeInterval: 5m
+
+# Exporters
+exporters:
+  # Azure Monitor
+  azuremonitor:
+    enabled: false
+    instrumentationKey: "instrumentationkey_to_replace"
+  
+  # Prometheus exporter
+  prometheus:
+    enabled: false
+    endpoint: http://edgeobservability-prometheus-server.observability/api/v1/write
+  
+  tempo:
+    enabled: false
+    endpoint: edgeobservability-tempo.observability:4317
+    # endpoint: http://edgeobservability-tempo.observability:14268/api/traces - this was working
+
+  jaeger:
+    enabled: false
+    endpoint: jaeger-collector.observability:4317
+    # endpoint: http://jaeger-collector.observability:4317/api/traces
+
+  loki:
+    enabled: false
+    endpoint: http://edgeobservability-loki.observability:3100/loki/api/v1/push
+  
+  # Otel parent
+  parentOtlp:
+    enabled: false
+    name: otel
+    endpoint: "http://to_replace_IP:4318" 
+
+metadata:
+  clusterName: to_replace
+  region: to_replace
+  networkLayer: to_replace
+
+logging:
+  verbosity: basic # normal, detailed, basic (for exporter)
+  enableInPipelines: false

@@ -1,11 +1,11 @@
-name: Main - Release Helm Chart DNSMasq
+name: Main - Release Helm Chart Edge Observability
 on: 
   push:
     branches: 
       - main
     paths:
       # Only run this when chart file is updated.
-      - 'deployment/helm/dnsmasqaks/Chart.yaml'
+      - 'deployment/helm/edgeobservability/Chart.yaml'
       
 jobs:
   Release-Artifacts:      
@@ -21,16 +21,19 @@ jobs:
         git config user.name "$GITHUB_ACTOR"
         git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-    # - name: Get the version
-    #   id: vars
-    #   run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
-      
-    # - name: Echo Docker images tag
-    #   run: echo ${{steps.vars.outputs.tag}}
+    - name: Setup Helm
+      uses: azure/setup-helm@v3.5 
+      with:
+        version: v3.9.2
+    
+    - name: Add Helm dependencies
+      run: |
+        helm repo add prometheus https://prometheus-community.github.io/helm-charts
+        helm repo add grafana https://grafana.github.io/helm-charts
 
     - name: Run chart-releaser
       uses: helm/chart-releaser-action@v1.1.0
       env:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       with:
-        charts_dir: deployment/helm/dnsmasqaks
+        charts_dir: deployment/helm/edgeobservability

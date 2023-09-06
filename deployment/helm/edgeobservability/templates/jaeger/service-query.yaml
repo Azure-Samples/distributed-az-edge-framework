@@ -1,0 +1,21 @@
+{{ if .Values.jaeger.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  labels:
+    app: jaeger
+    app.kubernetes.io/component: query
+  {{- include "jaeger.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.jaeger.query.type }}
+  selector:
+    app.kubernetes.io/component: all-in-one
+    app.kubernetes.io/name: jaeger
+  {{- include "jaeger.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: query-http
+    port: {{ .Values.jaeger.query.http.port }}
+    protocol: TCP
+    targetPort: {{ .Values.jaeger.query.http.port }}
+{{ end }}
