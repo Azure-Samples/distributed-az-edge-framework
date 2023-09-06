@@ -2509,29 +2509,6 @@ data:
             "skipUrlSync": false,
             "sort": 0,
             "type": "query"
-          },
-          {
-            "current": {
-              "selected": false,
-              "text": "All",
-              "value": "$__all"
-            },
-            "definition": "label_values(edge_layer)",
-            "hide": 1,
-            "includeAll": false,
-            "label": "Edge cluster level",
-            "multi": false,
-            "name": "Cluster",
-            "options": [],
-            "query": {
-              "query": "label_values(edge_layer)",
-              "refId": "StandardVariableQuery"
-            },
-            "refresh": 1,
-            "regex": "",
-            "skipUrlSync": false,
-            "sort": 0,
-            "type": "query"
           }
         ]
       },
