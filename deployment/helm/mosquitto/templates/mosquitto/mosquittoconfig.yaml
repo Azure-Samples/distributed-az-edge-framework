@@ -8,7 +8,7 @@ data:
     persistence_location /mosquitto/data/
     log_dest stdout
     # Possible types are: debug, error, warning, notice, information, subscribe, unsubscribe, websockets, none, all.
-    # log_type all
+    log_type {{ .Values.logLevel }}
     per_listener_settings true
     
     listener {{ .Values.defaultPort }}
