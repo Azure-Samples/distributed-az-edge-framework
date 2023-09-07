@@ -1,4 +1,4 @@
-name: Main - Release Helm Charts
+name: Main - Release Helm Charts - Envoy
 on: 
   push:
     branches: 
