@@ -1,4 +1,4 @@
-name: Main - Release Helm Charts
+name: Main - Release Helm Charts - DNSMasqAKS
 on: 
   push:
     branches: 
@@ -35,5 +35,6 @@ jobs:
       uses: helm/chart-releaser-action@v1.1.0
       env:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        CR_SKIP_EXISTING: false
       with:
         charts_dir: deployment/helm
