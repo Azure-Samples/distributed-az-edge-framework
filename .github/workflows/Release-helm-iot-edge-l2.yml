@@ -5,13 +5,7 @@ on:
       - main
     paths:
       # Only run this when chart file is updated.
-      - 'deployment/helm/dnsmasqaks/Chart.yaml'
-      - 'deployment/helm/envoy/Chart.yaml'
       - 'deployment/helm/iot-edge-l2/Chart.yaml'
-      - 'deployment/helm/iot-edge-l4/Chart.yaml'
-      - 'deployment/helm/edgeobservability/Chart.yaml'
-      - 'deployment/helm/mosquitto/Chart.yaml'
-      - 'deployment/helm/otelcollection/Chart.yaml'
       
 jobs:
   Release-Artifacts:      
@@ -43,6 +37,3 @@ jobs:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       with:
         charts_dir: deployment/helm
-        skip_existing: false
-        mark_as_latest: true
-        packages_with_index: true
