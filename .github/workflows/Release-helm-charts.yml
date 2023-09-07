@@ -43,3 +43,6 @@ jobs:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       with:
         charts_dir: deployment/helm
+        skip_existing: false
+        mark_as_latest: true
+        packages_with_index: true
