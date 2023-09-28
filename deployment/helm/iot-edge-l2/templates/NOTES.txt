@@ -1,4 +1,4 @@
-You have installed release {{ .Chart.Version}} of {{ .Chart.Name }} of IoT Edge K8s Accelerator, pre-release version.
+You have installed release {{ .Chart.Version}} of {{ .Chart.Name }} of IoT Edge Accelerator L2 (layer 2) on K8s, pre-release version.
 
 To learn more about the release, try:
 

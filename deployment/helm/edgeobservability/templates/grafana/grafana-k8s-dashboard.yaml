@@ -1,3 +1,6 @@
+# This Grafana dashboard is based on the open source sample for Prometheus metrics for K8S
+# It can further be extended to include network layer specific filtering modes
+# See https://grafana.com/grafana/dashboards/315-kubernetes-cluster-monitoring-via-prometheus/
 apiVersion: v1
 kind: ConfigMap
 metadata:
