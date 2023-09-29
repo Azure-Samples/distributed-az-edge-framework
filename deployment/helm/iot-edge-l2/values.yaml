@@ -1,5 +1,6 @@
 # Simulated Temperature Sensor module settings
 simulatedTemperatureSensorFeedIntervalInMilliseconds: 1000
+simulatedTemperatureSensorLogLevel: Warning # Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, and None = 6.
 
 # Local Pub Sub module settings
 localPubSubModule:
@@ -10,9 +11,17 @@ opcPublisherModule:
   mm: PubSub
   pubsub: local-pub-sub
   topic: telemetry
+  logLevel: fatal # Type: string enum - fatal, error, warning, information, debug, verbose / Default: info
 
 # Docker images
 images:
   simulatedtemperaturesensormodule: ghcr.io/azure-samples/distributed-az-iot-edge/simulatedtemperaturesensormodule:main-78b133d
   opcplcmodule: mcr.microsoft.com/iotedge/opc-plc:2.2.0
   opcpublishermodule: ghcr.io/azure-samples/distributed-az-iot-edge/opcuapublisher:main-78b133d
+
+# Observability monitoring settings with OpenTelemetry 
+observability:
+  enabled: true
+  zipkinEndpoint: "http://otel-collector.monitoring.svc.cluster.local:9411/api/v2/spans"
+  samplingRate: "0.0001" # default is 0.0001
+  daprLogLevel: "warn" # Allowed: fatal, error, warn, info, debug, verbose. 

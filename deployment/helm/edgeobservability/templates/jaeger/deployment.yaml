@@ -1,0 +1,45 @@
+{{ if .Values.jaeger.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  labels:
+    app: jaeger
+    app.kubernetes.io/component: all-in-one
+  {{- include "jaeger.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.jaeger.replicas }}
+  selector:
+    matchLabels:
+      app: jaeger
+    {{- include "jaeger.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        app.kubernetes.io/component: all-in-one
+        app.kubernetes.io/name: jaeger
+      {{- include "jaeger.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          value: {{ .Values.jaeger.collector.zipkin.port | quote }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ .Values.jaeger.kubernetesClusterDomain }}
+        image: {{ .Values.jaeger.image.repository }}:{{ .Values.jaeger.image.tag }}
+        name: jaeger
+        ports:
+        - containerPort: {{ .Values.jaeger.collector.http.port }}
+          protocol: TCP
+        - containerPort: {{ .Values.jaeger.collector.zipkin.port }}
+          protocol: TCP
+        - containerPort: {{ .Values.jaeger.collector.otelgrpc.port }}
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 14269
+          initialDelaySeconds: 5
+        resources: {}
+{{ end }}

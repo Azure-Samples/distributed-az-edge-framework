@@ -19,10 +19,22 @@ spec:
         dapr.io/app-id: "simulated-temperature-sensor-module"
         # Use gRPC for app <--> dapr sidecar
         dapr.io/app-protocol: "grpc"
+        dapr.io/log-as-json: "true"
+        dapr.io/enable-metrics: {{ .Values.observability.enabled | quote }}
+        dapr.io/metrics-port: "9090"
+        {{- if .Values.observability.enabled }}
+        dapr.io/config: "l2-tracingconfig"
+        dapr.io/log-level: {{ .Values.observability.daprLogLevel | quote }}
+        {{ end }}
     spec:
       containers:
       - name: simulated-temperature-sensor-module
         image: "{{ .Values.images.simulatedtemperaturesensormodule }}"
         imagePullPolicy: Always
         args: ["--feedIntervalInMilliseconds", "{{ .Values.simulatedTemperatureSensorFeedIntervalInMilliseconds }}"]
+        env:
+        - name: Logging__LogLevel__Default
+          value: {{ .Values.simulatedTemperatureSensorLogLevel | quote }}
+        - name: Logging__Console__FormatterName
+          value: "Json"
       restartPolicy: Always

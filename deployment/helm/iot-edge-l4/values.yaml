@@ -3,6 +3,7 @@ dataGatewayModule:
   eventHubConnectionString: "replace_with_real_key_at_deploy_time"
   storageAccountName: "replace_with_storage_account_name_at_deploy_time"
   storageAccountKey: "replace_with_storage_account_key_at_deploy_time"
+  logLevel: Warning # Trace = 0, Debug = 1, Information = 2, Warning = 3, Error = 4, Critical = 5, and None = 6.
 
 # Local Pub Sub module settings
 gatewayPubSubModule:
@@ -12,3 +13,10 @@ gatewayPubSubModule:
 # Docker images
 images:
   datagatewaymodule: ghcr.io/azure-samples/distributed-az-iot-edge/datagatewaymodule:main-78b133d
+
+# Observability monitoring settings with OpenTelemetry 
+observability:
+  enabled: true
+  zipkinEndpoint: "http://otel-collector.monitoring.svc.cluster.local:9411/api/v2/spans"
+  samplingRate: "0.0001" # default is 0.0001
+  daprLogLevel: "warn"  # Allowed: fatal, error, warn, info, debug, verbose. 

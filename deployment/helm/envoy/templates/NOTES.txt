@@ -1,4 +1,4 @@
-You have installed release {{ .Chart.Version}} of {{ .Chart.Name }} of envoy proxy, pre-release version.
+You have installed release {{ .Chart.Version}} of {{ .Chart.Name }} of Envoy Proxy, pre-release version.
 
 To learn more about the release, try:
 

@@ -1,0 +1,47 @@
+{{- if .Values.fluentbit.enabled -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluent-bit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    k8s-app: fluent-bit
+    addonmanager.kubernetes.io/mode: Reconcile
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluent-bit
+  labels:
+    k8s-app: fluent-bit
+    addonmanager.kubernetes.io/mode: Reconcile
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - "namespaces"
+  - "pods"
+  verbs:
+  - "get"
+  - "watch"
+  - "list"
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluent-bit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    k8s-app: fluent-bit
+    addonmanager.kubernetes.io/mode: Reconcile
+subjects:
+- kind: ServiceAccount
+  name: fluent-bit
+  namespace: {{ .Release.Namespace }}
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: fluent-bit
+  apiGroup: ""
+{{- end -}}

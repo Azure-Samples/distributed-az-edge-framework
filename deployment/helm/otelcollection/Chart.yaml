@@ -1,9 +1,13 @@
 apiVersion: v2
-name: envoy-reverseproxy
-description: A Helm chart for deploying Envoy Reverse Proxy on K8s.
+name: otelcollection
+description: A Helm chart for deploying OpenTelemetry Collector, FluentBit and any other required collectors. Requires OpenTelemetry Operator to be installed.
 keywords:
-    - envoy
-    - reverse proxy
+    - opentelemetry
+    - otel
+    - telemetry
+    - observability
+    - monitoring
+    - fluent-bit
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
@@ -16,8 +20,19 @@ type: application
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
-version: 0.2.0
+version: 0.1.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
-appVersion: 1.25.latest
+appVersion: 0.84.0
+
+dependencies:
+  - name: prometheus-node-exporter
+    version: 4.20.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: nodeExporterChart.enabled
+  - name: kube-state-metrics
+    version: 5.10.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kubeStateMetricsChart.enabled
+

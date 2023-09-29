@@ -17,3 +17,9 @@ spec:
       name: obo
       port: {{ .Values.envoyReverseProxy.oboPort }}
       targetPort: {{ .Values.envoyReverseProxy.oboPort }}
+    {{- if .Values.observability.enableOtelCollector }}
+    - protocol: TCP
+      name: otel
+      port: {{ .Values.observability.otelCollectorPort }}
+      targetPort: {{ .Values.envoyReverseProxy.otelCollectorContainerPort }}
+    {{- end }}

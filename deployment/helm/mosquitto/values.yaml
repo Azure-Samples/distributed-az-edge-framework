@@ -35,6 +35,8 @@ tolerations: []
 # mosquitto pod affinity
 affinity: {}
 
+logLevel: "warning" # Possible types are: debug, error, warning, notice, information, subscribe, unsubscribe, websockets, none, all.
+
 # mosquitto service type
 tlsService:
   type: LoadBalancer

@@ -28,6 +28,10 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "opc-publisher-module"
         dapr.io/app-protocol: "grpc"
+        dapr.io/log-as-json: "true"
+        dapr.io/enable-metrics: {{ .Values.observability.enabled | quote }}
+        dapr.io/metrics-port: "9090"
+        {{ if .Values.observability.enabled }}dapr.io/config: "l2-tracingconfig" {{ end }}
     spec:
       volumes:
         - name: opc-publisher-volume
@@ -48,6 +52,8 @@ spec:
         - {{ .Values.opcPublisherModule.mm | quote }}
         - --dapr
         - {{ printf "PubSub=%s;Topic=%s" .Values.opcPublisherModule.pubsub .Values.opcPublisherModule.topic | quote }}
+        - --loglevel
+        - {{ .Values.opcPublisherModule.logLevel | quote }}
         volumeMounts:
         - name: opc-publisher-volume
           mountPath: /etc/opcpublisher/pn.json

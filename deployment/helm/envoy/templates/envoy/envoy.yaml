@@ -11,6 +11,9 @@ spec:
     metadata:
       labels:
         app: envoy-module
+      annotations:
+        prometheus.io/scrape: {{ .Values.observability.enablePrometheusScrape | quote }}
+        prometheus.io/port: {{ .Values.envoyReverseProxy.prometheusContainerPort | quote }}
     spec:
       volumes:
         - name: envoy-volume
@@ -18,12 +21,11 @@ spec:
             name: envoy-configmap
       containers:
       - name: envoy-module
-        image: envoyproxy/envoy:v1.25-latest
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         command: 
 {{ toYaml .Values.command | indent 12 }}
-        args:
-{{ toYaml .Values.args | indent 12 }}
+        args: ["-c", "{{ .Values.arguments.configPath }}", "-l" , "{{ .Values.arguments.logLevel }}"]
         volumeMounts:
         - name: envoy-volume
           mountPath: /etc/envoy/envoy.yaml
@@ -37,6 +39,16 @@ spec:
         - containerPort: {{ .Values.envoyReverseProxy.oboPort }} # Azure Arc requirement for cluster connect
           name: obo
           protocol: TCP
+        {{- if .Values.observability.enablePrometheusScrape }}
+        - containerPort: {{ .Values.envoyReverseProxy.prometheusContainerPort }}
+          name: prometheus
+          protocol: TCP
+        {{- end }}
+        {{- if .Values.observability.enableOtelCollector }}
+        - containerPort: {{ .Values.envoyReverseProxy.otelCollectorContainerPort }}
+          name: otel
+          protocol: TCP
+        {{- end }}
         livenessProbe:
           tcpSocket:
             port: 9901

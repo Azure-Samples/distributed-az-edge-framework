@@ -1,0 +1,11 @@
+{{- if .Values.observability.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: l4-tracingconfig
+spec:
+  tracing:
+    samplingRate: {{ .Values.observability.samplingRate | quote }}
+    zipkin:
+      endpointAddress: {{ .Values.observability.zipkinEndpoint | quote }}
+{{- end }}
