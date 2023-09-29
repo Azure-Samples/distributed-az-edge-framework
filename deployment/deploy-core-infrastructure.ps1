@@ -25,12 +25,16 @@ Param(
 
   [Parameter(Mandatory = $false)]
   [bool]
-  $SetupArc = $true
+  $SetupArc = $true,
+
+  [Parameter(Mandatory = $false)]
+  [bool]
+  $SetupObservability = $true
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
-# Import-Module -Name ./modules/text-utils.psm1
-# Import-Module -Name ./modules/process-utils.psm1
+Import-Module -Name ./modules/text-utils.psm1
+Import-Module -Name ./modules/process-utils.psm1
 
 Write-Title("Install Module powershell-yaml if not yet available")
 if ($null -eq (Get-Module -ListAvailable -Name powershell-yaml)) {
@@ -39,7 +43,8 @@ if ($null -eq (Get-Module -ListAvailable -Name powershell-yaml)) {
 }
 
 class Aks {
-  [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$proxyConfig, [bool]$enableArc, [string]$arcLocation) {
+  [PSCustomObject] Prepare ([string]$resourceGroupName, [string]$aksName, [PSCustomObject]$parentProxyConfig, 
+    [bool]$enableArc, [string]$arcLocation, [bool]$installObservability, [string]$otelAppInsightsKey) {
     
     # ----- Get AKS Cluster Credentials
     Write-Title("Get AKS $aksName in $resourceGroupName Credentials")
@@ -51,8 +56,16 @@ class Aks {
       azure_samples_github = "azure-samples.github.io"; 
       github_com = "github.com";
       ghcr_io = "ghcr.io";
-      dapr_github_io = "dapr.github.io";}
+      dapr_github_io = "dapr.github.io";    }
       # if you want an empty list, set $customDomainsHash = @{}
+    
+    if($installObservability){
+      $customDomainsHash.Add("gcr_$($customDomainsHash.Count)", "gcr.io")
+      $customDomainsHash.Add("jetstack_$($customDomainsHash.Count)", "charts.jetstack.io")
+      $customDomainsHash.Add("otel_$($customDomainsHash.Count)", "open-telemetry.github.io")
+      $customDomainsHash.Add("k8s_$($customDomainsHash.Count)", "registry.k8s.io")
+      $customDomainsHash.Add("k8s_$($customDomainsHash.Count)", "cr.fluentbit.io")
+    }
       
     # ---- Download service bus domains from URI for chosen Azure region
     $serviceBusDomains = Invoke-WebRequest -Uri "https://guestnotificationservice.azure.com/urls/allowlist?api-version=2020-01-01&location=$arcLocation" -Method Get
@@ -63,14 +76,16 @@ class Aks {
     }
     $customDomainsHelm = $customDomainsHash.GetEnumerator() | ForEach-Object { "customDomains.$($_.Key)=$($_.Value)" }
     $customDomainsHelm = $customDomainsHelm -Join ","
+
+    $observabilityString = ($installObservability -eq $true) ? "true" : "false"
     
     # ----- Install AKS reverse Proxy 
-    helm repo add azdistributededge https://azure-samples.github.io/distributed-az-edge-framework
+    helm repo add azdistributededge https://azure-samples.github.io/distributed-az-edge-framework --force-update
     helm repo update
 
-    if ($proxyConfig) {
-      $parentProxyIp = $proxyConfig.ProxyIp
-      $parentProxyPort = $proxyConfig.ProxyPort
+    if ($null -ne $parentProxyConfig) {
+      $parentProxyIp = $parentProxyConfig.ProxyIp
+      $parentProxyPort = $parentProxyConfig.ProxyPort
 
       Write-Title("Install Envoy Reverse Proxy with Parent Ip $parentProxyIp, Port $parentProxyPort")
       helm install envoy azdistributededge/envoy-reverseproxy `
@@ -78,6 +93,8 @@ class Aks {
         --set-string domainRegion="$arcLocation" `
         --set-string parent.proxyIp="$parentProxyIp" `
         --set-string parent.proxyHttpsPort="$parentProxyPort" `
+        --set observability.enablePrometheusScrape=$observabilityString `
+        --set-string arguments.logLevel="info" `
         --set $customDomainsHelm `
         --namespace edge-infra `
         --create-namespace `
@@ -87,6 +104,8 @@ class Aks {
       Write-Title("Install Envoy Reverse Proxy without Parent")
       helm install envoy azdistributededge/envoy-reverseproxy `
         --set-string domainRegion="$arcLocation" `
+        --set observability.enablePrometheusScrape=$observabilityString `
+        --set-string arguments.logLevel="info" `
         --set $customDomainsHelm `
         --namespace edge-infra `
         --create-namespace `
@@ -112,14 +131,109 @@ class Aks {
 
     # ----- Install DNSMasq Helm chart to host DNS resolution for child cluster
     Write-Title("Installing DNSMasqAks Helm chart for DNS resolution of child cluster")
-    helm install dnsmasq azdistributededge/dnsmasqaks `
-      --set-string proxyDnsServer="$proxyIp" `
-      --namespace edge-infra `
-      --wait
+    if($installObservability){
+      # Additional domains for observability
+      $dnsCustomDomainsHash = @{}
+      $dnsCustomDomainsHash.Add("gcr_$($dnsCustomDomainsHash.Count)", "gcr.io")
+      $dnsCustomDomainsHash.Add("jetstack_$($dnsCustomDomainsHash.Count)", "charts.jetstack.io")
+      $dnsCustomDomainsHash.Add("otel_$($dnsCustomDomainsHash.Count)", "open-telemetry.github.io")
+      $dnsCustomDomainsHash.Add("k8s_$($dnsCustomDomainsHash.Count)", "registry.k8s.io")
+      $dnsCustomDomainsHash.Add("k8s_$($dnsCustomDomainsHash.Count)", "cr.fluentbit.io")
+      $dnsCustomDomainsHelm = $dnsCustomDomainsHash.GetEnumerator() | ForEach-Object { "customDomains.$($_.Key)=$($_.Value)" }
+      $dnsCustomDomainsHelm = $dnsCustomDomainsHelm -Join ","
+
+      helm install dnsmasq azdistributededge/dnsmasqaks `
+        --set-string proxyDnsServer="$proxyIp" `
+        --set $dnsCustomDomainsHelm `
+        --namespace edge-infra `
+        --wait
+    }
+    else {
+      helm install dnsmasq azdistributededge/dnsmasqaks `
+        --set-string proxyDnsServer="$proxyIp" `
+        --namespace edge-infra `
+        --wait
+    }
 
     $dnsService = kubectl get service dsnmasq-service -n edge-infra -o json | ConvertFrom-Json
     $dnsMasqIp = $dnsService.status.loadBalancer.ingress.ip
 
+    # ----- Bootstrap monitoring and observability
+    if($installObservability) {
+
+      $metadataNetworkLayer = $aksName.Substring($aksName.Length - 2, 2)
+      Write-Title("Observability - install pre-req cert-manager for AKS $aksName")
+      helm repo add --force-update jetstack https://charts.jetstack.io
+      helm repo update
+
+      helm upgrade cert-manager jetstack/cert-manager `
+        --install `
+        --namespace cert-manager --create-namespace `
+        --set installCRDs=true `
+        --wait
+      
+      helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts 
+      helm repo update
+
+      helm upgrade opentelemetry-operator open-telemetry/opentelemetry-operator `
+        --install `
+        --version "0.36.0" `
+        --namespace monitoring --create-namespace `
+        --wait
+
+      if($null -ne $parentProxyConfig) {
+        Write-Title("Install Helm chart with OpenTelemetry and FluentBit for AKS $aksName with parent collector")
+
+        $parentProxyIp = $parentProxyConfig.ProxyIp
+        $parentEndpoint = "http://${parentProxyIp}:4318"
+        helm upgrade otelcollection azdistributededge/otelcollection `
+        --install `
+        --namespace monitoring `
+        --set exporters.parentOtlp.enabled=true `
+        --set-string exporters.parentOtlp.endpoint="$parentEndpoint" `
+        --set-string metadata.region="$arcLocation" `
+        --set-string metadata.clusterName="$aksName" `
+        --set-string metadata.networkLayer="$metadataNetworkLayer" `
+        --wait 
+      }
+      else {
+        Write-Title("Install Helm chart with Observability with Grafana as visualization for AKS $aksName in top layer")
+        helm upgrade edgeobservability azdistributededge/edgeobservability `
+          --install `
+          --create-namespace --namespace observability --wait
+
+        Write-Title("Install Helm chart with OpenTelemetry and FluentBit for AKS $aksName to Az Monitor")
+        helm upgrade otelcollection azdistributededge/otelcollection `
+        --install `
+        --namespace monitoring `
+        --set exporters.azuremonitor.enabled=true `
+        --set-string exporters.azuremonitor.instrumentationKey="$otelAppInsightsKey" `
+        --set-string metadata.region="$arcLocation" `
+        --set-string metadata.clusterName="$aksName" `
+        --set-string metadata.networkLayer="$metadataNetworkLayer" `
+        --set exporters.prometheus.enabled=true `
+        --set exporters.loki.enabled=true `
+        --set exporters.jaeger.enabled=true `
+        --wait 
+      }
+
+      # Update the Envoy proxy configuration to include Otel Collector listener and cluster now it's available
+      Write-Title("Update Envoy proxy configuration to include OpenTelemetry Collector listener and cluster")
+
+      $otelService = kubectl get service otel-collector -n monitoring -o json | ConvertFrom-Json
+      $otelCollectorIp = $otelService.spec.clusterIP
+      
+      # temporary hack - set new value for logLevel argument to trigger a restart of the Envoy pod to load cofigmap changes
+      helm upgrade envoy azdistributededge/envoy-reverseproxy `
+        --reuse-values `
+        --set observability.enableOtelCollector=true `
+        --set-string observability.otelCollectorIp="$otelCollectorIp" `
+        --set-string observability.otelCollectorPort="4318" `
+        --set-string arguments.logLevel="warn" `
+        --namespace edge-infra `
+        --wait
+    }
+    
     if ($enableArc) {
       # ----- Before enrolling with Arc: create Service Account, get token and store in temp folder for Arc Cluster Connect in other scripts
       Write-Title("Before enrolling AKS $aksName with Arc: create ServiceAccount and store token on disk")
@@ -274,6 +388,7 @@ Write-Title("Deploy Bicep files - Vnet")
 $ParentConfigVnetName = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetName }
 $ParentConfigVnetResourceGroup = If ($ParentConfig -eq $null) { "" } Else { $ParentConfig.VnetResourceGroup }
 $closeOutboundInternetAccess = If ($SetupArc -eq $true -and $ParentConfig -ne $null) { $true } Else { $false }
+$provisionAzureMonitoring = If ($SetupObservability -eq $true -and $ParentConfig -eq $null) { $true } Else { $false }
 
 $r = (az deployment sub create --location $Location `
     --template-file ./bicep/core-infra-vnet.bicep --parameters `
@@ -286,6 +401,7 @@ $r = (az deployment sub create --location $Location `
     currentAzUsernameId=$currentAzUsernameId `
     aksObjectId=$aksObjectId `
     closeOutboundInternetAccess=$closeOutboundInternetAccess `
+    provisionMonitoring=$provisionAzureMonitoring `
     location=$Location `
     --name "core-$deploymentId" `
 ) | ConvertFrom-Json
@@ -293,6 +409,7 @@ $r = (az deployment sub create --location $Location `
 $vnetSubnetId = $r.properties.outputs.subnetId.value
 $aksClusterResourceGroupName = $r.properties.outputs.aksResourceGroup.value
 $aksClusterName = $r.properties.outputs.aksName.value
+$appInsightsInstrumentationKey = $provisionAzureMonitoring -eq $true ? $r.properties.outputs.appInsightsInstrumentationKey.value : ""
 
 if ($closeOutboundInternetAccess -eq $true)
 {
@@ -326,7 +443,13 @@ if($SetupArc)
 
 # ----- Install core dependencies in AKS cluster
 $aks = [Aks]::new()
-$proxyConfig = $aks.Prepare($aksClusterResourceGroupName, $aksClusterName, $ParentConfig, $SetupArc, $Location)
+$proxyConfig = $aks.Prepare($aksClusterResourceGroupName, 
+  $aksClusterName, 
+  $ParentConfig, 
+  $SetupArc, 
+  $Location, 
+  $SetupObservability,
+  $appInsightsInstrumentationKey)
 
 $config = [PSCustomObject]@{
   AksClusterName              = $aksClusterName

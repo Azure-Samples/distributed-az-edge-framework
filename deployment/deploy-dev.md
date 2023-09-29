@@ -34,9 +34,15 @@ By default this script provisions resources in Azure region `West Europe`. To us
 
 ## The Main Functions in the Script
 
-1. Deploy infrastructure with Bicep, the script deploys three AKS clusters.
+> Note: review the arguments you can pass to the script `./deploy-az-dev-bootstrapper.ps1` so you can control deployment location, whether to deploy observability stack and more.
+
+1. Deploy infrastructure with Bicep, the script deploys three AKS clusters when set using the default arguments.
     - AKS
-    - VNET (and VNET peering) and NSGs
+    - VNET
+    - Log Analytics workspace
+    - App Insights component
+    - Envoy reverse proxy
+    - DNSMasq sample DNS server
 
 2. Download AKS credentials.
 

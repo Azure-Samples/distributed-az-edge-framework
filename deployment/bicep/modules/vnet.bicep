@@ -31,8 +31,8 @@ param closeOutboundInternetAccess bool = false
 var subnetName = aksName
 var subnetNsgName = aksName
 
-var arrayBasicRules = [ allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule ]
-var arrayBaseAndLockRules = [ allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule, allowK8ApiHTTPSOutbound, allowK8ApiUdpOutbound, allowTagAks9000Outbound, allowTagFrontDoorFirstParty, allowTagMcr, denyOutboundInternetAccessSecurityRule ]
+var arrayBasicRules = [ allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule, allowOtelGrpcInboundSecurityRule ]
+var arrayBaseAndLockRules = [ allowProxyInboundSecurityRule, allowMqttSslInboundSecurityRule, allowOtelGrpcInboundSecurityRule, allowK8ApiHTTPSOutbound, allowK8ApiUdpOutbound, allowTagAks9000Outbound, allowTagFrontDoorFirstParty, allowTagMcr, denyOutboundInternetAccessSecurityRule ]
 
 // TODO: We need to do this is nested manner e.g. use parent vnet/subnet if this is nested vnet/subnet creation.
 var allowProxyInboundSecurityRule = {
@@ -41,7 +41,7 @@ var allowProxyInboundSecurityRule = {
     priority: 1010
     access: 'Allow'
     direction: 'Inbound'
-    destinationPortRange: '443'
+    destinationPortRanges: ['443', '8084']
     protocol: 'Tcp'
     sourcePortRange: '*'
     sourceAddressPrefix: 'VirtualNetwork'
@@ -49,7 +49,6 @@ var allowProxyInboundSecurityRule = {
   }
 }
 
-// TODO: potentially remove this if going through proxy, for now setup for testing MQTT bridging
 var allowMqttSslInboundSecurityRule = {
   name: 'AllowMqttSsl'
   properties: {
@@ -57,6 +56,20 @@ var allowMqttSslInboundSecurityRule = {
     access: 'Allow'
     direction: 'Inbound'
     destinationPortRange: '8883'
+    protocol: 'Tcp'
+    sourcePortRange: '*'
+    sourceAddressPrefix: 'VirtualNetwork'
+    destinationAddressPrefix: 'VirtualNetwork'
+  }
+}
+
+var allowOtelGrpcInboundSecurityRule = {
+  name: 'AllowOtelGrpc'
+  properties: {
+    priority: 1030
+    access: 'Allow'
+    direction: 'Inbound'
+    destinationPortRange: '4318'
     protocol: 'Tcp'
     sourcePortRange: '*'
     sourceAddressPrefix: 'VirtualNetwork'
