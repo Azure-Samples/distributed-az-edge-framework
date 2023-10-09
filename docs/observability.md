@@ -12,7 +12,7 @@ When we discuss monitoring, we typically refer to signals captured from all runn
 
 ## Edge-specific Requirements
 
-Capturing signals is done primarily at the edge due to the architecture of this sample. Having only a few components like Event Hubs and Azure Container Registry as current cloud resources, the bigger portion of the observability solution needs to run on th edge.
+Capturing signals is done primarily at the edge due to the architecture of this sample. Having only a few components like Event Hubs and Azure Container Registry as current cloud resources, the bigger portion of the observability solution needs to run on the edge.
 
 In addition to the observability stack deployment to measure, analyze and act on monitoring of the platform, the edge comes with some additional challenges. Special network topology with restricted access between network layers, occasionally disconnected scenarios and sometimes need for a local-only or at least locally available copy of the solution to address longer periods of cloud network losses. Local persistence and queuing of data in case of prolonged connectivity loss is an additional complexity.
 
@@ -46,7 +46,7 @@ This exporter is part of OpenTelemetry-Collector-contrib repo, and is in beta at
 
 Details: [Azure Monitor Exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/azuremonitorexporter).
 
-Review the documentation to understand how the mapping of attributes works, and in which tables the traces, logs and metrics are stored in Azure Application Insights.
+Refer to the documentation to get a better understanding of how mapping of attributes works, and in which tables the traces, logs and metrics are stored in Azure Application Insights.
 
 | OpenTelemetry | Azure App Insights |
 |----------|----------|
@@ -119,8 +119,8 @@ Example of a log entry in the `traces` table in App Insights, customDimensions:
 This section contains a number of relevant resources of (initial) built-in OpenTelemetry support for some of the technologies used in this sample.
 
 - **Envoy Proxy**:
-  - OpenTelemetry has built-in support for OpenTelemetry tracing, however it is not used in this solution since it requires TLS termination which this solution is not implementing.
-  - Prometheus compatible `/metrics` endpoint is available though exposing it through the default path requires special configuration, as is the case in this sample.
+  - Envoy Proxy has built-in support for OpenTelemetry tracing, but since it relies on TLS termination it's not being implemented in this sample.
+  - Prometheus compatible metrics endpoint is available but requires some special configuration to expose it under its default `/metrics` URI. This special configuration can be observed in Envoy's Helm chart, under the listener named `envoy-prometheus-http-listener` in the configmap.
 - **Dapr**: out of the box support for OpenTelemetry tracing and Prometheus metrics scraping. The current implementation uses `Zipkin` endpoint on OpenTelemetry to push traces from Dapr components to OpenTelemetry.
 - **Mosquitto** - Mosquitto does not have any native support for metrics or traces with OpenTelemetry. Logs however can be extracted by integrating with Fluent Bit which will collect logs automatically based on annotations. Trace context propagation is not available on the broker, contrary to some of the other open source brokers. There is an initial [draft spec for standardizing W3C Tracing in MQTT](https://w3c.github.io/trace-context-mqtt/).
 - **Kubernetes**: there is extensive support for OpenTelemetry in Kubernetes environments, including the OpenTelemetry Operator, Helm charts for collector and [extensive documentation](https://opentelemetry.io/docs/kubernetes/).
@@ -144,6 +144,6 @@ After forwarding the port you can open Grafana dashboard by going to [http://loc
 
 - Remotely configuring log levels
 - Solution to ensure log levels are set back to warning after specified period of time especially if the cluster would go offline
-- Edge persistence storage queue between edge and Azure Monitor. This will ensure prevent data loss in case of (prolonged) connectivity issues to the cloud
+- Edge persistence storage queue between edge and Azure Monitor. This will prevent data loss in case of (prolonged) connectivity issues to the cloud
 - Custom workload observability: evaluate usage of OpenTelemetry auto-instrumentation and adding application specific tracing and logging instead of default Dapr observability
 - Add TLS to OpenTelemetry Collectors for traffic between the network layers

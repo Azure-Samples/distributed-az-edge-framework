@@ -197,7 +197,7 @@ class Aks {
         --wait 
       }
       else {
-        Write-Title("Install Helm chart with Observability with Grafana as visualization for AKS $aksName in top layer")
+        Write-Title("Install Observability Helm chart with Grafana as visualization for AKS $aksName in top layer")
         helm upgrade edgeobservability azdistributededge/edgeobservability `
           --install `
           --create-namespace --namespace observability --wait
