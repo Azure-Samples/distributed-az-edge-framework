@@ -28,7 +28,7 @@ Import-Module -Name ./modules/process-utils.psm1
 Write-Title("Start Deploying")
 $startTime = Get-Date
 $ApplicationName = $ApplicationName.ToLower()
-
+$samplingRate = ($SetupObservability -eq $true) ? "1" : "0" # in development we set to 1, in prod should be 0.0001 or 0, 0 turns off observability
 # --- Ensure Location is set to short name
 $Location = Get-AzShortRegion($Location)
 
@@ -50,7 +50,8 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
     -AksClusterName $l4LevelCoreInfra.AksClusterName -AksServicePrincipalName ($ApplicationName + "L4") `
     -Location $Location `
-    -SetupObservability $SetupObservability
+    -SetupObservability $SetupObservability `
+    -SamplingRate $samplingRate
 
 # Note currently for developer flow we need Azure Container Registry deployed by L4 (via L4AppConfig). 
 ./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
@@ -58,7 +59,8 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
     -AksClusterResourceGroupName $l2LevelCoreInfra.AksClusterResourceGroupName `
     -AksServicePrincipalName ($ApplicationName + "L2") `
     -L4AppConfig $l4AppConfig `
-    -SetupObservability $SetupObservability
+    -SetupObservability $SetupObservability `
+    -SamplingRate $samplingRate
 
 # # --- Deploying just a single layer: comment above block and uncomment below:
 

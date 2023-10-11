@@ -31,7 +31,7 @@ OpenTelemetry consists of two functionalities:
 
 The OpenTelemetry Operator manages OpenTelemetry Collector and allows for auto-instrumentation of code in different languages. When configuring `receivers` that are standard extensions, the operator ensures ClusterIP services are created automatically within the cluster, minimizing custom setup within the deployment approach with custom Helm charts.
 
-Evaluation is still ongoing whether it adds value in this solution to use the Operator, versus managing the Collector directly. The main reason for not using Operator today is the lack of needs for auto-instrumention injection as all custom workloads leverage Dapr which has its own set of monitoring options already integrated.
+Evaluation is still ongoing whether it adds value in this solution to use the Operator, versus managing the Collector directly. The main reason for not using Operator today is the lack of needs for auto-instrumentation injection as all custom workloads leverage Dapr which has its own set of monitoring options already integrated.
 
 OpenTelemetry Collector Deployment Options
 
@@ -119,7 +119,7 @@ Example of a log entry in the `traces` table in App Insights, customDimensions:
 This section contains a number of relevant resources of (initial) built-in OpenTelemetry support for some of the technologies used in this sample.
 
 - **Envoy Proxy**:
-  - Envoy Proxy has built-in support for OpenTelemetry tracing, but since it relies on TLS termination it's not being implemented in this sample.
+  - Envoy Proxy has built-in support for [OpenTelemetry request tracing](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/observability/tracing#arch-overview-tracing), but since this feature relies on HTTP Connection Manager and HTTP Filters which would require TLS termination, it is not being implemented in this sample.
   - Prometheus compatible metrics endpoint is available but requires some special configuration to expose it under its default `/metrics` URI. This special configuration can be observed in Envoy's Helm chart, under the listener named `envoy-prometheus-http-listener` in the configmap.
 - **Dapr**: out of the box support for OpenTelemetry tracing and Prometheus metrics scraping. The current implementation uses `Zipkin` endpoint on OpenTelemetry to push traces from Dapr components to OpenTelemetry.
 - **Mosquitto** - Mosquitto does not have any native support for metrics or traces with OpenTelemetry. Logs however can be extracted by integrating with Fluent Bit which will collect logs automatically based on annotations. Trace context propagation is not available on the broker, contrary to some of the other open source brokers. There is an initial [draft spec for standardizing W3C Tracing in MQTT](https://w3c.github.io/trace-context-mqtt/).

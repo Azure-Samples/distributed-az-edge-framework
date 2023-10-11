@@ -25,7 +25,11 @@ Param(
 
     [Parameter(Mandatory = $false)]
     [bool]
-    $SetupObservability = $true
+    $SetupObservability = $true,
+
+    [Parameter(Mandatory = $false)]
+    [int]
+    $SamplingRate = 0
 )
 
 # Uncomment this if you are testing this script without deploy-az-dev-bootstrapper.ps1
@@ -77,7 +81,6 @@ az aks get-credentials `
     --overwrite-existing
 
 $observabilityString = ($SetupObservability -eq $true) ? "true" : "false"
-$samplingRate = ($SetupObservability -eq $true) ? "1" : "0" # in development we set to 1, in prod should be 0.0001 or similar
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
@@ -86,7 +89,7 @@ helm install iot-edge-l4 ./helm/iot-edge-l4 `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
-    --set-string observability.samplingRate="$samplingRate" `
+    --set-string observability.samplingRate="$SamplingRate" `
     --set observability.enabled=$observabilityString `
     --namespace $appKubernetesNamespace `
     --create-namespace `

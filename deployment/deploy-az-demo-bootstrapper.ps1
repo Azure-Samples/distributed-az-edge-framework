@@ -42,7 +42,7 @@ Invoke-WebRequest -Uri "$baseLocation/deployment/deploy-app-l4.ps1" -OutFile "de
 
 mkdir -p bicep/modules
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-aks.bicep" -OutFile "./bicep/core-infra-aks.bicep"
-Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-vnet.bicep" -OutFile "./bicep/core-infra-vnet.bicep"
+Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/core-infra-base.bicep" -OutFile "./bicep/core-infra-base.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/iiot-app.bicep" -OutFile "./bicep/iiot-app.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/acr.bicep" -OutFile "./bicep/modules/acr.bicep"
 Invoke-WebRequest -Uri "$baseLocation/deployment/bicep/modules/azurestorage.bicep" -OutFile "./bicep/modules/azurestorage.bicep"

@@ -391,7 +391,7 @@ $closeOutboundInternetAccess = If ($SetupArc -eq $true -and $ParentConfig -ne $n
 $provisionAzureMonitoring = If ($SetupObservability -eq $true -and $ParentConfig -eq $null) { $true } Else { $false }
 
 $r = (az deployment sub create --location $Location `
-    --template-file ./bicep/core-infra-vnet.bicep --parameters `
+    --template-file ./bicep/core-infra-base.bicep --parameters `
     applicationName=$ApplicationName `
     remoteVnetName=$ParentConfigVnetName `
     remoteVnetResourceGroupName=$ParentConfigVnetResourceGroup `

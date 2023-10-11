@@ -29,7 +29,11 @@ Param(
 
     [Parameter(Mandatory = $false)]
     [bool]
-    $SetupObservability = $true
+    $SetupObservability = $true,
+
+    [Parameter(Mandatory = $false)]
+    [int]
+    $SamplingRate = 0
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
@@ -89,14 +93,14 @@ $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $de
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
 $opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
 $observabilityString = ($SetupObservability -eq $true) ? "true" : "false"
-$samplingRate = ($SetupObservability -eq $true) ? "1" : "0" # in development we set to 1, in prod should be 0.0001 or similar, 0 turns off observability
+
 
 helm install iot-edge-l2 ./helm/iot-edge-l2 `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
     --set observability.enabled=$observabilityString `
-    --set-string observability.samplingRate="$samplingRate" `
+    --set-string observability.samplingRate="$SamplingRate" `
     --namespace $appKubernetesNamespace `
     --create-namespace `
     --wait
