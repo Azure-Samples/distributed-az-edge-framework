@@ -8,7 +8,13 @@ When we discuss monitoring, we typically refer to signals captured from all runn
 - Traces
 - Metrics
 
-![high level architecture thinking for observability](../architecture/observability-hld-slide.png "Observability")
+The following diagram shows a logical view of the tools and components that are used on each network level’s Kubernetes cluster to capture and process signals.
+
+![logical view on observability components per network layer](../architecture/observability-stacked.png)
+
+The following diagram is an adapted version of the three-layered network topology diagram found in the repo’s [readme](../README.md) document. The `monitoring` namespace, as depicted in detail on the lower level, is deployed in every Kubernetes cluster, while the `observability` namespace is only needed at the top-most layer to provide edge-based visualization. The top-most layer is also where all signals are collected by a centralized OpenTelemetry Collector. These signals are then used by the local visualization tools and sent to the cloud.
+
+![high level nested architecture with observability focus](../architecture/observability-hld-slide.png "Observability")
 
 ## Edge-specific Requirements
 
