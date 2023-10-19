@@ -75,6 +75,7 @@ if($DeployDapr){
     helm repo update
     helm upgrade --install dapr dapr/dapr `
         --version=1.10 `
+        --set global.logAsJson=true `
         --namespace edge-core `
         --create-namespace `
         --wait `
@@ -127,6 +128,7 @@ if ($null -eq $MosquittoParentConfig){
     #  use default mosquitto deployment
     helm install mosquitto azedgefx/mosquitto `
     --namespace edge-core `
+    --set-string logLevel="warning" `
     --set-file certs.ca.crt="$tempCertsFolder/ca.crt" `
     --set-file certs.server.crt="$tempCertsFolder/$AksClusterName.crt" `
     --set-file certs.server.key="$tempCertsFolder/$AksClusterName.key" `
@@ -145,6 +147,7 @@ else {
 
     helm install mosquitto azedgefx/mosquitto `
     --namespace edge-core `
+    --set-string logLevel="warning" `
     --set-string bridge.enabled="true" `
     --set-string bridge.connectionName="$AksClusterName-parent" `
     --set-string bridge.remotename="$parentCluster" `

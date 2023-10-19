@@ -81,6 +81,9 @@ param aksObjectId string
 @description('Wether to close down outbound internet access')
 param closeOutboundInternetAccess bool = false
 
+@description('Provision monitoring')
+param provisionMonitoring bool = false
+
 var applicationNameWithoutDashes = replace(applicationName, '-', '')
 var aksName = take('aks-${applicationNameWithoutDashes}', 20)
 var resourceGroupName = applicationName
@@ -131,6 +134,16 @@ module downstreamvnetpeering 'modules/vnetpeering.bicep' = if (!empty(remoteVnet
   ]
 }
 
+module monitoring 'modules/loganalytics.bicep' = if (provisionMonitoring) {
+  scope: resourceGroup(rg.name)
+  name: 'monitoringDeployment'
+  params: {
+    workspaceAccountName: applicationName
+    monitorAccountLocation: location
+  }
+}
+
 output aksName string = aksName
 output aksResourceGroup string = resourceGroupName
 output subnetId string = vnet.outputs.subnetId
+output appInsightsInstrumentationKey string = provisionMonitoring ? monitoring.outputs.instrumentationKey : ''

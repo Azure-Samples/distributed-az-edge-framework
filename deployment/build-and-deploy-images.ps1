@@ -14,7 +14,11 @@ Param(
     # leave empty if both workloads are deployed on single cluster L4
     [string]
     [Parameter(mandatory=$false)]
-    $L2ResourceGroupName
+    $L2ResourceGroupName,
+
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $SetupObservability = $true
 )
 
 if(!$env:RESOURCEGROUPNAME -and !$AppResourceGroupName)
@@ -56,6 +60,8 @@ Set-Location -Path $deploymentDir
 
 Write-Title("Upgrade/Install Pod/Containers with Helm charts in Cluster L4")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
+$observabilityString = ($SetupObservability -eq $true) ? "true" : "false"
+$samplingRate = ($SetupObservability -eq $true) ? "1" : "0" # in development we set to 1, in prod should be 0.0001 or similar, 0 turns off observability
 
 # ----- Get Cluster Credentials for L4 layer
 Write-Title("Get AKS Credentials L4 Layer")
@@ -68,6 +74,8 @@ az aks get-credentials `
 
 helm upgrade iot-edge-l4 ./helm/iot-edge-l4 `
     --set-string images.datagatewaymodule="$datagatewaymoduleimage" `
+    --set-string observability.samplingRate="$samplingRate" `
+    --set observability.enabled=$observabilityString `
     --namespace $appKubernetesNamespace `
     --reuse-values `
     --install
@@ -96,6 +104,8 @@ helm upgrade iot-edge-l2 ./helm/iot-edge-l2 `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
+    --set observability.enabled=$observabilityString `
+    --set-string observability.samplingRate="$samplingRate" `
     --reuse-values `
     --namespace $appKubernetesNamespace `
     --install

@@ -21,7 +21,15 @@ Param(
     $AksServicePrincipalName,
 
     [string]
-    $Location = 'westeurope'
+    $Location = 'westeurope',
+
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $SetupObservability = $true,
+
+    [Parameter(Mandatory = $false)]
+    [int]
+    $SamplingRate = 0
 )
 
 # Uncomment this if you are testing this script without deploy-az-dev-bootstrapper.ps1
@@ -72,6 +80,7 @@ az aks get-credentials `
     --resource-group $AksClusterResourceGroupName `
     --overwrite-existing
 
+$observabilityString = ($SetupObservability -eq $true) ? "true" : "false"
 # ----- Run Helm
 Write-Title("Install Pod/Containers with Helm in Cluster")
 $datagatewaymoduleimage = $acrName + ".azurecr.io/datagatewaymodule:" + $deploymentId
@@ -80,6 +89,8 @@ helm install iot-edge-l4 ./helm/iot-edge-l4 `
     --set-string dataGatewayModule.eventHubConnectionString="$eventHubConnectionString" `
     --set-string dataGatewayModule.storageAccountName="$storageName" `
     --set-string dataGatewayModule.storageAccountKey="$storageKey" `
+    --set-string observability.samplingRate="$SamplingRate" `
+    --set observability.enabled=$observabilityString `
     --namespace $appKubernetesNamespace `
     --create-namespace `
     --wait

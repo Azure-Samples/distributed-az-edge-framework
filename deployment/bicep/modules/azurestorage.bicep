@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 @minLength(3)
 @maxLength(24)
-@description('Azure Stroage Account name which is not already in use.')
+@description('Azure Storage Account name which is not already in use.')
 param storageAccountName string
 
 @description('Storage account location')

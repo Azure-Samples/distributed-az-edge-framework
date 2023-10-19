@@ -25,7 +25,15 @@ Param(
     $L4AppConfig = $null,
 
     [string]
-    $Location = 'westeurope'
+    $Location = 'westeurope',
+
+    [Parameter(Mandatory = $false)]
+    [bool]
+    $SetupObservability = $true,
+
+    [Parameter(Mandatory = $false)]
+    [int]
+    $SamplingRate = 0
 )
 
 # Uncomment this if you are testing this script without deploy-az-demo-bootstrapper.ps1
@@ -84,11 +92,15 @@ Write-Title("Install Pod/Containers with Helm in Cluster L2")
 $simtempimage = $acrName + ".azurecr.io/simulatedtemperaturesensormodule:" + $deploymentId
 $opcplcimage = "mcr.microsoft.com/iotedge/opc-plc:2.2.0"
 $opcpublisherimage = $acrName + ".azurecr.io/$staticBranchName/iotedge/opc-publisher:" + $deploymentId + "-linux-amd64"
+$observabilityString = ($SetupObservability -eq $true) ? "true" : "false"
+
 
 helm install iot-edge-l2 ./helm/iot-edge-l2 `
     --set-string images.simulatedtemperaturesensormodule="$simtempimage" `
     --set-string images.opcplcmodule="$opcplcimage" `
     --set-string images.opcpublishermodule="$opcpublisherimage" `
+    --set observability.enabled=$observabilityString `
+    --set-string observability.samplingRate="$SamplingRate" `
     --namespace $appKubernetesNamespace `
     --create-namespace `
     --wait

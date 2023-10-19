@@ -30,7 +30,7 @@ Apart from the above arrangement, the following system modules/pods are part of 
 
 This section describes the nested topology design implemented by this solution.
 
-![alt text](architecture/nested-topology-hld-envoy.png "Nested Toplogy")
+![alt text](architecture/nested-topology-hld.png "Nested Toplogy")
 
 At the core of the nested topology design, we have reverse proxies which broker the connections between each hypothetical ISA-95 level (Level 2,3,4 in this instance). These proxies prevent workloads and Arc agents running at lower levels from connecting to the outside world directly, allowing the traffic to be managed or controlled via proxy configuration at each level. Currently, data plane is traversing layers directly between brokers, and we are evaluating an improvement to force this communication to pass through the proxy transparently.
 Proxying of allowed URI calls from the lower L2 and L3 levels for the AKS host nodes (kubelet, containerd) is implemented using a DNS Server override in each lower Virtual Network.
@@ -67,6 +67,10 @@ Dapr building blocks enable the cross-cutting amd non functional features which 
 Workloads exchange messages locally on the same network layer and Kubernetes cluster by using a cluster deployed MQTT broker. As described above, Dapr is leveraged to interact with the broker without specific application-aware code to interact with the chosen PubSub mechanism.
 
 For more information about MQTT broker choice and comparison, please see [MQTT Broker for Data Communication Between Workloads and Between Network Layers](/docs/mqttbroker.md).
+
+### Monitoring and Observability
+
+Gathering diverse signals from sources such as operating systems, data components, custom workloads, and the Kubernetes platform itself, as well as analyzing these is discussed in a separate document [Observability for Distributed Edge](./docs/observability.md).
 
 ## Solution Deployment
 
