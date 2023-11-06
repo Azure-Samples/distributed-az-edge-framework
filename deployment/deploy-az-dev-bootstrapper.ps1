@@ -36,7 +36,7 @@ $Location = Get-AzShortRegion($Location)
 
 # 1. Deploy core infrastructure (AKS clusters, VNET)
 
-$l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $SetupArc -Location $Location -SetupObservability $SetupObservability
+$l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $null -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $SetupArc -Location $Location -SetupObservability $SetupObservability
 $l3LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l4LevelCoreInfra -ApplicationName ($ApplicationName + "L3") -VnetAddressPrefix "172.18.0.0/16" -SubnetAddressPrefix "172.18.0.0/18" -SetupArc $SetupArc -Location $Location -SetupObservability $SetupObservability
 $l2LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $l3LevelCoreInfra -ApplicationName ($ApplicationName + "L2") -VnetAddressPrefix "172.20.0.0/16" -SubnetAddressPrefix "172.20.0.0/18" -SetupArc $SetupArc -Location $Location -SetupObservability $SetupObservability
 
@@ -64,7 +64,7 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
 
 # # --- Deploying just a single layer: comment above block and uncomment below:
 
-# $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -Location $Location $SetupObservability
+# $l4LevelCoreInfra = ./deploy-core-infrastructure.ps1 -ParentConfig $null -ApplicationName ($ApplicationName + "L4") -VnetAddressPrefix "172.16.0.0/16" -SubnetAddressPrefix "172.16.0.0/18" -SetupArc $false -Location $Location $SetupObservability
 
 # ./deploy-core-platform.ps1 -AksClusterName $l4LevelCoreInfra.AksClusterName `
 #     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
@@ -74,14 +74,16 @@ $l4AppConfig = ./deploy-dev-app-l4.ps1 -ApplicationName $ApplicationName `
 #     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
 #     -AksClusterName $l4LevelCoreInfra.AksClusterName `
 #     -AksServicePrincipalName ($ApplicationName + "L4") `
-#     -Location $Location -SetupObservability $SetupObservability
+#     -Location $Location -SetupObservability $SetupObservability `
+#     -SamplingRate $samplingRate
 
 # # when deploying L2 workload on single cluster in L4, passing in parameters pointing to L4 is intentional
 # ./deploy-dev-app-l2.ps1  -ApplicationName $ApplicationName `
 #     -AksClusterName $l4LevelCoreInfra.AksClusterName `
 #     -AksClusterResourceGroupName $l4LevelCoreInfra.AksClusterResourceGroupName `
 #     -AksServicePrincipalName ($ApplicationName + "L4") `
-#     -L4AppConfig $l4AppConfig -SetupObservability $SetupObservability
+#     -L4AppConfig $l4AppConfig -SetupObservability $SetupObservability `
+#     -SamplingRate $samplingRate
 # #----------------
 
 $runningTime = New-TimeSpan -Start $startTime
@@ -90,4 +92,3 @@ Write-Title("Running time bootstrapper: " + $runningTime.ToString())
 Write-Title("Distributed Edge Accelerator is now deployed in Azure Resource Groups $ApplicationName + L2 to L4 and $ApplicationName-App.")
 Write-Title("Please use the Event Hub instance in the Resource Group $ApplicationName-App to view the OPC UA and Simulated Sensor telemetry.")
 Write-Title("Your kubectl current context is now set to the AKS cluster '$(kubectl config current-context)'.")
-
