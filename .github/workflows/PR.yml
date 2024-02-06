@@ -32,7 +32,7 @@ jobs:
     
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo main-pr-$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH"))
+      run: echo tag=$(echo main-pr-$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")) >> "$GITHUB_OUTPUT"
     - name: echo tag
       run: echo ${{steps.vars.outputs.tag}}
       

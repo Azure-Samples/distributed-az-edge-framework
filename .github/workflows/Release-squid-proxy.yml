@@ -23,7 +23,7 @@ jobs:
 
     - name: Get the version
       id: vars
-      run: echo ::set-output name=tag::$(echo main-${GITHUB_SHA})
+      run: echo tag=$(echo main-${GITHUB_SHA}) >> "$GITHUB_OUTPUT"
       
     - name: Echo Docker images tag
       run: echo ${{steps.vars.outputs.tag}}
