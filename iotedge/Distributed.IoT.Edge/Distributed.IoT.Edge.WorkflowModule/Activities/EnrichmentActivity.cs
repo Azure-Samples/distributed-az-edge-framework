@@ -2,9 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Dapr.Client;
     using Dapr.Workflow;
-    using Distributed.IoT.Edge.WorkflowModule;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
 

@@ -6,14 +6,13 @@
     using Dapr.Workflow;
     using Distributed.IoT.Edge.WorkflowModule;
     using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
 
     public class PublishActivity : WorkflowActivity<string, bool>
     {
         private readonly ILogger<PublishActivity> _logger;
         private readonly DaprClient _daprClient;
-        private readonly string _senderPubsubName;
-        private readonly string _senderPubsubTopicName;
+        private readonly string? _senderPubsubName;
+        private readonly string? _senderPubsubTopicName;
 
         public PublishActivity(
             ILogger<PublishActivity> logger,
@@ -28,14 +27,8 @@
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            _senderPubsubName = parameters.SenderPubSubName ??
-                                throw new ArgumentNullException(
-                                    nameof(parameters.SenderPubSubName),
-                                    "Parameter cannot be null.");
-            _senderPubsubTopicName = parameters.SenderPubSubTopicName ??
-                                     throw new ArgumentNullException(
-                                         nameof(parameters.SenderPubSubTopicName),
-                                         "Parameter cannot be null.");
+            _senderPubsubName = parameters.ReceiverPubSubName;
+            _senderPubsubTopicName = parameters.SenderPubSubTopicName;
 
             _logger.LogTrace($"Entering: {nameof(PublishActivity)}");
         }

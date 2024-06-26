@@ -1,15 +1,15 @@
 ﻿// Local run cmd line.
-// dapr run --app-id workflow-module --app-protocol grpc --app-port 5000 --resources-path=../../../deployment/helm/iot-edge-accelerator/templates/dapr -- dotnet run -- --receiverPubSubName "local-pub-sub" --receiverPubSubTopicName "telemetry" --senderPubSubName "local-pub-sub" --senderPubSubTopicName "enriched-telemetry"
+// dapr run --app-id workflow-module --app-protocol grpc --app-port 5002 --resources-path=./Components --dapr-grpc-port 5005 -- dotnet run -- --receiverPubSubName "local-pub-sub-2" --receiverPubSubTopicName "telemetry" --senderPubSubName "local-pub-sub" --senderPubSubTopicName "enriched-telemetry"
+// mosquitto_pub -h localhost -p 1883 -t telemetry -m '{"ambient":{"temperature":10}}'
+// mosquitto_sub -h localhost -p 1883 -t enriched-telemetry
+// dapr publish --publish-app-id workflow-module --pubsub local-pub-sub --topic telemetry --data '{"ambient":{"temperature":10}}' --metadata '{"rawPayload":"true"}'
 
-using System.Collections.Immutable;
 using CommandLine;
-using Dapr.Client;
 using Dapr.Workflow;
 using Distributed.IoT.Edge.WorkflowModule;
 using Distributed.IoT.Edge.WorkflowModule.Services;
 using Distributed.IoT.Edge.WorkflowModule.Workflows;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using WorkflowConsoleApp.Activities;
 
 // Environment.SetEnvironmentVariable("DAPR_GRPC_PORT", "50001");
@@ -31,12 +31,11 @@ var result = Parser.Default.ParseArguments<WorkflowParameters>(args)
         builder.Services.AddSingleton<WorkflowParameters>(sp => parameters);
 
         // Already registered by AddDaprWorkflow extension
-        builder.Services.AddSingleton<DaprClient>(new DaprClientBuilder().Build());
+        //builder.Services.AddSingleton<DaprClient>(new DaprClientBuilder().Build());
         builder.Services.AddTransient<SubscriptionService>(
             sp => new SubscriptionService(
                 sp.GetRequiredService<ILogger<SubscriptionService>>(),
-                sp.GetRequiredService<DaprClient>(),
-                sp.GetRequiredService<WorkflowEngineClient>(),
+                sp.GetRequiredService<DaprWorkflowClient>(),
                 parameters));
     })
     .WithNotParsed(errors =>
@@ -44,15 +43,15 @@ var result = Parser.Default.ParseArguments<WorkflowParameters>(args)
         Environment.Exit(1);
     });
 
-// builder.WebHost.ConfigureKestrel(k => k.ListenLocalhost(5001, op => op.Protocols =
-//    HttpProtocols.Http2));
+builder.WebHost.ConfigureKestrel(k => k.ListenLocalhost(5002, op => op.Protocols =
+   HttpProtocols.Http2));
 
 // Additional configuration is required to successfully run gRPC on macOS.
 // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
 builder.Services.AddGrpc();
 
 var app = builder.Build();
-
+app.UseRouting();
 // Configure the HTTP request pipeline.
 app.MapGrpcService<SubscriptionService>();
 

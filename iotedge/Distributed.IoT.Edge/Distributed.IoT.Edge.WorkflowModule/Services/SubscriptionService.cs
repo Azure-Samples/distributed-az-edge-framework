@@ -1,43 +1,33 @@
-using Dapr.AppCallback.Autogen.Grpc.v1;
-using Dapr.Client;
-using Dapr.Client.Autogen.Grpc.v1;
-using Dapr.Workflow;
-using Distributed.IoT.Edge.WorkflowModule.Workflows;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
-
 namespace Distributed.IoT.Edge.WorkflowModule.Services
 {
+    using Dapr.AppCallback.Autogen.Grpc.v1;
+    using Dapr.Workflow;
+    using Distributed.IoT.Edge.WorkflowModule.Workflows;
+    using Google.Protobuf.WellKnownTypes;
+    using Grpc.Core;
+
     public class SubscriptionService : AppCallback.AppCallbackBase
     {
         private readonly ILogger<SubscriptionService> _logger;
-        private readonly DaprClient _daprClient;
-        private readonly WorkflowEngineClient _workflowClient;
+        private readonly DaprWorkflowClient _workflowClient;
         private readonly string _receiverPubsubName;
         private readonly string _receiverPubsubTopicName;
 
         public SubscriptionService(
             ILogger<SubscriptionService> logger,
-            DaprClient daprClient,
-            WorkflowEngineClient workflowClient,
+            DaprWorkflowClient workflowClient,
             WorkflowParameters parameters)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _daprClient = daprClient ?? throw new ArgumentNullException(nameof(daprClient));
-            _workflowClient = workflowClient ?? throw new ArgumentNullException(nameof(workflowClient));
+            _workflowClient = workflowClient ?? throw new ArgumentNullException(nameof(workflowClient));            
             if (parameters == null)
             {
                 throw new ArgumentNullException(nameof(parameters));
             }
 
-            _receiverPubsubName = parameters.ReceiverPubSubName ??
-                                  throw new ArgumentNullException(
-                                      nameof(parameters.ReceiverPubSubName),
-                                      "Parameter cannot be null.");
-            _receiverPubsubTopicName = parameters.ReceiverPubSubTopicName ??
-                                       throw new ArgumentNullException(
-                                           nameof(parameters.ReceiverPubSubTopicName),
-                                           "Parameter cannot be null.");
+            _receiverPubsubName = parameters.ReceiverPubSubName;
+            _receiverPubsubTopicName = parameters.ReceiverPubSubTopicName;
+
         }
 
         public override Task<ListTopicSubscriptionsResponse> ListTopicSubscriptions(
@@ -68,20 +58,20 @@ namespace Distributed.IoT.Edge.WorkflowModule.Services
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var topicString = request.Data.ToStringUtf8();
-            _logger.LogTrace($"requestPath: {request.Path}");
+            var topicString = request.Extensions.ToString();
             _logger.LogTrace($"Sending event to workflow, object json: {topicString}");
 
+            var instanceId = Guid.NewGuid().ToString();
             // starting workflow to enrich and transform the data
             await _workflowClient.ScheduleNewWorkflowAsync(
                 name: nameof(EnrichTelemetryWorkflow),
-                instanceId: request.Id,
+                instanceId: instanceId,
                 input: topicString);
 
             // Wait a second to allow workflow to start
             await Task.Delay(TimeSpan.FromSeconds(1));
             WorkflowState state = await _workflowClient.GetWorkflowStateAsync(
-                instanceId: request.Id,
+                instanceId: instanceId,
                 getInputsAndOutputs: true);
 
             _logger.LogTrace($"Your workflow {request.Id} has started. Here is the status of the workflow: {state.RuntimeStatus}");
@@ -89,9 +79,9 @@ namespace Distributed.IoT.Edge.WorkflowModule.Services
             {
                 await Task.Delay(TimeSpan.FromSeconds(5));
                 state = await _workflowClient.GetWorkflowStateAsync(
-                    instanceId: request.Id,
+                    instanceId: instanceId,
                     getInputsAndOutputs: true);
-                _logger.LogTrace($"State of workflow {request.Id} is: {state.RuntimeStatus}");
+                _logger.LogTrace($"State of workflow {instanceId} is: {state.RuntimeStatus}");
             }
 
             // Depending on the status return dapr side will either retry or drop the message from underlying pubsub.

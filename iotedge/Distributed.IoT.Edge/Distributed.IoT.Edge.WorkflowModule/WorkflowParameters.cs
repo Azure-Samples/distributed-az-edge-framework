@@ -1,7 +1,7 @@
-﻿using CommandLine;
-
-namespace Distributed.IoT.Edge.WorkflowModule
+﻿namespace Distributed.IoT.Edge.WorkflowModule
 {
+    using CommandLine;
+
     public class WorkflowParameters
     {
         [Option(
